@@ -2,71 +2,63 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Calendario_Avvento</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendario dell'Avvento</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🎄 Calendario_Avvento</h1>
+  <h1>Calendario dell'Avvento</h1>
   <p>Un viaggio di 24 giorni di Meraviglia</p>
 
-  <div id="calendar">
-    <!-- Caselle generate via JS -->
-  </div>
+  <div class="calendar" id="calendar"></div>
 
- <!-- Modale per inserire contenuti -->
-<div id="modal" class="hidden">
-  <h2 id="modal-title"></h2>
-  <div id="editor" contenteditable="true" style="
-    border: 1px solid #ccc;
-    padding: 10px;
-    min-height: 120px;
-    background: #fff;
-    color: #000;
-    font-family: Georgia, serif;
-    font-size: 1em;
-    border-radius: 6px;
-    overflow-y: auto;
-  ">
-    Scrivi qui o incolla un'immagine, video o link...
+  <!-- Modale per inserire contenuti -->
+  <div id="modal" class="hidden">
+    <h2 id="modal-title"></h2>
+    <div id="editor" contenteditable="true">
+      Scrivi qui o incolla un'immagine, video o link...
+    </div>
+    <div class="buttons">
+      <button onclick="saveContent()">💾 Salva</button>
+      <button onclick="closeModal()">❌ Chiudi</button>
+    </div>
   </div>
-  <div class="buttons">
-    <button onclick="saveContent()">💾 Salva</button>
-    <button onclick="closeModal()">❌ Chiudi</button>
-  </div>
-</div>
-
 
   <script>
     const calendar = document.getElementById("calendar");
-
-    for (let i = 1; i <= 24; i++) {
-      const btn = document.createElement("button");
-      btn.className = "day";
-      btn.textContent = `Giorno ${i}`;
-      btn.onclick = () => openDay(i);
-      calendar.appendChild(btn);
-    }
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modal-title");
+    const editor = document.getElementById("editor");
 
     let currentDay = null;
 
+    // Genera i 24 giorni
+    for (let i = 1; i <= 24; i++) {
+      const day = document.createElement("button");
+      day.className = "day";
+      day.innerText = `Giorno ${i}`;
+      day.onclick = () => openDay(i);
+      calendar.appendChild(day);
+    }
+
     function openDay(day) {
       currentDay = day;
-      document.getElementById("modal-title").innerText = `Giorno ${day}`;
-      document.getElementById("content").value = localStorage.getItem(`day${day}`) || "";
-      document.getElementById("modal").classList.remove("hidden");
+      const saved = localStorage.getItem(`day${day}`);
+      modalTitle.innerText = `Giorno ${day}`;
+      editor.innerHTML = saved || "";
+      modal.classList.remove("hidden");
     }
 
     function saveContent() {
-      const text = document.getElementById("content").value;
-      localStorage.setItem(`day${currentDay}`, text);
+      const html = editor.innerHTML;
+      localStorage.setItem(`day${currentDay}`, html);
       alert("Contenuto salvato!");
       closeModal();
     }
 
     function closeModal() {
-      document.getElementById("modal").classList.add("hidden");
+      modal.classList.add("hidden");
     }
   </script>
 </body>
 </html>
-
