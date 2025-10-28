@@ -7,9 +7,10 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    
     <div class="header-container">
         <h1>Calendario dell'Avvento</h1>
-        <img src="albero_natale.png" alt="Logo Albero di Natale" id="logo">
+        <img src="albero_natale.jpeg" alt="Logo Albero di Natale" id="logo">
         <p>Un viaggio di 24 giorni di Meraviglia</p>
     </div>
 
@@ -19,6 +20,7 @@
     <div class="modal-overlay" id="modal">
         <div class="modal-content">
             <div id="contenutoVisuale"></div> 
+            
             <p>Scrivi qui o incolla un'immagine, video o link...</p>
             <div id="editor" contenteditable="true"></div>
             
@@ -36,6 +38,7 @@
         const contenutoVisuale = document.getElementById("contenutoVisuale");
         let currentDay = null;
 
+        // 1. Generazione dinamica dei 24 giorni
         for (let i = 1; i <= 24; i++) {
             const giorno = document.createElement("button");
             giorno.classList.add("pulsante");
@@ -43,21 +46,24 @@
             giorno.onclick = () => apriGiornata(i); 
             calendario.appendChild(giorno);
             
+            // Verifica se c'è contenuto salvato per marcare il pulsante
             const savedContent = localStorage.getItem(`giorno${i}`);
             if (savedContent && savedContent.trim() !== '') {
                 giorno.classList.add('contenutoSalvato');
             }
         }
 
+        // 2. Funzione per aprire il modale
         function apriGiornata(giorno) {
             currentDay = giorno;
             const savedContent = localStorage.getItem(`giorno${giorno}`);
             
             editor.innerText = savedContent || '';
-            modale.classList.add("mostra"); // Applica la classe 'mostra' al modal-overlay
+            modale.classList.add("mostra");
             visualizzaContenuto(savedContent); 
         }
 
+        // 3. Funzione per l'anteprima del contenuto
         function visualizzaContenuto(content) {
             contenutoVisuale.innerHTML = '';
             if (!content || content.trim() === '') return;
@@ -65,27 +71,33 @@
             const trimmedContent = content.trim();
 
             if (trimmedContent.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                // Se è un link ad immagine
                 contenutoVisuale.innerHTML = `<img src="${trimmedContent}" alt="Contenuto immagine">`;
             } else if (trimmedContent.includes("youtube.com") || trimmedContent.includes("youtu.be")) {
+                // Se è un link YouTube
                 contenutoVisuale.innerHTML = `<iframe width="100%" height="200px" src="https://www.youtube.com/embed/${getYoutubeVideoId(trimmedContent)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } else if (trimmedContent.match(/^https?:\/\//i)) {
+                // Se è un link generico
                 contenutoVisuale.innerHTML = `<a href="${trimmedContent}" target="_blank">Apri Link</a>`;
             } else {
+                // Se è solo testo
                 contenutoVisuale.innerHTML = `<p>${trimmedContent}</p>`;
             }
         }
 
-        // Funzione helper per estrarre l'ID del video YouTube
+        // 4. Funzione helper per estrarre l'ID del video YouTube
         function getYoutubeVideoId(url) {
             const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|[^#]*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
             const match = url.match(regex);
             return (match && match[1]) ? match[1] : null;
         }
 
+        // 5. Funzione per salvare il contenuto
         function salvaContenuto() {
             const content = editor.innerText;
             localStorage.setItem(`giorno${currentDay}`, content);
             
+            // Aggiorna la classe CSS sul pulsante salvato
             const buttons = calendario.querySelectorAll('.pulsante');
             const savedButton = buttons[currentDay - 1];
             if (content.trim() !== '') {
@@ -97,6 +109,7 @@
             chiudiModale();
         }
 
+        // 6. Funzione per chiudere il modale
         function chiudiModale() {
             modale.classList.remove("mostra");
             contenutoVisuale.innerHTML = ''; 
