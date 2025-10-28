@@ -1,10 +1,15 @@
 body {
   font-family: 'Georgia', serif;
-  background: linear-gradient(to bottom, #f0f8ff, #ffffff);
-  color: #333;
+  background-image: url('./albero_natale.jpeg'); /* usa il nome del file caricato */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  color: #fff; /* testo bianco per leggibilità */
   text-align: center;
   padding: 20px;
 }
+
 
 h1 {
   font-size: 2.5em;
