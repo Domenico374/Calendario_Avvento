@@ -1,67 +1,111 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calendario dell'Avvento</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario dell'Avvento</title>
+    <link rel="stylesheet" href="style.css">
+    <div class="sfondo"></div>
 </head>
 <body>
-  <h1>Calendario dell'Avvento</h1>
-  <img src="albero_natale.jpeg" alt="Logo Albero di Natale" id="logo">
-  <p>Un viaggio di 24 giorni di Meraviglia</p>
-
-  <div class="calendar" id="calendar"></div>
-
-  <!-- Modale per inserire contenuti -->
-  <div id="modal" class="hidden">
-    <div class="modal-box">
-      <h2 id="modal-title"></h2>
-      <div id="editor" contenteditable="true">
-        Scrivi qui o incolla un'immagine, video o link...
-      </div>
-      <div class="buttons">
-        <button onclick="saveContent()">💾 Salva</button>
-        <button onclick="closeModal()">❌ Chiudi</button>
-      </div>
+    <div class="testa">
+        <h1>Calendario dell'Avvento</h1>
+        <img src="albero_natale.png" alt="Logo Albero di Natale" id="logo">
+        <p>Un viaggio di 24 giorni di Meraviglia</p>
     </div>
-  </div>
 
-  <script>
-    const calendar = document.getElementById("calendar");
-    const modal = document.getElementById("modal");
-    const modalTitle = document.getElementById("modal-title");
-    const editor = document.getElementById("editor");
+    <div class="calendario" id="modal">
+        <div class="finestra_modale">
+            <div id="contenutoVisuale"></div> 
+            
+            <p>Scrivi qui o incolla un'immagine, video o link...</p>
+            <div id="editor" contenteditable="true"></div>
+            
+            <div class="azioni">
+                <button class="bottone" onclick="salvaContenuto()">💾 Salva</button>
+                <button class="bottone_chiusura" onclick="chiudiModale()">❌ Chiudi</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="calendario_box" id="calendario">
+        </div>
 
-    let currentDay = null;
+    <script>
+        const calendario = document.getElementById("calendario");
+        const modale = document.getElementById("modal");
+        const editor = document.getElementById("editor");
+        const contenutoVisuale = document.getElementById("contenutoVisuale"); // Aggiunto
+        let currentDay = null;
 
-    // Genera i 24 giorni
-    for (let i = 1; i <= 24; i++) {
-      const day = document.createElement("button");
-      day.className = "day";
-      day.innerText = `Giorno ${i}`;
-      day.onclick = () => openDay(i);
-      calendar.appendChild(day);
-    }
+        // Genera i 24 giorni
+        for (let i = 1; i <= 24; i++) {
+            const giorno = document.createElement("button");
+            giorno.classList.add("pulsante");
+            giorno.innerText = `Giorno ${i}`;
+            // Usa una funzione anonima per passare il parametro
+            giorno.onclick = () => apriGiornata(i); 
+            calendario.appendChild(giorno);
+            // MODIFICA 3.1: Controlla subito se c'è contenuto e visualizza un segnale (ad esempio un punto)
+            const savedContent = localStorage.getItem(`giorno${i}`);
+            if (savedContent && savedContent.trim() !== '') {
+                giorno.classList.add('contenutoSalvato');
+            }
+        }
 
-    function openDay(day) {
-      currentDay = day;
-      const saved = localStorage.getItem(`day${day}`);
-      modalTitle.innerText = `Giorno ${day}`;
-      editor.innerHTML = saved || "";
-      modal.classList.remove("hidden");
-    }
+        function apriGiornata(giorno) {
+            currentDay = giorno;
+            const savedContent = localStorage.getItem(`giorno${giorno}`);
+            
+            editor.innerText = savedContent || '';
+            modale.classList.add("mostra");
 
-    function saveContent() {
-      const html = editor.innerHTML;
-      localStorage.setItem(`day${currentDay}`, html);
-      alert("Contenuto salvato!");
-      closeModal();
-    }
+            // MODIFICA 3.2: Mostra il contenuto se è un link ad un'immagine/video
+            visualizzaContenuto(savedContent); 
+        }
 
-    function closeModal() {
-      modal.classList.add("hidden");
-    }
-  </script>
+        function visualizzaContenuto(content) {
+            contenutoVisuale.innerHTML = ''; // Pulisce
+            if (!content || content.trim() === '') return;
+
+            const trimmedContent = content.trim();
+
+            if (trimmedContent.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                // Se è un'immagine
+                contenutoVisuale.innerHTML = `<img src="${trimmedContent}" alt="Contenuto immagine">`;
+            } else if (trimmedContent.includes("youtube.com") || trimmedContent.includes("youtu.be")) {
+                // Se è un video di YouTube (richiederebbe codice embedding più complesso)
+                contenutoVisuale.innerHTML = `<p>Video Link: ${trimmedContent}</p>`;
+            } else if (trimmedContent.match(/^https?:\/\//i)) {
+                // Se è un link generico
+                contenutoVisuale.innerHTML = `<a href="${trimmedContent}" target="_blank">Apri Link</a>`;
+            } else {
+                // Se è solo testo
+                contenutoVisuale.innerHTML = `<p>${trimmedContent}</p>`;
+            }
+        }
+
+        function salvaContenuto() {
+            const content = editor.innerText;
+            localStorage.setItem(`giorno${currentDay}`, content);
+            
+            // Aggiorna la classe sul pulsante salvato
+            const buttons = calendario.querySelectorAll('.pulsante');
+            const savedButton = buttons[currentDay - 1];
+            if (content.trim() !== '') {
+                savedButton.classList.add('contenutoSalvato');
+            } else {
+                savedButton.classList.remove('contenutoSalvato');
+            }
+
+            chiudiModale();
+        }
+
+        function chiudiModale() {
+            modale.classList.remove("mostra");
+            // Pulisce l'anteprima visuale quando si chiude
+            contenutoVisuale.innerHTML = ''; 
+        }
+    </script>
 </body>
 </html>
