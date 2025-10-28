@@ -5,48 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario dell'Avvento</title>
     <link rel="stylesheet" href="style.css">
-    <div class="sfondo"></div>
 </head>
 <body>
-    <div class="testa">
+    <div class="header-container">
         <h1>Calendario dell'Avvento</h1>
         <img src="albero_natale.png" alt="Logo Albero di Natale" id="logo">
         <p>Un viaggio di 24 giorni di Meraviglia</p>
     </div>
 
-    <div class="calendario" id="modal">
-        <div class="finestra_modale">
+    <div class="calendario-grid-container" id="calendario">
+        </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
             <div id="contenutoVisuale"></div> 
-            
             <p>Scrivi qui o incolla un'immagine, video o link...</p>
             <div id="editor" contenteditable="true"></div>
             
             <div class="azioni">
                 <button class="bottone" onclick="salvaContenuto()">💾 Salva</button>
-                <button class="bottone_chiusura" onclick="chiudiModale()">❌ Chiudi</button>
+                <button class="bottone-chiusura" onclick="chiudiModale()">❌ Chiudi</button>
             </div>
         </div>
     </div>
     
-    <div class="calendario_box" id="calendario">
-        </div>
-
     <script>
         const calendario = document.getElementById("calendario");
         const modale = document.getElementById("modal");
         const editor = document.getElementById("editor");
-        const contenutoVisuale = document.getElementById("contenutoVisuale"); // Aggiunto
+        const contenutoVisuale = document.getElementById("contenutoVisuale");
         let currentDay = null;
 
-        // Genera i 24 giorni
         for (let i = 1; i <= 24; i++) {
             const giorno = document.createElement("button");
             giorno.classList.add("pulsante");
             giorno.innerText = `Giorno ${i}`;
-            // Usa una funzione anonima per passare il parametro
             giorno.onclick = () => apriGiornata(i); 
             calendario.appendChild(giorno);
-            // MODIFICA 3.1: Controlla subito se c'è contenuto e visualizza un segnale (ad esempio un punto)
+            
             const savedContent = localStorage.getItem(`giorno${i}`);
             if (savedContent && savedContent.trim() !== '') {
                 giorno.classList.add('contenutoSalvato');
@@ -58,38 +54,38 @@
             const savedContent = localStorage.getItem(`giorno${giorno}`);
             
             editor.innerText = savedContent || '';
-            modale.classList.add("mostra");
-
-            // MODIFICA 3.2: Mostra il contenuto se è un link ad un'immagine/video
+            modale.classList.add("mostra"); // Applica la classe 'mostra' al modal-overlay
             visualizzaContenuto(savedContent); 
         }
 
         function visualizzaContenuto(content) {
-            contenutoVisuale.innerHTML = ''; // Pulisce
+            contenutoVisuale.innerHTML = '';
             if (!content || content.trim() === '') return;
 
             const trimmedContent = content.trim();
 
             if (trimmedContent.match(/\.(jpeg|jpg|gif|png)$/i)) {
-                // Se è un'immagine
                 contenutoVisuale.innerHTML = `<img src="${trimmedContent}" alt="Contenuto immagine">`;
             } else if (trimmedContent.includes("youtube.com") || trimmedContent.includes("youtu.be")) {
-                // Se è un video di YouTube (richiederebbe codice embedding più complesso)
-                contenutoVisuale.innerHTML = `<p>Video Link: ${trimmedContent}</p>`;
+                contenutoVisuale.innerHTML = `<iframe width="100%" height="200px" src="https://www.youtube.com/embed/${getYoutubeVideoId(trimmedContent)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } else if (trimmedContent.match(/^https?:\/\//i)) {
-                // Se è un link generico
                 contenutoVisuale.innerHTML = `<a href="${trimmedContent}" target="_blank">Apri Link</a>`;
             } else {
-                // Se è solo testo
                 contenutoVisuale.innerHTML = `<p>${trimmedContent}</p>`;
             }
+        }
+
+        // Funzione helper per estrarre l'ID del video YouTube
+        function getYoutubeVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|[^#]*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(regex);
+            return (match && match[1]) ? match[1] : null;
         }
 
         function salvaContenuto() {
             const content = editor.innerText;
             localStorage.setItem(`giorno${currentDay}`, content);
             
-            // Aggiorna la classe sul pulsante salvato
             const buttons = calendario.querySelectorAll('.pulsante');
             const savedButton = buttons[currentDay - 1];
             if (content.trim() !== '') {
@@ -103,7 +99,6 @@
 
         function chiudiModale() {
             modale.classList.remove("mostra");
-            // Pulisce l'anteprima visuale quando si chiude
             contenutoVisuale.innerHTML = ''; 
         }
     </script>
