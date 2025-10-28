@@ -1,7 +1,7 @@
-/* Sfondo e stile generale */
+/* Stile generale */
 body {
   font-family: 'Georgia', serif;
-  background-image: url('./immagini/sfondo_natale.jpg'); /* aggiorna se necessario */
+  background-image: url('./immagini/sfondo_natale.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
