@@ -13,15 +13,28 @@
     <!-- Caselle generate via JS -->
   </div>
 
-  <!-- Modale per inserire contenuti -->
-  <div id="modal" class="hidden">
-    <h2 id="modal-title"></h2>
-    <textarea id="content" placeholder="Scrivi un messaggio, incolla un link o descrivi un contenuto..."></textarea>
-    <div class="buttons">
-      <button onclick="saveContent()">💾 Salva</button>
-      <button onclick="closeModal()">❌ Chiudi</button>
-    </div>
+ <!-- Modale per inserire contenuti -->
+<div id="modal" class="hidden">
+  <h2 id="modal-title"></h2>
+  <div id="editor" contenteditable="true" style="
+    border: 1px solid #ccc;
+    padding: 10px;
+    min-height: 120px;
+    background: #fff;
+    color: #000;
+    font-family: Georgia, serif;
+    font-size: 1em;
+    border-radius: 6px;
+    overflow-y: auto;
+  ">
+    Scrivi qui o incolla un'immagine, video o link...
   </div>
+  <div class="buttons">
+    <button onclick="saveContent()">💾 Salva</button>
+    <button onclick="closeModal()">❌ Chiudi</button>
+  </div>
+</div>
+
 
   <script>
     const calendar = document.getElementById("calendar");
