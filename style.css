@@ -65,15 +65,19 @@ p {
   display: none;
 }
 
-#modal h2 {
-  color: #fff;
-  margin-bottom: 10px;
+.modal-box {
+  background-color: #fff;
+  color: #000;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
 }
 
 /* Editor HTML */
 #editor {
   width: 100%;
-  max-width: 500px;
   min-height: 120px;
   padding: 10px;
   font-family: 'Georgia', serif;
