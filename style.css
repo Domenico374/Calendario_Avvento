@@ -6,12 +6,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh; /* Assicura che il body occupi l'intera altezza dello schermo */
-    overflow-x: hidden; /* Evita scroll orizzontale non desiderato */
-    position: relative; /* Necessario per lo z-index dello sfondo */
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
 }
 
-/* Sfondo del Body (come nella tua foto) */
+/* Sfondo del Body (sfondo natalizio) */
 body::before {
     content: '';
     position: fixed;
@@ -19,11 +19,12 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('albero_natale.png'); /* Assicurati che il percorso sia corretto */
+    /* CORREZIONE: Uso l'estensione .jpeg per l'immagine di sfondo */
+    background-image: url('albero_natale.jpeg');
     background-size: cover;
     background-position: center;
-    filter: brightness(0.7) blur(1px); /* Rendi lo sfondo leggermente scuro e sfocato */
-    z-index: -1; /* Metti lo sfondo dietro a tutto */
+    filter: brightness(0.7) blur(1px);
+    z-index: -1;
 }
 
 /* Stili Header */
@@ -31,69 +32,70 @@ body::before {
     text-align: center;
     margin-top: 20px;
     padding: 10px 20px;
-    background-color: rgba(255, 255, 255, 0.7); /* Sfondo semi-trasparente per l'header */
+    background-color: rgba(255, 255, 255, 0.7);
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    color: #8B0000; /* Rosso scuro per il testo */
-    z-index: 1; /* Assicura che l'header sia sopra lo sfondo */
+    color: #8B0000;
+    z-index: 1;
 }
 
 .header-container h1 {
-    font-family: 'Brush Script MT', cursive; /* O un font natalizio simile */
+    font-family: 'Brush Script MT', cursive;
     font-size: 2.5em;
-    color: #B22222; /* Rosso più brillante */
+    color: #B22222;
     text-shadow: 2px 2px 3px rgba(0,0,0,0.3);
     margin-bottom: 5px;
 }
 
 #logo {
-    width: 80px; /* Dimensione del logo */
+    width: 80px;
     height: auto;
     margin-bottom: 10px;
 }
 
 .header-container p {
     font-size: 1.1em;
-    color: #4CAF50; /* Verde per il testo descrittivo */
+    color: #4CAF50;
     font-style: italic;
 }
-
 
 /* Contenitore Griglia del Calendario */
 .calendario-grid-container {
     display: grid;
-    grid-template-columns: repeat(6, 1fr); /* 6 colonne uguali */
-    gap: 15px; /* Spazio tra i pulsanti */
+    /* Imposta 6 colonne uguali per la griglia */
+    grid-template-columns: repeat(6, 1fr);
+    gap: 15px;
     padding: 20px;
-    width: 95%; /* Larghezza quasi piena */
-    max-width: 960px; /* Max larghezza per desktop */
-    margin: 30px auto; /* Centra con margine superiore e inferiore */
-    background-color: rgba(255, 255, 255, 0.4); /* Sfondo semi-trasparente per la griglia */
+    width: 95%;
+    max-width: 960px;
+    margin: 30px auto;
+    background-color: rgba(255, 255, 255, 0.4);
     border-radius: 15px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    z-index: 1; /* Assicura che il calendario sia sopra lo sfondo */
+    z-index: 1;
 }
 
 /* Stile dei Pulsanti (Giorni) */
 .pulsante {
-    background-color: #fff; /* Bianco */
-    color: #D32F2F; /* Rosso Natale */
-    border: 2px solid #FFD700; /* Oro */
+    background-color: #fff;
+    color: #D32F2F;
+    border: 2px solid #FFD700;
     border-radius: 8px;
-    padding: 20px 0; /* Padding verticale */
+    padding: 20px 0;
     font-size: 1.2em;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex; /* Centra il testo */
+    display: flex;
     justify-content: center;
     align-items: center;
-    aspect-ratio: 1 / 1; /* Mantiene i pulsanti quadrati */
+    /* Rende il pulsante quadrato */
+    aspect-ratio: 1 / 1;
 }
 
 .pulsante:hover {
-    background-color: #FFD700; /* Oro al passaggio del mouse */
+    background-color: #FFD700;
     color: #fff;
     transform: translateY(-3px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -101,15 +103,15 @@ body::before {
 
 /* Indicatore per i giorni con contenuto salvato */
 .pulsante.contenutoSalvato {
-    border-color: #4CAF50; /* Bordo verde */
-    background-color: #E8F5E9; /* Sfondo verde chiaro */
-    color: #388E3C; /* Testo verde scuro */
+    border-color: #4CAF50;
+    background-color: #E8F5E9;
+    color: #388E3C;
     position: relative;
-    overflow: hidden; /* Per il potenziale badge */
+    overflow: hidden;
 }
 
 .pulsante.contenutoSalvato::after {
-    content: '⭐'; /* O '🎁' per un regalo */
+    content: '⭐';
     position: absolute;
     top: -5px;
     right: -5px;
@@ -121,20 +123,20 @@ body::before {
 
 /* Modale Overlay (Sfondo scuro quando il popup è aperto) */
 .modal-overlay {
-    display: none; /* Nascosto di default */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Sfondo semi-trasparente scuro */
+    background-color: rgba(0, 0, 0, 0.7);
     justify-content: center;
     align-items: center;
-    z-index: 100; /* Assicura che sia sopra tutto il resto */
+    z-index: 100;
 }
 
 .modal-overlay.mostra {
-    display: flex; /* Mostra il modale quando la classe 'mostra' è attiva */
+    display: flex;
 }
 
 /* Contenuto del Modale */
@@ -146,26 +148,8 @@ body::before {
     max-width: 700px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     text-align: center;
-    position: relative;
-    max-height: 90vh; /* Limita l'altezza del modale */
-    overflow-y: auto; /* Aggiunge scroll se il contenuto è troppo lungo */
-}
-
-.modal-content p {
-    margin-top: 15px;
-    color: #555;
-    font-size: 1.1em;
-}
-
-#editor {
-    border: 1px solid #ccc;
-    min-height: 100px;
-    padding: 10px;
-    margin: 20px auto;
-    text-align: left;
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    overflow-y: auto; /* Per il contenuto modificabile */
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 /* Contenuto Visuale (per immagini/video nel modale) */
@@ -180,36 +164,36 @@ body::before {
     overflow: hidden;
     background-color: #eee;
     border-radius: 8px;
-    flex-direction: column; /* Per allineare meglio testo e media */
+    flex-direction: column;
     gap: 10px;
 }
 
 #contenutoVisuale img {
     max-width: 100%;
-    max-height: 250px; /* Limita l'altezza delle immagini */
+    max-height: 250px;
     height: auto;
     border-radius: 6px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
-#contenutoVisuale iframe {
-    max-width: 100%;
-    border-radius: 6px;
+/* Stili per l'area di input e i pulsanti */
+#editor {
+    border: 1px solid #ccc;
+    min-height: 100px;
+    padding: 10px;
+    margin: 20px auto;
+    text-align: left;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    overflow-y: auto;
 }
 
-#contenutoVisuale a {
-    color: #1a73e8;
-    text-decoration: underline;
-    font-weight: bold;
-}
-
-/* Pulsanti Salva/Chiudi del Modale */
 .azioni {
     margin-top: 25px;
 }
 
 .bottone, .bottone-chiusura {
-    background-color: #4CAF50; /* Verde */
+    background-color: #4CAF50;
     color: white;
     border: none;
     padding: 12px 25px;
@@ -220,66 +204,19 @@ body::before {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.bottone:hover {
-    background-color: #45a049;
-    transform: translateY(-2px);
-}
-
 .bottone-chiusura {
-    background-color: #f44336; /* Rosso */
+    background-color: #f44336;
 }
 
-.bottone-chiusura:hover {
-    background-color: #da190b;
-    transform: translateY(-2px);
-}
-
-/* Media Queries per la Responsiveness (adatta a schermi più piccoli) */
+/* Media Queries per la Responsiveness */
 @media (max-width: 768px) {
     .calendario-grid-container {
-        grid-template-columns: repeat(4, 1fr); /* 4 colonne su tablet */
-        gap: 10px;
-        padding: 15px;
-    }
-
-    .pulsante {
-        font-size: 1em;
-        padding: 15px 0;
-    }
-
-    .modal-content {
-        width: 95%;
-        padding: 20px;
-    }
-
-    .header-container h1 {
-        font-size: 2em;
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
 @media (max-width: 480px) {
     .calendario-grid-container {
-        grid-template-columns: repeat(3, 1fr); /* 3 colonne su smartphone */
-        gap: 8px;
-        padding: 10px;
-    }
-
-    .pulsante {
-        font-size: 0.9em;
-        padding: 10px 0;
-    }
-
-    .header-container h1 {
-        font-size: 1.8em;
-    }
-
-    .header-container p {
-        font-size: 0.9em;
-    }
-
-    .bottone, .bottone-chiusura {
-        padding: 10px 15px;
-        font-size: 1em;
-        margin: 0 5px;
+        grid-template-columns: repeat(3, 1fr);
     }
 }
