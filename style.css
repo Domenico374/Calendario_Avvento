@@ -1,7 +1,7 @@
-/* Stile generale */
+/* Sfondo e stile generale */
 body {
   font-family: 'Georgia', serif;
-  background-image: url('./immagini/sfondo_natale.jpg'); /* aggiorna il percorso se necessario */
+  background-image: url('./immagini/sfondo_natale.jpg'); /* aggiorna se necessario */
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -27,7 +27,7 @@ p {
 /* Calendario */
 .calendar {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
   max-width: 800px;
   margin: 0 auto;
@@ -65,14 +65,9 @@ p {
   display: none;
 }
 
-#modal .buttons {
-  margin-top: 15px;
-}
-
-#modal-title {
-  font-size: 1.5em;
-  margin-bottom: 10px;
+#modal h2 {
   color: #fff;
+  margin-bottom: 10px;
 }
 
 /* Editor HTML */
@@ -80,7 +75,6 @@ p {
   width: 100%;
   max-width: 500px;
   min-height: 120px;
-  margin: 0 auto;
   padding: 10px;
   font-family: 'Georgia', serif;
   font-size: 1em;
@@ -92,6 +86,11 @@ p {
 }
 
 /* Bottoni */
+.buttons {
+  margin-top: 15px;
+  text-align: center;
+}
+
 button {
   background-color: #2a7ae2;
   color: white;
