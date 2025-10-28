@@ -24,6 +24,15 @@ p {
   color: #eee;
 }
 
+/* Logo */
+#logo {
+  max-width: 150px;
+  margin: 20px auto;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
 /* Calendario */
 .calendar {
   display: grid;
