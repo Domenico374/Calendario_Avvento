@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario_Avvento</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🎄 Calendario_Avvento</h1>
+  <p>Un viaggio di 24 giorni di Meraviglia</p>
+
+  <div id="calendar">
+    <!-- Caselle generate via JS -->
+  </div>
+
+  <!-- Modale per inserire contenuti -->
+  <div id="modal" class="hidden">
+    <h2 id="modal-title"></h2>
+    <textarea id="content" placeholder="Scrivi un messaggio, incolla un link o descrivi un contenuto..."></textarea>
+    <div class="buttons">
+      <button onclick="saveContent()">💾 Salva</button>
+      <button onclick="closeModal()">❌ Chiudi</button>
+    </div>
+  </div>
+
+  <script>
+    const calendar = document.getElementById("calendar");
+
+    for (let i = 1; i <= 24; i++) {
+      const btn = document.createElement("button");
+      btn.className = "day";
+      btn.textContent = `Giorno ${i}`;
+      btn.onclick = () => openDay(i);
+      calendar.appendChild(btn);
+    }
+
+    let currentDay = null;
+
+    function openDay(day) {
+      currentDay = day;
+      document.getElementById("modal-title").innerText = `Giorno ${day}`;
+      document.getElementById("content").value = localStorage.getItem(`day${day}`) || "";
+      document.getElementById("modal").classList.remove("hidden");
+    }
+
+    function saveContent() {
+      const text = document.getElementById("content").value;
+      localStorage.setItem(`day${currentDay}`, text);
+      alert("Contenuto salvato!");
+      closeModal();
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
+
