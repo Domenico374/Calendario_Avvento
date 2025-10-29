@@ -37,6 +37,19 @@
             </div>
         </div>
 
+        <!-- Controllo Spazio -->
+        <div class="controllo-spazio" style="margin: 15px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.9em;">💾 Spazio: <strong id="spazioUtilizzato">0MB</strong></span>
+                <button onclick="controllaSpazioDisponibile()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer;">
+                    Controlla
+                </button>
+                <button onclick="pulisciSpazio()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer;">
+                    Pulisci Tutto
+                </button>
+            </div>
+        </div>
+
         <!-- Selezione Tipo Contenuto -->
         <div class="selezione-tipo">
             <h4>Scegli il tipo di contenuto:</h4>
@@ -159,6 +172,9 @@
         const savedContent = localStorage.getItem(`giorno${giorno}`);
         visualizzaContenuto(savedContent);
         
+        // Aggiorna spazio utilizzato
+        aggiornaSpazioUtilizzato();
+        
         modale.classList.add("mostra");
     }
 
@@ -191,7 +207,7 @@
                         <h4>📸 Carica Foto</h4>
                         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                             <p>📁 Clicca qui per selezionare un'immagine</p>
-                            <small>Formati: JPG, PNG, GIF (max 1MB)</small>
+                            <small>Formati: JPG, PNG, GIF (max 5MB)</small>
                         </div>
                         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaFile" style="margin-top: 15px;"></div>
@@ -241,7 +257,7 @@
                         <h4>🎤 Messaggio Vocale</h4>
                         <div class="upload-area" onclick="document.getElementById('fileAudioVocale').click()">
                             <p>🎙️ Carica file audio</p>
-                            <small>Formati: MP3, WAV, M4A (max 5MB)</small>
+                            <small>Formati: MP3, WAV, M4A (max 10MB)</small>
                         </div>
                         <input type="file" id="fileAudioVocale" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaAudio" style="margin-top: 15px;"></div>
@@ -261,7 +277,7 @@
                         <h4>${tipo === 'audio' ? '🎵 File Audio' : '🎶 Brano Musicale'}</h4>
                         <div class="upload-area" onclick="document.getElementById('fileAudio${tipo}').click()">
                             <p>📁 Carica file audio</p>
-                            <small>Formati: MP3, WAV, OGG (max 5MB)</small>
+                            <small>Formati: MP3, WAV, OGG (max 10MB)</small>
                         </div>
                         <input type="file" id="fileAudio${tipo}" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaAudio${tipo}" style="margin-top: 15px;"></div>
@@ -280,7 +296,7 @@
                         <h4>🎥 Carica Video</h4>
                         <div class="upload-area" onclick="document.getElementById('fileVideo').click()">
                             <p>📁 Carica file video</p>
-                            <small>Formati: MP4, WebM (max 10MB)</small>
+                            <small>Formati: MP4, WebM (max 20MB)</small>
                         </div>
                         <input type="file" id="fileVideo" accept="video/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaVideo" style="margin-top: 15px;"></div>
@@ -304,12 +320,12 @@
             const file = input.files[0];
             currentFile = file;
             
-            // Controllo dimensione
-            let maxSize = 1024 * 1024; // 1MB default
+            // LIMITI AUMENTATI
+            let maxSize = 5 * 1024 * 1024; // 5MB per immagini
             if (currentTipo === 'audio' || currentTipo === 'musica' || currentTipo === 'messaggio-vocale') {
-                maxSize = 5 * 1024 * 1024; // 5MB
+                maxSize = 10 * 1024 * 1024; // 10MB per audio
             } else if (currentTipo === 'video') {
-                maxSize = 10 * 1024 * 1024; // 10MB
+                maxSize = 20 * 1024 * 1024; // 20MB per video
             }
             
             if (file.size > maxSize) {
@@ -317,6 +333,16 @@
                 input.value = '';
                 currentFile = null;
                 return;
+            }
+            
+            // Avviso per file grandi
+            if (file.size > 2 * 1024 * 1024) {
+                const conferma = confirm(`⚠️ Questo file è grande (${(file.size/1024/1024).toFixed(1)}MB).\n\nIl salvataggio potrebbe essere lento e occupare molto spazio.\nVuoi continuare?`);
+                if (!conferma) {
+                    input.value = '';
+                    currentFile = null;
+                    return;
+                }
             }
             
             // Anteprima
@@ -329,7 +355,8 @@
                     anteprimaHTML = `
                         <div style="text-align: center; padding: 10px; background: #e8f5e8; border-radius: 8px;">
                             <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
-                            <p style="margin: 5px 0; color: #2e7d32;">✅ ${file.name} (${(file.size/1024).toFixed(1)}KB)</p>
+                            <p style="margin: 5px 0; color: #2e7d32;">✅ ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
+                            ${file.size > 2 * 1024 * 1024 ? '<p style="color: #ff9800; font-size: 0.9em;">⚠️ File di grandi dimensioni</p>' : ''}
                         </div>
                     `;
                 } else if (currentTipo === 'video') {
@@ -339,15 +366,17 @@
                                 <source src="${e.target.result}" type="${file.type}">
                             </video>
                             <p style="margin: 5px 0; color: #1565c0;">🎥 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
+                            ${file.size > 5 * 1024 * 1024 ? '<p style="color: #ff9800; font-size: 0.9em;">⚠️ File di grandi dimensioni</p>' : ''}
                         </div>
                     `;
                 } else {
                     anteprimaHTML = `
                         <div style="text-align: center; padding: 10px; background: #f3e5f5; border-radius: 8px;">
-                            <p style="margin: 5px 0; color: #7b1fa2;">🎵 ${file.name} (${(file.size/1024).toFixed(1)}KB)</p>
+                            <p style="margin: 5px 0; color: #7b1fa2;">🎵 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
                             <audio controls style="width: 100%; margin: 5px 0;">
                                 <source src="${e.target.result}" type="${file.type}">
                             </audio>
+                            ${file.size > 5 * 1024 * 1024 ? '<p style="color: #ff9800; font-size: 0.9em;">⚠️ File di grandi dimensioni</p>' : ''}
                         </div>
                     `;
                 }
@@ -373,7 +402,7 @@
         document.getElementById('testoMessaggio').value = esempio;
     }
 
-    // 8. Salva contenuto - VERSIONE FUNZIONANTE
+    // 8. Salva contenuto
     async function salvaContenuto() {
         if (!currentDay) {
             alert('❌ Nessun giorno selezionato!');
@@ -472,12 +501,17 @@
             // Aggiorna interfaccia
             aggiornaStatoPulsante(currentDay);
             visualizzaContenuto(contentString);
+            aggiornaSpazioUtilizzato();
             
             alert(`✅ ${getTipoNome(currentTipo)} salvato per il Giorno ${currentDay}!`);
             
         } catch (error) {
             console.error('Errore salvataggio:', error);
-            alert('❌ Errore nel salvataggio: ' + error.message);
+            if (error.name === 'QuotaExceededError') {
+                alert('❌ Spazio di archiviazione pieno! Elimina qualche contenuto o usa file più piccoli.');
+            } else {
+                alert('❌ Errore nel salvataggio: ' + error.message);
+            }
         }
     }
 
@@ -505,7 +539,7 @@
         return nomi[tipo] || 'Contenuto';
     }
 
-    // 9. Visualizza contenuto - VERSIONE FUNZIONANTE
+    // 9. Visualizza contenuto
     function visualizzaContenuto(content) {
         if (!content) {
             contenutoVisuale.innerHTML = '<p class="nessun-contenuto">Nessun contenuto per questo giorno</p>';
@@ -576,7 +610,7 @@
                     if (contentData.valore.startsWith('data:')) {
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
-                                <h4>${currentTipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
+                                <h4>${contentData.tipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
                                 <audio controls style="width: 100%; margin: 15px 0; border-radius: 8px;">
                                     <source src="${contentData.valore}" type="audio/mpeg">
                                     Il tuo browser non supporta l'audio.
@@ -587,7 +621,7 @@
                     } else {
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
-                                <h4>${currentTipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
+                                <h4>${contentData.tipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
                                 <audio controls style="width: 100%; margin: 15px 0; border-radius: 8px;">
                                     <source src="${contentData.valore}" type="audio/mpeg">
                                 </audio>
@@ -679,6 +713,7 @@
             currentTipo = null;
             currentFile = null;
             debugTipo.textContent = '-';
+            aggiornaSpazioUtilizzato();
             alert(`🗑️ Contenuto eliminato!`);
         }
     }
@@ -693,7 +728,47 @@
         }
     }
 
-    // 13. Chiudi modale
+    // 13. Controllo spazio disponibile
+    function controllaSpazioDisponibile() {
+        let totale = 0;
+        for (let i = 1; i <= 24; i++) {
+            const content = localStorage.getItem(`giorno${i}`);
+            if (content) {
+                totale += new Blob([content]).size;
+            }
+        }
+        
+        const totaleMB = (totale / (1024 * 1024)).toFixed(1);
+        const limiteMB = 50;
+        
+        console.log(`Spazio utilizzato: ${totaleMB}MB / ${limiteMB}MB`);
+        
+        if (totaleMB > limiteMB * 0.8) {
+            alert(`⚠️ Attenzione: stai usando ${totaleMB}MB di spazio.\n\nPotresti raggiungere presto il limite massimo.`);
+        }
+        
+        return totaleMB;
+    }
+
+    // 14. Aggiorna display spazio
+    function aggiornaSpazioUtilizzato() {
+        const spazioMB = controllaSpazioDisponibile();
+        document.getElementById('spazioUtilizzato').textContent = `${spazioMB}MB`;
+    }
+
+    // 15. Pulisci spazio
+    function pulisciSpazio() {
+        if (confirm('Vuoi eliminare TUTTI i contenuti del calendario?\nQuesta azione non può essere annullata.')) {
+            for (let i = 1; i <= 24; i++) {
+                localStorage.removeItem(`giorno${i}`);
+            }
+            generaCalendario();
+            aggiornaSpazioUtilizzato();
+            alert('🗑️ Tutti i contenuti sono stati eliminati!');
+        }
+    }
+
+    // 16. Chiudi modale
     function chiudiModale() {
         modale.classList.remove("mostra");
         currentDay = null;
@@ -701,24 +776,8 @@
         currentFile = null;
     }
 
-    // 14. Inizializzazione
+    // 17. Inizializzazione
     document.addEventListener('DOMContentLoaded', function() {
         generaCalendario();
         
-        // Chiudi modal cliccando fuori
-        modale.addEventListener('click', function(e) {
-            if (e.target === modale) chiudiModale();
-        });
-        
-        // Tasto ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') chiudiModale();
-        });
-        
-        console.log("🎄 Calendario dell'Avvento inizializzato!");
-    });
-
-</script>
-
-</body>
-</html>
+        //
