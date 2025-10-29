@@ -25,12 +25,15 @@
         </div> 
         
         <div class="editor-container">
-            <p><strong>Scrivi qui il tuo contenuto:</strong></p>
+            <p><strong>Aggiungi il tuo contenuto:</strong></p>
             <div class="azioni-rapide">
-                <button type="button" onclick="incollaDaAppunti()">📋 Incolla immagine</button>
                 <button type="button" onclick="inserisciTestoEsempio()">📝 Testo esempio</button>
+                <button type="button" onclick="mostraAiutoImmagini()">🖼️ Aiuto immagini</button>
             </div>
-            <div id="editor" contenteditable="true" placeholder="Scrivi qui il tuo messaggio, incolla un link o un'immagine..."></div>
+            <div id="editor" contenteditable="true" placeholder="Scrivi qui il tuo messaggio, incolla un link YouTube, o un link immagine..."></div>
+            <div class="suggerimenti">
+                <p><small>💡 <strong>Suggerimenti:</strong> Incolla direttamente link YouTube o link immagini. Per immagini, usa servizi come Imgur.com</small></p>
+            </div>
         </div>
         
         <div class="azioni">
@@ -39,8 +42,34 @@
             <button class="bottone-chiusura" onclick="chiudiModale()">❌ Chiudi</button>
         </div>
         
-        <div class="debug-info" style="margin-top: 15px; font-size: 0.8em; color: #888;">
-            Giorno selezionato: <span id="debugDay">-</span>
+        <div class="debug-info" style="margin-top: 15px; font-size: 0.8em; color: #888; text-align: center;">
+            Giorno: <span id="debugDay">-</span> | 
+            Caratteri: <span id="contatoreCaratteri">0</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Aiuto Immagini -->
+<div class="modal-overlay" id="modalAiuto">
+    <div class="modal-content" style="max-width: 500px;">
+        <h3>🖼️ Come aggiungere immagini</h3>
+        <div style="text-align: left; line-height: 1.6;">
+            <p><strong>Metodo consigliato:</strong></p>
+            <ol>
+                <li>Vai su <a href="https://imgur.com/upload" target="_blank">imgur.com/upload</a></li>
+                <li>Carica la tua immagine</li>
+                <li>Copia il <strong>link diretto</strong> (che finisce con .jpg, .png)</li>
+                <li>Incolla il link nel calendario</li>
+                <li>Salva!</li>
+            </ol>
+            <p><strong>Link esempio:</strong></p>
+            <code style="background: #f5f5f5; padding: 5px; border-radius: 3px; display: block; margin: 10px 0;">
+                https://i.imgur.com/abc123.jpg
+            </code>
+            <p><small>❌ <strong>Non incollare</strong> immagini direttamente (Ctrl+V) - usano troppo spazio!</small></p>
+        </div>
+        <div class="azioni" style="margin-top: 20px;">
+            <button class="bottone-chiusura" onclick="chiudiAiuto()">Chiudi</button>
         </div>
     </div>
 </div>
@@ -48,10 +77,12 @@
 <script>
     const calendario = document.getElementById("calendario");
     const modale = document.getElementById("modal");
+    const modalAiuto = document.getElementById("modalAiuto");
     const editor = document.getElementById("editor");
     const contenutoVisuale = document.getElementById("contenutoVisuale");
     const titoloGiorno = document.getElementById("titoloGiorno");
     const debugDay = document.getElementById("debugDay");
+    const contatoreCaratteri = document.getElementById("contatoreCaratteri");
     let currentDay = null;
 
     // 1. Generazione dinamica dei 24 giorni
@@ -65,7 +96,6 @@
             giorno.onclick = () => apriGiornata(i); 
             calendario.appendChild(giorno);
             
-            // Verifica se c'è contenuto salvato per marcare il pulsante
             aggiornaStatoPulsante(i);
         }
     }
@@ -93,18 +123,16 @@
         const savedContent = localStorage.getItem(`giorno${giorno}`);
         console.log("Contenuto salvato:", savedContent);
         
-        // Pulisci e prepara l'editor
         editor.innerHTML = '';
         
-        // Carica il contenuto salvato se esiste
         if (savedContent && savedContent.trim() !== '' && savedContent !== '<br>') {
             editor.innerHTML = savedContent;
         }
         
+        aggiornaContatore();
         modale.classList.add("mostra");
         visualizzaContenuto(savedContent);
         
-        // Focus sull'editor
         setTimeout(() => {
             editor.focus();
         }, 100);
@@ -120,9 +148,8 @@
         }
 
         const trimmedContent = content.trim();
-        console.log("Visualizzazione contenuto:", trimmedContent);
 
-        // Se è HTML complesso
+        // Se è HTML con immagini o link
         if (trimmedContent.includes('<img') || trimmedContent.includes('<a href') || trimmedContent.includes('<iframe')) {
             contenutoVisuale.innerHTML = trimmedContent;
         }
@@ -130,8 +157,10 @@
         else if (trimmedContent.match(/\.(jpeg|jpg|gif|png|webp|bmp)$/i)) {
             contenutoVisuale.innerHTML = `
                 <div style="text-align: center;">
-                    <img src="${trimmedContent}" alt="Immagine" style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                    <p style="margin-top: 10px; color: #666;">Immagine: ${trimmedContent}</p>
+                    <img src="${trimmedContent}" alt="Immagine" 
+                         style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"
+                         onerror="this.style.display='none'; this.parentNode.innerHTML='<p style=\\'color: red;\\'>❌ Immagine non trovata</p>'">
+                    <p style="margin-top: 10px; color: #666;">🖼️ Immagine caricata</p>
                 </div>
             `;
         }
@@ -143,12 +172,13 @@
                     <div style="text-align: center;">
                         <iframe width="100%" height="250" src="https://www.youtube.com/embed/${videoId}" 
                                 frameborder="0" allowfullscreen style="border-radius: 10px;"></iframe>
-                        <p style="margin-top: 10px; color: #666;">Video YouTube</p>
+                        <p style="margin-top: 10px; color: #666;">🎥 Video YouTube</p>
                     </div>
                 `;
             } else {
                 contenutoVisuale.innerHTML = `
-                    <a href="${trimmedContent}" target="_blank" style="display: inline-block; padding: 15px 25px; background: #ff4444; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                    <a href="${trimmedContent}" target="_blank" 
+                       style="display: inline-block; padding: 15px 25px; background: #ff4444; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
                         🎥 Guarda su YouTube
                     </a>
                 `;
@@ -157,8 +187,9 @@
         // Se è un link generico
         else if (trimmedContent.match(/^https?:\/\//i)) {
             contenutoVisuale.innerHTML = `
-                <a href="${trimmedContent}" target="_blank" style="display: inline-block; padding: 15px 25px; background: #4CAF50; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    🔗 Apri Link
+                <a href="${trimmedContent}" target="_blank" 
+                   style="display: inline-block; padding: 15px 25px; background: #4CAF50; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                    🔗 Apri Link Esterno
                 </a>
                 <p style="margin-top: 10px; color: #666; word-break: break-all;">${trimmedContent}</p>
             `;
@@ -180,14 +211,13 @@
         return (match && match[1]) ? match[1] : null;
     }
 
-    // 6. FUNZIONE SALVA CONTENUTO - VERSIONE CORRETTA
+    // 6. FUNZIONE SALVA CONTENUTO - SEMPLIFICATA
     function salvaContenuto() {
         if (!currentDay) {
             alert('❌ Nessun giorno selezionato!');
             return;
         }
 
-        // Ottieni il contenuto dall'editor
         let content = editor.innerHTML.trim();
         
         // Se vuoto, prova con innerText
@@ -195,23 +225,25 @@
             content = editor.innerText.trim();
         }
         
-        console.log("Tentativo salvataggio giorno", currentDay, "contenuto:", content);
+        console.log("Salvataggio giorno", currentDay, "contenuto:", content);
 
-        // Salva nel localStorage
-        localStorage.setItem(`giorno${currentDay}`, content);
-        
-        // Aggiorna l'interfaccia
-        aggiornaStatoPulsante(currentDay);
-        visualizzaContenuto(content);
-        
-        // Messaggio di conferma
-        if (content && content !== '<br>') {
-            alert(`✅ Contenuto salvato per il Giorno ${currentDay}!`);
-        } else {
-            alert(`ℹ️ Contenuto vuoto salvato per il Giorno ${currentDay}`);
+        try {
+            localStorage.setItem(`giorno${currentDay}`, content);
+            aggiornaStatoPulsante(currentDay);
+            visualizzaContenuto(content);
+            
+            if (content && content !== '<br>') {
+                alert(`✅ Contenuto salvato per il Giorno ${currentDay}!`);
+            } else {
+                alert(`ℹ️ Contenuto vuoto salvato per il Giorno ${currentDay}`);
+            }
+            
+        } catch (error) {
+            console.error("Errore salvataggio:", error);
+            if (error.name === 'QuotaExceededError') {
+                alert('❌ Spazio di archiviazione pieno!\n\nElimina qualche contenuto o usa link invece di immagini grandi.');
+            }
         }
-        
-        console.log("Salvataggio completato per giorno", currentDay);
     }
 
     // 7. Funzione per eliminare il contenuto
@@ -226,49 +258,38 @@
             editor.innerHTML = '';
             aggiornaStatoPulsante(currentDay);
             visualizzaContenuto('');
+            aggiornaContatore();
             alert(`🗑️ Contenuto del Giorno ${currentDay} eliminato!`);
         }
     }
 
-    // 8. Funzione per incollare immagini
-    async function incollaDaAppunti() {
-        try {
-            const clipboardItems = await navigator.clipboard.read();
-            for (const item of clipboardItems) {
-                for (const type of item.types) {
-                    if (type.startsWith('image/')) {
-                        const blob = await item.getType(type);
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.style.maxWidth = '100%';
-                            img.style.borderRadius = '8px';
-                            editor.appendChild(img);
-                        };
-                        reader.readAsDataURL(blob);
-                        return;
-                    }
-                }
-            }
-            alert('📋 Nessuna immagine trovata negli appunti. Copia prima un\'immagine (Ctrl+C).');
-        } catch (err) {
-            console.error('Errore incollando:', err);
-            alert('📝 Incolla normalmente con Ctrl+V');
-        }
-    }
-
-    // 9. Funzione per inserire testo esempio
+    // 8. Funzione per inserire testo esempio
     function inserisciTestoEsempio() {
         const esempi = [
             "🎄 Buon Natale! 🎅",
             "🌟 Che la magia del Natale riempia il tuo cuore di gioia!",
             "❄️ Auguri meravigliosi per te e la tua famiglia!",
             "🎁 Il miglior regalo è stare insieme!",
-            "🕯️ Che questa stagione porti pace e felicità!"
+            "🕯️ Che questa stagione porti pace e felicità!",
+            "✨ Che il tuo Natale sia luminoso e speciale!"
         ];
         const esempioCasuale = esempi[Math.floor(Math.random() * esempi.length)];
-        editor.innerHTML += `<p>${esempioCasuale}</p>`;
+        
+        if (editor.innerHTML.trim() === '' || editor.innerHTML === '<br>') {
+            editor.innerHTML = esempioCasuale;
+        } else {
+            editor.innerHTML += '<br><br>' + esempioCasuale;
+        }
+        aggiornaContatore();
+    }
+
+    // 9. Funzione per mostrare aiuto immagini
+    function mostraAiutoImmagini() {
+        modalAiuto.classList.add("mostra");
+    }
+
+    function chiudiAiuto() {
+        modalAiuto.classList.remove("mostra");
     }
 
     // 10. Funzione per chiudere il modale
@@ -278,42 +299,78 @@
         debugDay.textContent = '-';
     }
 
-    // 11. Chiudi il modal cliccando fuori
+    // 11. Aggiorna contatore caratteri
+    function aggiornaContatore() {
+        const text = editor.innerText || editor.textContent;
+        contatoreCaratteri.textContent = text.length;
+    }
+
+    // 12. Event listeners
     modale.addEventListener('click', function(e) {
         if (e.target === modale) {
             chiudiModale();
         }
     });
 
-    // 12. Gestione tasto ESC per chiudere
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modale.classList.contains('mostra')) {
-            chiudiModale();
+    modalAiuto.addEventListener('click', function(e) {
+        if (e.target === modalAiuto) {
+            chiudiAiuto();
         }
     });
 
-    // 13. Inizializzazione
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (modale.classList.contains('mostra')) chiudiModale();
+            if (modalAiuto.classList.contains('mostra')) chiudiAiuto();
+        }
+    });
+
+    editor.addEventListener('input', aggiornaContatore);
+
+    // 13. Gestione incolla - converte immagini in testo
+    editor.addEventListener('paste', function(e) {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        
+        for (let item of items) {
+            if (item.type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = item.getAsFile();
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const dataUrl = event.target.result;
+                    // Invece di inserire l'immagine, mostra avviso
+                    const warning = document.createElement('div');
+                    warning.style.background = '#fff3cd';
+                    warning.style.padding = '10px';
+                    warning.style.borderRadius = '5px';
+                    warning.style.border = '1px solid #ffeaa7';
+                    warning.style.margin = '10px 0';
+                    warning.innerHTML = '🖼️ <strong>Immagine rilevata</strong><br>' +
+                                      'Per salvare immagini, usa il metodo con link esterni. ' +
+                                      '<button onclick="mostraAiutoImmagini()" style="background: #007bff; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer; margin-left: 10px;">Aiuto</button>';
+                    
+                    if (editor.innerHTML.trim() === '' || editor.innerHTML === '<br>') {
+                        editor.innerHTML = '';
+                    }
+                    editor.appendChild(warning);
+                    aggiornaContatore();
+                };
+                
+                reader.readAsDataURL(blob);
+                return;
+            }
+        }
+        // Se non è un'immagine, permetti l'incolla normale
+        setTimeout(aggiornaContatore, 0);
+    });
+
+    // 14. Inizializzazione
     document.addEventListener('DOMContentLoaded', function() {
         generaCalendario();
         console.log("Calendario dell'Avvento inizializzato!");
-        
-        // Debug: mostra tutti i contenuti salvati
-        console.log("=== CONTENUTI SALVATI ===");
-        for (let i = 1; i <= 24; i++) {
-            const content = localStorage.getItem(`giorno${i}`);
-            if (content) {
-                console.log(`Giorno ${i}:`, content.substring(0, 50) + '...');
-            }
-        }
     });
 
-    // 14. Utility per il debug
-    function debugSalvataggio() {
-        console.log("=== DEBUG SALVATAGGIO ===");
-        console.log("Giorno corrente:", currentDay);
-        console.log("Contenuto editor:", editor.innerHTML);
-        console.log("LocalStorage check:", localStorage.getItem(`giorno${currentDay}`));
-    }
 </script>
 
 </body>
