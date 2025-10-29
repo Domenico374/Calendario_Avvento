@@ -38,7 +38,7 @@
         </div>
 
         <!-- Controllo Spazio -->
-        <div class="controllo-spazio" style="margin: 15px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
+        <div class="controllo-spazio">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 0.9em;">💾 Spazio: <strong id="spazioUtilizzato">0MB</strong></span>
                 <button onclick="controllaSpazioDisponibile()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer;">
@@ -109,7 +109,6 @@
     // Variabili globali
     const calendario = document.getElementById("calendario");
     const modale = document.getElementById("modal");
-    const anteprimaContenuto = document.getElementById("anteprimaContenuto");
     const contenutoVisuale = document.getElementById("contenutoVisuale");
     const editorDinamico = document.getElementById("editorDinamico");
     const editorContainer = document.getElementById("editorContainer");
@@ -211,10 +210,9 @@
                         </div>
                         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaFile" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo" style="margin-top: 15px;">
+                        <div class="link-alternativo">
                             <p>🔗 Oppure incolla link immagine:</p>
-                            <input type="text" id="linkFoto" placeholder="https://esempio.com/foto.jpg" 
-                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                            <input type="text" id="linkFoto" placeholder="https://esempio.com/foto.jpg">
                         </div>
                     </div>
                 `;
@@ -224,10 +222,9 @@
                 html = `
                     <div class="editor-tipo">
                         <h4>💬 Scrivi Messaggio</h4>
-                        <textarea id="testoMessaggio" placeholder="Scrivi il tuo messaggio speciale..." 
-                                  style="width: 100%; height: 150px; padding: 15px; border: 2px solid #4CAF50; border-radius: 8px; resize: vertical; font-size: 1em;"></textarea>
+                        <textarea id="testoMessaggio" placeholder="Scrivi il tuo messaggio speciale..."></textarea>
                         <div class="suggerimenti-testo">
-                            <button type="button" onclick="inserisciTestoEsempio()" style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">
+                            <button type="button" onclick="inserisciTestoEsempio()">
                                 🎄 Inserisci testo esempio
                             </button>
                         </div>
@@ -239,9 +236,8 @@
                 html = `
                     <div class="editor-tipo">
                         <h4>▶️ Link YouTube</h4>
-                        <input type="text" id="linkYouTube" placeholder="Incolla qui il link di YouTube..." 
-                               style="width: 100%; padding: 12px; border: 2px solid #ff4444; border-radius: 8px; font-size: 1em;">
-                        <div class="esempi-link" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                        <input type="text" id="linkYouTube" placeholder="Incolla qui il link di YouTube...">
+                        <div class="esempi-link">
                             <small>📋 Esempi: 
                                 <br>• https://youtube.com/watch?v=CODICE
                                 <br>• https://youtu.be/CODICE
@@ -261,10 +257,9 @@
                         </div>
                         <input type="file" id="fileAudioVocale" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaAudio" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo" style="margin-top: 15px;">
+                        <div class="link-alternativo">
                             <p>🔗 Oppure incolla link audio:</p>
-                            <input type="text" id="linkAudioVocale" placeholder="https://esempio.com/audio.mp3" 
-                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                            <input type="text" id="linkAudioVocale" placeholder="https://esempio.com/audio.mp3">
                         </div>
                     </div>
                 `;
@@ -281,10 +276,9 @@
                         </div>
                         <input type="file" id="fileAudio${tipo}" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaAudio${tipo}" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo" style="margin-top: 15px;">
+                        <div class="link-alternativo">
                             <p>🔗 Oppure incolla link audio:</p>
-                            <input type="text" id="linkAudio${tipo}" placeholder="https://esempio.com/audio.mp3" 
-                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                            <input type="text" id="linkAudio${tipo}" placeholder="https://esempio.com/audio.mp3">
                         </div>
                     </div>
                 `;
@@ -300,10 +294,9 @@
                         </div>
                         <input type="file" id="fileVideo" accept="video/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
                         <div id="anteprimaVideo" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo" style="margin-top: 15px;">
+                        <div class="link-alternativo">
                             <p>🔗 Oppure incolla link video:</p>
-                            <input type="text" id="linkVideo" placeholder="https://esempio.com/video.mp4" 
-                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                            <input type="text" id="linkVideo" placeholder="https://esempio.com/video.mp4">
                         </div>
                     </div>
                 `;
@@ -353,30 +346,30 @@
                 
                 if (currentTipo === 'foto') {
                     anteprimaHTML = `
-                        <div style="text-align: center; padding: 10px; background: #e8f5e8; border-radius: 8px;">
-                            <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
-                            <p style="margin: 5px 0; color: #2e7d32;">✅ ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
-                            ${file.size > 2 * 1024 * 1024 ? '<p style="color: #ff9800; font-size: 0.9em;">⚠️ File di grandi dimensioni</p>' : ''}
+                        <div class="anteprima-contenuto">
+                            <img src="${e.target.result}">
+                            <p>✅ ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
+                            ${file.size > 2 * 1024 * 1024 ? '<p class="avviso-grande">⚠️ File di grandi dimensioni</p>' : ''}
                         </div>
                     `;
                 } else if (currentTipo === 'video') {
                     anteprimaHTML = `
-                        <div style="text-align: center; padding: 10px; background: #e3f2fd; border-radius: 8px;">
-                            <video controls style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                        <div class="anteprima-contenuto">
+                            <video controls>
                                 <source src="${e.target.result}" type="${file.type}">
                             </video>
-                            <p style="margin: 5px 0; color: #1565c0;">🎥 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
-                            ${file.size > 5 * 1024 * 1024 ? '<p style="color: #ff9800; font-size: 0.9em;">⚠️ File di grandi dimensioni</p>' : ''}
+                            <p>🎥 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
+                            ${file.size > 5 * 1024 * 1024 ? '<p class="avviso-grande">⚠️ File di grandi dimensioni</p>' : ''}
                         </div>
                     `;
                 } else {
                     anteprimaHTML = `
-                        <div style="text-align: center; padding: 10px; background: #f3e5f5; border-radius: 8px;">
-                            <p style="margin: 5px 0; color: #7b1fa2;">🎵 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
-                            <audio controls style="width: 100%; margin: 5px 0;">
+                        <div class="anteprima-contenuto">
+                            <p>🎵 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
+                            <audio controls>
                                 <source src="${e.target.result}" type="${file.type}">
                             </audio>
-                            ${file.size > 5 * 1024 * 1024 ? '<p style="color: #ff9800; font-size: 0.9em;">⚠️ File di grandi dimensioni</p>' : ''}
+                            ${file.size > 5 * 1024 * 1024 ? '<p class="avviso-grande">⚠️ File di grandi dimensioni</p>' : ''}
                         </div>
                     `;
                 }
@@ -556,9 +549,8 @@
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
                                 <h4>📸 Foto Caricata</h4>
-                                <img src="${contentData.valore}" 
-                                     style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #4CAF50;">
-                                <p style="margin-top: 10px; color: #666; font-size: 0.9em;">${contentData.extra || 'Immagine salvata'}</p>
+                                <img src="${contentData.valore}">
+                                <p>${contentData.extra || 'Immagine salvata'}</p>
                             </div>
                         `;
                     } else {
@@ -566,12 +558,8 @@
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
                                 <h4>📸 Foto da Link</h4>
-                                <img src="${contentData.valore}" 
-                                     style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #2196F3;"
-                                     onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\\'text-align:center; padding:20px;\\'><p style=\\'color:red;\\'>❌ Immagine non caricabile</p><a href=\\'${contentData.valore}\\' target=\\'_blank\\' style=\\'color:#2196F3;\\'>Apri link originale</a></div>'">
-                                <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
-                                    <a href="${contentData.valore}" target="_blank" style="color: #2196F3;">🔗 Apri link originale</a>
-                                </p>
+                                <img src="${contentData.valore}" onerror="this.style.display='none'; this.parentNode.innerHTML='<p style=\\'color:red;\\'>❌ Immagine non caricabile</p><a href=\\'${contentData.valore}\\' target=\\'_blank\\'>Apri link originale</a>'">
+                                <p><a href="${contentData.valore}" target="_blank">🔗 Apri link originale</a></p>
                             </div>
                         `;
                     }
@@ -594,12 +582,9 @@
                                     src="https://www.youtube.com/embed/${contentData.valore}" 
                                     frameborder="0" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                    allowfullscreen 
-                                    style="border-radius: 10px; border: 3px solid #ff4444;">
+                                    allowfullscreen>
                             </iframe>
-                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
-                                <a href="${contentData.extra}" target="_blank" style="color: #ff4444;">🔗 Apri su YouTube</a>
-                            </p>
+                            <p><a href="${contentData.extra}" target="_blank">🔗 Apri su YouTube</a></p>
                         </div>
                     `;
                     break;
@@ -611,23 +596,20 @@
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
                                 <h4>${contentData.tipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
-                                <audio controls style="width: 100%; margin: 15px 0; border-radius: 8px;">
+                                <audio controls>
                                     <source src="${contentData.valore}" type="audio/mpeg">
-                                    Il tuo browser non supporta l'audio.
                                 </audio>
-                                <p style="color: #666; font-size: 0.9em;">${contentData.extra || 'File audio'}</p>
+                                <p>${contentData.extra || 'File audio'}</p>
                             </div>
                         `;
                     } else {
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
                                 <h4>${contentData.tipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
-                                <audio controls style="width: 100%; margin: 15px 0; border-radius: 8px;">
+                                <audio controls>
                                     <source src="${contentData.valore}" type="audio/mpeg">
                                 </audio>
-                                <p style="color: #666; font-size: 0.9em;">
-                                    <a href="${contentData.valore}" target="_blank" style="color: #2196F3;">🔗 Apri link originale</a>
-                                </p>
+                                <p><a href="${contentData.valore}" target="_blank">🔗 Apri link originale</a></p>
                             </div>
                         `;
                     }
@@ -638,23 +620,20 @@
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
                                 <h4>🎥 Video</h4>
-                                <video controls style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #9c27b0;">
+                                <video controls>
                                     <source src="${contentData.valore}" type="video/mp4">
-                                    Il tuo browser non supporta il video.
                                 </video>
-                                <p style="color: #666; font-size: 0.9em;">${contentData.extra || 'File video'}</p>
+                                <p>${contentData.extra || 'File video'}</p>
                             </div>
                         `;
                     } else {
                         contenutoVisuale.innerHTML = `
                             <div class="anteprima-tipo">
                                 <h4>🎥 Video</h4>
-                                <video controls style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #9c27b0;">
+                                <video controls>
                                     <source src="${contentData.valore}" type="video/mp4">
                                 </video>
-                                <p style="color: #666; font-size: 0.9em;">
-                                    <a href="${contentData.valore}" target="_blank" style="color: #2196F3;">🔗 Apri link originale</a>
-                                </p>
+                                <p><a href="${contentData.valore}" target="_blank">🔗 Apri link originale</a></p>
                             </div>
                         `;
                     }
@@ -774,3 +753,25 @@
         currentDay = null;
         currentTipo = null;
         currentFile = null;
+    }
+
+    // 17. Inizializzazione
+    document.addEventListener('DOMContentLoaded', function() {
+        generaCalendario();
+        
+        // Chiudi modal cliccando fuori
+        modale.addEventListener('click', function(e) {
+            if (e.target === modale) chiudiModale();
+        });
+        
+        // Tasto ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') chiudiModale();
+        });
+        
+        console.log("🎄 Calendario dell'Avvento inizializzato!");
+    });
+</script>
+
+</body>
+</html>
