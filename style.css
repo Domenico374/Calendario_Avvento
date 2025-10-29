@@ -11,7 +11,6 @@ body {
     position: relative;
 }
 
-/* Sfondo del Body (sfondo natalizio) */
 body::before {
     content: '';
     position: fixed;
@@ -26,7 +25,7 @@ body::before {
     z-index: -1;
 }
 
-/* Stili Header */
+/* Header */
 .header-container {
     text-align: center;
     margin-top: 20px;
@@ -37,7 +36,6 @@ body::before {
     color: #8B0000;
     z-index: 1;
     border: 2px solid #FFD700;
-    backdrop-filter: blur(10px);
 }
 
 .header-container h1 {
@@ -46,16 +44,6 @@ body::before {
     color: #B22222;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     margin-bottom: 5px;
-    background: linear-gradient(45deg, #B22222, #8B0000);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-#logo {
-    width: 80px;
-    height: auto;
-    margin-bottom: 10px;
 }
 
 .header-container p {
@@ -63,108 +51,77 @@ body::before {
     color: #2E8B57;
     font-style: italic;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
 }
 
-/* Contenitore Griglia del Calendario */
+/* Griglia Calendario */
 .calendario-grid-container {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 15px;
-    padding: 25px;
+    gap: 12px;
+    padding: 20px;
     width: 95%;
     max-width: 1000px;
-    margin: 30px auto;
+    margin: 20px auto;
     background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,248,225,0.8) 100%);
-    border-radius: 20px;
+    border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    z-index: 1;
     border: 3px solid #B22222;
-    backdrop-filter: blur(5px);
 }
 
-/* Stile dei Pulsanti (Giorni) */
+/* Pulsanti Giorni */
 .pulsante {
     background: linear-gradient(145deg, #ffffff, #f0f0f0);
     color: #D32F2F;
-    border: 3px solid #FFD700;
-    border-radius: 12px;
-    padding: 20px 0;
-    font-size: 1.3em;
+    border: 2px solid #FFD700;
+    border-radius: 10px;
+    padding: 15px 5px;
+    font-size: 1em;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     aspect-ratio: 1 / 1;
     position: relative;
-    overflow: hidden;
-}
-
-.pulsante::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    transition: left 0.5s;
 }
 
 .pulsante:hover {
     background: linear-gradient(145deg, #FFD700, #FFEC8B);
-    color: #B22222;
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
-    border-color: #B22222;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
 }
 
-.pulsante:hover::before {
-    left: 100%;
-}
-
-.pulsante:active {
-    transform: translateY(-2px) scale(1.02);
-    transition: all 0.1s ease;
-}
-
-/* Indicatore per i giorni con contenuto salvato */
 .pulsante.contenutoSalvato {
     border-color: #4CAF50;
     background: linear-gradient(145deg, #E8F5E9, #C8E6C9);
-    color: #2E7D32;
-    border-width: 4px;
     animation: pulse 2s infinite;
 }
 
 .pulsante.contenutoSalvato::after {
     content: '⭐';
     position: absolute;
-    top: -8px;
-    right: -8px;
-    font-size: 1.8em;
-    line-height: 1;
+    top: -5px;
+    right: -5px;
+    font-size: 1.2em;
     transform: rotate(15deg);
-    opacity: 1;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    animation: twinkle 1.5s ease-in-out infinite alternate;
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
+.numero-giorno {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #B22222;
 }
 
-@keyframes twinkle {
-    0% { opacity: 0.7; transform: rotate(15deg) scale(1); }
-    100% { opacity: 1; transform: rotate(15deg) scale(1.2); }
+.data-giorno {
+    font-size: 0.7em;
+    color: #666;
+    margin-top: 5px;
 }
 
-/* Modale Overlay */
+/* Modal */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -176,309 +133,281 @@ body::before {
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(5px);
 }
 
 .modal-overlay.mostra {
     display: flex;
-    animation: fadeIn 0.3s ease-out;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Contenuto del Modale */
 .modal-content {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    padding: 35px;
-    border-radius: 20px;
+    padding: 25px;
+    border-radius: 15px;
     width: 90%;
-    max-width: 700px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-    text-align: center;
+    max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    border: 4px solid #FFD700;
-    position: relative;
+    border: 3px solid #FFD700;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
-.modal-content::before {
-    content: '🎄';
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 2em;
-    background: white;
-    padding: 0 15px;
-}
-
-/* Contenuto Visuale */
-#contenutoVisuale {
-    margin-bottom: 25px;
-    border: 3px dashed #4CAF50;
-    padding: 20px;
-    min-height: 150px;
+/* Navigazione Giorni */
+.navigazione-giorni {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    overflow: hidden;
-    background: linear-gradient(135deg, #f8fffe 0%, #e8f5e8 100%);
-    border-radius: 12px;
-    flex-direction: column;
-    gap: 15px;
-    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #FFD700;
 }
 
-#contenutoVisuale:hover {
-    border-color: #B22222;
-    background: linear-gradient(135deg, #f0fff0 0%, #e0f7e0 100%);
+.btn-navigazione {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
 }
 
-#contenutoVisuale img {
-    max-width: 100%;
-    max-height: 280px;
-    height: auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease;
+.btn-navigazione:hover {
+    background: #5a6268;
 }
 
-#contenutoVisuale img:hover {
-    transform: scale(1.02);
-}
-
-#contenutoVisuale iframe {
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-#contenutoVisuale a {
-    display: inline-block;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-#contenutoVisuale a:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-/* Editor */
-#editor {
-    border: 2px solid #ddd;
-    min-height: 120px;
-    padding: 15px;
-    margin: 20px auto;
-    text-align: left;
-    background: white;
-    border-radius: 10px;
-    overflow-y: auto;
-    font-size: 1.1em;
-    line-height: 1.5;
-    transition: border-color 0.3s ease;
-}
-
-#editor:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-}
-
-/* Azioni Rapide */
-.azioni-rapide {
-    margin-bottom: 15px;
+.giorno-corrente {
     text-align: center;
 }
 
-.azioni-rapide button {
-    background: linear-gradient(135deg, #2196F3, #1976D2);
-    color: white;
-    border: none;
-    padding: 10px 20px;
+.data-giorno {
+    display: block;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.numero-giorno {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    color: #B22222;
+}
+
+/* Anteprima Contenuto */
+.anteprima-contenuto {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px dashed #dee2e6;
+    min-height: 100px;
+}
+
+.nessun-contenuto {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    margin: 0;
+}
+
+.anteprima-tipo {
+    text-align: center;
+}
+
+.anteprima-tipo h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.messaggio-testo {
+    background: white;
+    padding: 15px;
     border-radius: 8px;
+    border-left: 4px solid #4CAF50;
+    text-align: left;
+    white-space: pre-wrap;
+}
+
+.link-esterno {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/* Selezione Tipo */
+.selezione-tipo {
+    margin-bottom: 20px;
+}
+
+.selezione-tipo h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.grid-tipo-contenuto {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.btn-tipo {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-tipo:hover {
+    border-color: #007bff;
+    transform: translateY(-1px);
+}
+
+.btn-tipo.selezionato {
+    border-color: #4CAF50;
+    background: #E8F5E9;
+}
+
+.icona {
+    font-size: 1.5em;
+}
+
+/* Editor Dinamico */
+.editor-dinamico {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.editor-tipo h4 {
+    margin-top: 0;
+    color: #333;
+}
+
+.upload-area {
+    border: 2px dashed #6c757d;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #007bff;
+    background: #f8f9ff;
+}
+
+.link-alternativo {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Azioni */
+.azioni {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.bottone, .bottone-elimina, .bottone-chiusura {
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 1em;
     font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-}
-
-.azioni-rapide button:hover {
-    background: linear-gradient(135deg, #1976D2, #1565C0);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
-}
-
-.azioni-rapide button:active {
-    transform: translateY(0);
-}
-
-/* Pulsanti Azioni */
-.azioni {
-    margin-top: 25px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.bottone, .bottone-chiusura, .bottone-elimina {
-    border: none;
-    padding: 14px 28px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1.1em;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    min-width: 120px;
+    transition: all 0.2s ease;
 }
 
 .bottone {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+    background: #4CAF50;
     color: white;
 }
 
 .bottone:hover {
-    background: linear-gradient(135deg, #45a049, #3d8b40);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
-}
-
-.bottone-chiusura {
-    background: linear-gradient(135deg, #f44336, #d32f2f);
-    color: white;
-}
-
-.bottone-chiusura:hover {
-    background: linear-gradient(135deg, #d32f2f, #c62828);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(244, 67, 54, 0.4);
+    background: #45a049;
 }
 
 .bottone-elimina {
-    background: linear-gradient(135deg, #ff6b6b, #ff5252);
+    background: #dc3545;
     color: white;
 }
 
 .bottone-elimina:hover {
-    background: linear-gradient(135deg, #ff5252, #ff4444);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+    background: #c82333;
 }
 
-.bottone:active, .bottone-chiusura:active, .bottone-elimina:active {
-    transform: translateY(-1px);
-    transition: all 0.1s ease;
+.bottone-chiusura {
+    background: #6c757d;
+    color: white;
 }
 
-/* Messaggi nel contenuto visivo */
-#contenutoVisuale p[style*="italic"] {
-    font-size: 1.2em;
-    padding: 20px;
-    background: linear-gradient(135deg, #fff3e0, #ffecb3);
-    border-radius: 10px;
-    border: 2px solid #ffb300;
+.bottone-chiusura:hover {
+    background: #5a6268;
 }
 
-/* Media Queries per la Responsiveness */
-@media (max-width: 1024px) {
-    .calendario-grid-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        padding: 20px;
-    }
-    
-    .pulsante {
-        font-size: 1.2em;
-        padding: 18px 0;
-    }
+/* Debug Info */
+.debug-info {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+    font-size: 0.8em;
+    color: #6c757d;
+    display: flex;
+    justify-content: space-around;
 }
 
+/* Animazioni */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive */
 @media (max-width: 768px) {
     .calendario-grid-container {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .grid-tipo-contenuto {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .navigazione-giorni {
+        flex-direction: column;
         gap: 10px;
-        padding: 15px;
-    }
-    
-    .header-container h1 {
-        font-size: 2.2em;
-    }
-    
-    .header-container p {
-        font-size: 1.1em;
     }
     
     .modal-content {
-        padding: 25px;
-        margin: 20px;
-    }
-    
-    .azioni {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .bottone, .bottone-chiusura, .bottone-elimina {
-        width: 100%;
-        max-width: 200px;
+        padding: 15px;
+        margin: 10px;
     }
 }
 
 @media (max-width: 480px) {
     .calendario-grid-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        padding: 10px;
+        grid-template-columns: repeat(3, 1fr);
     }
     
-    .pulsante {
-        font-size: 1em;
-        padding: 15px 0;
+    .grid-tipo-contenuto {
+        grid-template-columns: 1fr;
     }
     
-    .header-container {
-        margin-top: 10px;
-        padding: 10px 20px;
+    .azioni {
+        flex-direction: column;
     }
-    
-    .header-container h1 {
-        font-size: 1.8em;
-    }
-    
-    .modal-content {
-        padding: 20px 15px;
-    }
-    
-    #editor {
-        min-height: 100px;
-        padding: 10px;
-    }
-}
-
-/* Scrollbar personalizzata */
-.modal-content::-webkit-scrollbar {
-    width: 8px;
-}
-
-.modal-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #45a049, #3d8b40);
 }
