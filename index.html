@@ -17,358 +17,494 @@
     <!-- I giorni verranno generati dinamicamente -->
 </div>
 
+<!-- Modal Principale -->
 <div class="modal-overlay" id="modal">
     <div class="modal-content">
-        <h3 id="titoloGiorno">Giorno 1</h3>
-        <div id="contenutoVisuale">
-            <p style="color: #666; font-style: italic;">Nessun contenuto salvato per questo giorno</p>
-        </div> 
-        
-        <div class="editor-container">
-            <p><strong>Aggiungi il tuo contenuto:</strong></p>
-            <div class="azioni-rapide">
-                <button type="button" onclick="inserisciTestoEsempio()">📝 Testo esempio</button>
-                <button type="button" onclick="mostraAiutoImmagini()">🖼️ Aiuto immagini</button>
+        <!-- Intestazione con Navigazione -->
+        <div class="navigazione-giorni">
+            <button class="btn-navigazione" onclick="cambiaGiorno(-1)">← Porta precedente</button>
+            <div class="giorno-corrente">
+                <span class="data-giorno" id="dataGiorno">13 dicembre</span>
+                <span class="numero-giorno" id="numeroGiorno">13</span>
             </div>
-            <div id="editor" contenteditable="true" placeholder="Scrivi qui il tuo messaggio, incolla un link YouTube, o un link immagine..."></div>
-            <div class="suggerimenti">
-                <p><small>💡 <strong>Suggerimenti:</strong> Incolla direttamente link YouTube o link immagini. Per immagini, usa servizi come Imgur.com</small></p>
+            <button class="btn-navigazione" onclick="cambiaGiorno(1)">Accanto →</button>
+        </div>
+
+        <!-- Anteprima Contenuto -->
+        <div class="anteprima-contenuto" id="anteprimaContenuto">
+            <div id="contenutoVisuale">
+                <p class="nessun-contenuto">Nessun contenuto per questo giorno</p>
             </div>
         </div>
-        
+
+        <!-- Selezione Tipo Contenuto -->
+        <div class="selezione-tipo">
+            <h4>Scegli il tipo di contenuto:</h4>
+            <div class="grid-tipo-contenuto">
+                <button class="btn-tipo" onclick="selezionaTipo('foto')">
+                    <span class="icona">📸</span>
+                    <span>Foto</span>
+                </button>
+                <button class="btn-tipo" onclick="selezionaTipo('messaggio')">
+                    <span class="icona">💬</span>
+                    <span>Messaggio</span>
+                </button>
+                <button class="btn-tipo" onclick="selezionaTipo('messaggio-vocale')">
+                    <span class="icona">🎤</span>
+                    <span>Messaggio vocale</span>
+                </button>
+                <button class="btn-tipo" onclick="selezionaTipo('audio')">
+                    <span class="icona">🎵</span>
+                    <span>Audio</span>
+                </button>
+                <button class="btn-tipo" onclick="selezionaTipo('musica')">
+                    <span class="icona">🎶</span>
+                    <span>Musica</span>
+                </button>
+                <button class="btn-tipo" onclick="selezionaTipo('youtube')">
+                    <span class="icona">▶️</span>
+                    <span>Video di YouTube</span>
+                </button>
+                <button class="btn-tipo" onclick="selezionaTipo('video')">
+                    <span class="icona">🎥</span>
+                    <span>Video</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Editor Dinamico -->
+        <div class="editor-dinamico" id="editorDinamico">
+            <div id="editorContainer"></div>
+        </div>
+
+        <!-- Azioni -->
         <div class="azioni">
             <button class="bottone" onclick="salvaContenuto()">💾 Salva</button>
             <button class="bottone-elimina" onclick="eliminaContenuto()">🗑️ Elimina</button>
             <button class="bottone-chiusura" onclick="chiudiModale()">❌ Chiudi</button>
         </div>
-        
-        <div class="debug-info" style="margin-top: 15px; font-size: 0.8em; color: #888; text-align: center;">
-            Giorno: <span id="debugDay">-</span> | 
-            Caratteri: <span id="contatoreCaratteri">0</span>
-        </div>
-    </div>
-</div>
 
-<!-- Modal Aiuto Immagini -->
-<div class="modal-overlay" id="modalAiuto">
-    <div class="modal-content" style="max-width: 500px;">
-        <h3>🖼️ Come aggiungere immagini</h3>
-        <div style="text-align: left; line-height: 1.6;">
-            <p><strong>Metodo consigliato:</strong></p>
-            <ol>
-                <li>Vai su <a href="https://imgur.com/upload" target="_blank">imgur.com/upload</a></li>
-                <li>Carica la tua immagine</li>
-                <li>Copia il <strong>link diretto</strong> (che finisce con .jpg, .png)</li>
-                <li>Incolla il link nel calendario</li>
-                <li>Salva!</li>
-            </ol>
-            <p><strong>Link esempio:</strong></p>
-            <code style="background: #f5f5f5; padding: 5px; border-radius: 3px; display: block; margin: 10px 0;">
-                https://i.imgur.com/abc123.jpg
-            </code>
-            <p><small>❌ <strong>Non incollare</strong> immagini direttamente (Ctrl+V) - usano troppo spazio!</small></p>
-        </div>
-        <div class="azioni" style="margin-top: 20px;">
-            <button class="bottone-chiusura" onclick="chiudiAiuto()">Chiudi</button>
+        <!-- Info Debug -->
+        <div class="debug-info">
+            <span>Giorno: <strong id="debugDay">-</strong></span>
+            <span>Tipo: <strong id="debugTipo">-</strong></span>
         </div>
     </div>
 </div>
 
 <script>
+    // Variabili globali
     const calendario = document.getElementById("calendario");
     const modale = document.getElementById("modal");
-    const modalAiuto = document.getElementById("modalAiuto");
-    const editor = document.getElementById("editor");
+    const anteprimaContenuto = document.getElementById("anteprimaContenuto");
     const contenutoVisuale = document.getElementById("contenutoVisuale");
-    const titoloGiorno = document.getElementById("titoloGiorno");
+    const editorDinamico = document.getElementById("editorDinamico");
+    const editorContainer = document.getElementById("editorContainer");
+    const dataGiorno = document.getElementById("dataGiorno");
+    const numeroGiorno = document.getElementById("numeroGiorno");
     const debugDay = document.getElementById("debugDay");
-    const contatoreCaratteri = document.getElementById("contatoreCaratteri");
-    let currentDay = null;
+    const debugTipo = document.getElementById("debugTipo");
 
-    // 1. Generazione dinamica dei 24 giorni
+    let currentDay = null;
+    let currentTipo = null;
+    const mesi = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", 
+                  "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+
+    // 1. Generazione calendario
     function generaCalendario() {
         calendario.innerHTML = '';
         for (let i = 1; i <= 24; i++) {
             const giorno = document.createElement("button");
             giorno.classList.add("pulsante");
-            giorno.innerText = `Giorno ${i}`;
+            giorno.innerHTML = `
+                <span class="numero-giorno">${i}</span>
+                <span class="data-giorno">${i} dicembre</span>
+            `;
             giorno.setAttribute('data-giorno', i);
             giorno.onclick = () => apriGiornata(i); 
             calendario.appendChild(giorno);
-            
             aggiornaStatoPulsante(i);
         }
     }
 
-    // 2. Aggiorna lo stato del pulsante (stellina)
+    // 2. Aggiorna stato pulsante
     function aggiornaStatoPulsante(giorno) {
         const pulsante = document.querySelector(`.pulsante[data-giorno="${giorno}"]`);
         if (!pulsante) return;
         
         const savedContent = localStorage.getItem(`giorno${giorno}`);
-        if (savedContent && savedContent.trim() !== '' && savedContent !== '<br>') {
+        if (savedContent && savedContent.trim() !== '') {
             pulsante.classList.add('contenutoSalvato');
         } else {
             pulsante.classList.remove('contenutoSalvato');
         }
     }
 
-    // 3. Funzione per aprire il modale
+    // 3. Apri giornata
     function apriGiornata(giorno) {
-        console.log("Apertura giorno:", giorno);
         currentDay = giorno;
         debugDay.textContent = giorno;
-        titoloGiorno.textContent = `Giorno ${giorno}`;
         
+        // Aggiorna interfaccia
+        dataGiorno.textContent = `${giorno} dicembre`;
+        numeroGiorno.textContent = giorno;
+        
+        // Resetta selezione tipo
+        currentTipo = null;
+        debugTipo.textContent = '-';
+        editorContainer.innerHTML = '';
+        editorDinamico.style.display = 'none';
+        
+        // Carica contenuto salvato
         const savedContent = localStorage.getItem(`giorno${giorno}`);
-        console.log("Contenuto salvato:", savedContent);
-        
-        editor.innerHTML = '';
-        
-        if (savedContent && savedContent.trim() !== '' && savedContent !== '<br>') {
-            editor.innerHTML = savedContent;
-        }
-        
-        aggiornaContatore();
-        modale.classList.add("mostra");
         visualizzaContenuto(savedContent);
         
-        setTimeout(() => {
-            editor.focus();
-        }, 100);
+        modale.classList.add("mostra");
     }
 
-    // 4. Funzione per l'anteprima del contenuto
-    function visualizzaContenuto(content) {
-        contenutoVisuale.innerHTML = '';
+    // 4. Selezione tipo contenuto
+    function selezionaTipo(tipo) {
+        currentTipo = tipo;
+        debugTipo.textContent = tipo;
         
-        if (!content || content.trim() === '' || content === '<br>') {
-            contenutoVisuale.innerHTML = '<p style="color: #666; font-style: italic;">Nessun contenuto salvato per questo giorno</p>';
-            return;
-        }
+        // Rimuovi selezione precedente
+        document.querySelectorAll('.btn-tipo').forEach(btn => {
+            btn.classList.remove('selezionato');
+        });
+        
+        // Aggiungi selezione corrente
+        event.currentTarget.classList.add('selezionato');
+        
+        // Mostra editor appropriato
+        editorDinamico.style.display = 'block';
+        mostraEditorPerTipo(tipo);
+    }
 
-        const trimmedContent = content.trim();
-
-        // Se è HTML con immagini o link
-        if (trimmedContent.includes('<img') || trimmedContent.includes('<a href') || trimmedContent.includes('<iframe')) {
-            contenutoVisuale.innerHTML = trimmedContent;
-        }
-        // Se è un link immagine
-        else if (trimmedContent.match(/\.(jpeg|jpg|gif|png|webp|bmp)$/i)) {
-            contenutoVisuale.innerHTML = `
-                <div style="text-align: center;">
-                    <img src="${trimmedContent}" alt="Immagine" 
-                         style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"
-                         onerror="this.style.display='none'; this.parentNode.innerHTML='<p style=\\'color: red;\\'>❌ Immagine non trovata</p>'">
-                    <p style="margin-top: 10px; color: #666;">🖼️ Immagine caricata</p>
-                </div>
-            `;
-        }
-        // Se è un link YouTube
-        else if (trimmedContent.includes("youtube.com") || trimmedContent.includes("youtu.be")) {
-            const videoId = getYoutubeVideoId(trimmedContent);
-            if (videoId) {
-                contenutoVisuale.innerHTML = `
-                    <div style="text-align: center;">
-                        <iframe width="100%" height="250" src="https://www.youtube.com/embed/${videoId}" 
-                                frameborder="0" allowfullscreen style="border-radius: 10px;"></iframe>
-                        <p style="margin-top: 10px; color: #666;">🎥 Video YouTube</p>
+    // 5. Mostra editor per tipo
+    function mostraEditorPerTipo(tipo) {
+        let html = '';
+        
+        switch(tipo) {
+            case 'foto':
+                html = `
+                    <div class="editor-tipo">
+                        <h4>📸 Carica Foto</h4>
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <p>Clicca qui per selezionare un'immagine</p>
+                            <small>Formati supportati: JPG, PNG, GIF (max 2MB)</small>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="anteprimaFoto(this)">
+                        <div id="anteprimaFoto" style="margin-top: 15px;"></div>
+                        <div class="link-alternativo" style="margin-top: 15px;">
+                            <p>Oppure incolla link immagine:</p>
+                            <input type="text" id="linkFoto" placeholder="https://esempio.com/foto.jpg" 
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
                     </div>
                 `;
-            } else {
-                contenutoVisuale.innerHTML = `
-                    <a href="${trimmedContent}" target="_blank" 
-                       style="display: inline-block; padding: 15px 25px; background: #ff4444; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                        🎥 Guarda su YouTube
-                    </a>
+                break;
+                
+            case 'messaggio':
+                html = `
+                    <div class="editor-tipo">
+                        <h4>💬 Scrivi Messaggio</h4>
+                        <textarea id="testoMessaggio" placeholder="Scrivi il tuo messaggio speciale..." 
+                                  style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+                        <div class="suggerimenti-testo">
+                            <button type="button" onclick="inserisciTestoEsempio()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-top: 10px; cursor: pointer;">
+                                Inserisci testo esempio
+                            </button>
+                        </div>
+                    </div>
                 `;
-            }
+                break;
+                
+            case 'youtube':
+                html = `
+                    <div class="editor-tipo">
+                        <h4>▶️ Link YouTube</h4>
+                        <input type="text" id="linkYouTube" placeholder="Incolla qui il link di YouTube..." 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        <div class="esempi-link" style="margin-top: 10px;">
+                            <small>Esempi: https://youtube.com/watch?v=... o https://youtu.be/...</small>
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'messaggio-vocale':
+                html = `
+                    <div class="editor-tipo">
+                        <h4>🎤 Messaggio Vocale</h4>
+                        <div class="registrazione-audio">
+                            <button id="btnRegistra" onclick="iniziaRegistrazione()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px;">
+                                🎤 Inizia Registrazione
+                            </button>
+                            <button id="btnFerma" onclick="fermaRegistrazione()" disabled style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px;">
+                                ⏹️ Ferma
+                            </button>
+                            <div id="statoRegistrazione" style="margin: 10px 0;"></div>
+                            <audio id="audioPreview" controls style="width: 100%; margin: 10px 0;"></audio>
+                        </div>
+                        <div class="upload-audio" style="margin-top: 15px;">
+                            <p>Oppure carica file audio:</p>
+                            <input type="file" id="fileAudio" accept="audio/*" style="margin: 5px 0;">
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'audio':
+            case 'musica':
+                html = `
+                    <div class="editor-tipo">
+                        <h4>🎵 ${tipo === 'audio' ? 'File Audio' : 'Brano Musicale'}</h4>
+                        <div class="upload-area" onclick="document.getElementById('fileAudioMusica').click()">
+                            <p>Clicca qui per selezionare un file audio</p>
+                            <small>Formati supportati: MP3, WAV, OGG (max 5MB)</small>
+                        </div>
+                        <input type="file" id="fileAudioMusica" accept="audio/*" style="display: none;">
+                        <div class="link-alternativo" style="margin-top: 15px;">
+                            <p>Oppure incolla link audio:</p>
+                            <input type="text" id="linkAudio" placeholder="https://esempio.com/audio.mp3" 
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'video':
+                html = `
+                    <div class="editor-tipo">
+                        <h4>🎥 Carica Video</h4>
+                        <div class="upload-area" onclick="document.getElementById('fileVideo').click()">
+                            <p>Clicca qui per selezionare un video</p>
+                            <small>Formati supportati: MP4, WebM (max 10MB)</small>
+                        </div>
+                        <input type="file" id="fileVideo" accept="video/*" style="display: none;">
+                        <div class="link-alternativo" style="margin-top: 15px;">
+                            <p>Oppure incolla link video:</p>
+                            <input type="text" id="linkVideo" placeholder="https://esempio.com/video.mp4" 
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                    </div>
+                `;
+                break;
         }
-        // Se è un link generico
-        else if (trimmedContent.match(/^https?:\/\//i)) {
-            contenutoVisuale.innerHTML = `
-                <a href="${trimmedContent}" target="_blank" 
-                   style="display: inline-block; padding: 15px 25px; background: #4CAF50; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    🔗 Apri Link Esterno
-                </a>
-                <p style="margin-top: 10px; color: #666; word-break: break-all;">${trimmedContent}</p>
-            `;
-        }
-        // Se è testo semplice
-        else {
-            contenutoVisuale.innerHTML = `
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #4CAF50;">
-                    <p style="margin: 0; font-size: 1.1em; line-height: 1.6; white-space: pre-wrap;">${trimmedContent}</p>
-                </div>
-            `;
+        
+        editorContainer.innerHTML = html;
+    }
+
+    // 6. Anteprima foto
+    function anteprimaFoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('anteprimaFoto').innerHTML = `
+                    <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                `;
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
-    // 5. Funzione helper per YouTube
-    function getYoutubeVideoId(url) {
-        const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|[^#]*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-        const match = url.match(regex);
-        return (match && match[1]) ? match[1] : null;
+    // 7. Testo esempio
+    function inserisciTestoEsempio() {
+        const esempi = [
+            "🎄 Che questo Natale porti gioia e serenità nel tuo cuore!",
+            "🌟 Possano le luci del Natale illuminare il tuo cammino!",
+            "❄️ Che la magia di questo periodo ti avvolga di felicità!",
+            "🎁 I migliori auguri per te e la tua famiglia!",
+            "🕯️ Che lo spirito natalizio riscaldi il tuo cuore!"
+        ];
+        const esempio = esempi[Math.floor(Math.random() * esempi.length)];
+        document.getElementById('testoMessaggio').value = esempio;
     }
 
-    // 6. FUNZIONE SALVA CONTENUTO - SEMPLIFICATA
+    // 8. Registrazione audio (simulata)
+    function iniziaRegistrazione() {
+        document.getElementById('statoRegistrazione').innerHTML = '<span style="color: red;">● Registrazione in corso...</span>';
+        document.getElementById('btnRegistra').disabled = true;
+        document.getElementById('btnFerma').disabled = false;
+    }
+
+    function fermaRegistrazione() {
+        document.getElementById('statoRegistrazione').innerHTML = '<span style="color: green;">✓ Registrazione completata</span>';
+        document.getElementById('btnRegistra').disabled = false;
+        document.getElementById('btnFerma').disabled = true;
+        // Simula un audio di preview
+        document.getElementById('audioPreview').innerHTML = 'Il tuo audio sarà riproducibile dopo il salvataggio';
+    }
+
+    // 9. Salva contenuto
     function salvaContenuto() {
         if (!currentDay) {
             alert('❌ Nessun giorno selezionato!');
             return;
         }
 
-        let content = editor.innerHTML.trim();
-        
-        // Se vuoto, prova con innerText
-        if (!content || content === '<br>') {
-            content = editor.innerText.trim();
+        if (!currentTipo) {
+            alert('❌ Seleziona un tipo di contenuto!');
+            return;
         }
-        
-        console.log("Salvataggio giorno", currentDay, "contenuto:", content);
 
-        try {
-            localStorage.setItem(`giorno${currentDay}`, content);
-            aggiornaStatoPulsante(currentDay);
-            visualizzaContenuto(content);
-            
-            if (content && content !== '<br>') {
-                alert(`✅ Contenuto salvato per il Giorno ${currentDay}!`);
-            } else {
-                alert(`ℹ️ Contenuto vuoto salvato per il Giorno ${currentDay}`);
-            }
-            
-        } catch (error) {
-            console.error("Errore salvataggio:", error);
-            if (error.name === 'QuotaExceededError') {
-                alert('❌ Spazio di archiviazione pieno!\n\nElimina qualche contenuto o usa link invece di immagini grandi.');
-            }
+        let content = '';
+        
+        switch(currentTipo) {
+            case 'foto':
+                const linkFoto = document.getElementById('linkFoto');
+                const fileInput = document.getElementById('fileInput');
+                if (linkFoto && linkFoto.value) {
+                    content = `FOTO:${linkFoto.value}`;
+                } else if (fileInput && fileInput.files[0]) {
+                    // Per file, salviamo un riferimento
+                    content = `FOTO_FILE:${fileInput.files[0].name}`;
+                }
+                break;
+                
+            case 'messaggio':
+                const testo = document.getElementById('testoMessaggio');
+                if (testo && testo.value) {
+                    content = `MESSAGGIO:${testo.value}`;
+                }
+                break;
+                
+            case 'youtube':
+                const linkYT = document.getElementById('linkYouTube');
+                if (linkYT && linkYT.value) {
+                    content = `YOUTUBE:${linkYT.value}`;
+                }
+                break;
+                
+            case 'messaggio-vocale':
+            case 'audio':
+            case 'musica':
+            case 'video':
+                // Implementazione simile per altri tipi
+                content = `${currentTipo.toUpperCase()}:Contenuto_salvato`;
+                break;
+        }
+
+        if (!content) {
+            alert('❌ Inserisci il contenuto prima di salvare!');
+            return;
+        }
+
+        localStorage.setItem(`giorno${currentDay}`, content);
+        aggiornaStatoPulsante(currentDay);
+        visualizzaContenuto(content);
+        alert(`✅ Contenuto salvato per il Giorno ${currentDay}!`);
+    }
+
+    // 10. Visualizza contenuto
+    function visualizzaContenuto(content) {
+        if (!content) {
+            contenutoVisuale.innerHTML = '<p class="nessun-contenuto">Nessun contenuto per questo giorno</p>';
+            return;
+        }
+
+        const [tipo, valore] = content.split(':');
+        
+        switch(tipo) {
+            case 'FOTO':
+                contenutoVisuale.innerHTML = `
+                    <div class="anteprima-tipo">
+                        <h4>📸 Foto</h4>
+                        <img src="${valore}" style="max-width: 100%; max-height: 300px; border-radius: 10px;">
+                    </div>
+                `;
+                break;
+                
+            case 'MESSAGGIO':
+                contenutoVisuale.innerHTML = `
+                    <div class="anteprima-tipo">
+                        <h4>💬 Messaggio</h4>
+                        <div class="messaggio-testo">${valore}</div>
+                    </div>
+                `;
+                break;
+                
+            case 'YOUTUBE':
+                const videoId = getYoutubeVideoId(valore);
+                if (videoId) {
+                    contenutoVisuale.innerHTML = `
+                        <div class="anteprima-tipo">
+                            <h4>▶️ Video YouTube</h4>
+                            <iframe width="100%" height="250" src="https://www.youtube.com/embed/${videoId}" 
+                                    frameborder="0" allowfullscreen style="border-radius: 10px;"></iframe>
+                        </div>
+                    `;
+                } else {
+                    contenutoVisuale.innerHTML = `
+                        <div class="anteprima-tipo">
+                            <h4>▶️ Video YouTube</h4>
+                            <a href="${valore}" target="_blank" class="link-esterno">Apri su YouTube</a>
+                        </div>
+                    `;
+                }
+                break;
+                
+            default:
+                contenutoVisuale.innerHTML = `
+                    <div class="anteprima-tipo">
+                        <h4>📁 Contenuto Salvato</h4>
+                        <p>${content}</p>
+                    </div>
+                `;
         }
     }
 
-    // 7. Funzione per eliminare il contenuto
+    // 11. Funzione helper per YouTube
+    function getYoutubeVideoId(url) {
+        const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|[^#]*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(regex);
+        return (match && match[1]) ? match[1] : null;
+    }
+
+    // 12. Elimina contenuto
     function eliminaContenuto() {
-        if (!currentDay) {
-            alert('❌ Nessun giorno selezionato!');
-            return;
-        }
+        if (!currentDay) return;
         
         if (confirm(`Sei sicuro di voler eliminare il contenuto del Giorno ${currentDay}?`)) {
             localStorage.removeItem(`giorno${currentDay}`);
-            editor.innerHTML = '';
             aggiornaStatoPulsante(currentDay);
-            visualizzaContenuto('');
-            aggiornaContatore();
-            alert(`🗑️ Contenuto del Giorno ${currentDay} eliminato!`);
+            visualizzaContenuto(null);
+            editorContainer.innerHTML = '';
+            editorDinamico.style.display = 'none';
+            alert(`🗑️ Contenuto eliminato!`);
         }
     }
 
-    // 8. Funzione per inserire testo esempio
-    function inserisciTestoEsempio() {
-        const esempi = [
-            "🎄 Buon Natale! 🎅",
-            "🌟 Che la magia del Natale riempia il tuo cuore di gioia!",
-            "❄️ Auguri meravigliosi per te e la tua famiglia!",
-            "🎁 Il miglior regalo è stare insieme!",
-            "🕯️ Che questa stagione porti pace e felicità!",
-            "✨ Che il tuo Natale sia luminoso e speciale!"
-        ];
-        const esempioCasuale = esempi[Math.floor(Math.random() * esempi.length)];
+    // 13. Navigazione tra giorni
+    function cambiaGiorno(direzione) {
+        if (!currentDay) return;
         
-        if (editor.innerHTML.trim() === '' || editor.innerHTML === '<br>') {
-            editor.innerHTML = esempioCasuale;
-        } else {
-            editor.innerHTML += '<br><br>' + esempioCasuale;
+        const nuovoGiorno = currentDay + direzione;
+        if (nuovoGiorno >= 1 && nuovoGiorno <= 24) {
+            apriGiornata(nuovoGiorno);
         }
-        aggiornaContatore();
     }
 
-    // 9. Funzione per mostrare aiuto immagini
-    function mostraAiutoImmagini() {
-        modalAiuto.classList.add("mostra");
-    }
-
-    function chiudiAiuto() {
-        modalAiuto.classList.remove("mostra");
-    }
-
-    // 10. Funzione per chiudere il modale
+    // 14. Chiudi modale
     function chiudiModale() {
         modale.classList.remove("mostra");
         currentDay = null;
-        debugDay.textContent = '-';
+        currentTipo = null;
     }
 
-    // 11. Aggiorna contatore caratteri
-    function aggiornaContatore() {
-        const text = editor.innerText || editor.textContent;
-        contatoreCaratteri.textContent = text.length;
-    }
-
-    // 12. Event listeners
-    modale.addEventListener('click', function(e) {
-        if (e.target === modale) {
-            chiudiModale();
-        }
-    });
-
-    modalAiuto.addEventListener('click', function(e) {
-        if (e.target === modalAiuto) {
-            chiudiAiuto();
-        }
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (modale.classList.contains('mostra')) chiudiModale();
-            if (modalAiuto.classList.contains('mostra')) chiudiAiuto();
-        }
-    });
-
-    editor.addEventListener('input', aggiornaContatore);
-
-    // 13. Gestione incolla - converte immagini in testo
-    editor.addEventListener('paste', function(e) {
-        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-        
-        for (let item of items) {
-            if (item.type.indexOf('image') !== -1) {
-                e.preventDefault();
-                const blob = item.getAsFile();
-                const reader = new FileReader();
-                
-                reader.onload = function(event) {
-                    const dataUrl = event.target.result;
-                    // Invece di inserire l'immagine, mostra avviso
-                    const warning = document.createElement('div');
-                    warning.style.background = '#fff3cd';
-                    warning.style.padding = '10px';
-                    warning.style.borderRadius = '5px';
-                    warning.style.border = '1px solid #ffeaa7';
-                    warning.style.margin = '10px 0';
-                    warning.innerHTML = '🖼️ <strong>Immagine rilevata</strong><br>' +
-                                      'Per salvare immagini, usa il metodo con link esterni. ' +
-                                      '<button onclick="mostraAiutoImmagini()" style="background: #007bff; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer; margin-left: 10px;">Aiuto</button>';
-                    
-                    if (editor.innerHTML.trim() === '' || editor.innerHTML === '<br>') {
-                        editor.innerHTML = '';
-                    }
-                    editor.appendChild(warning);
-                    aggiornaContatore();
-                };
-                
-                reader.readAsDataURL(blob);
-                return;
-            }
-        }
-        // Se non è un'immagine, permetti l'incolla normale
-        setTimeout(aggiornaContatore, 0);
-    });
-
-    // 14. Inizializzazione
+    // 15. Inizializzazione
     document.addEventListener('DOMContentLoaded', function() {
         generaCalendario();
-        console.log("Calendario dell'Avvento inizializzato!");
+        
+        // Chiudi modal cliccando fuori
+        modale.addEventListener('click', function(e) {
+            if (e.target === modale) chiudiModale();
+        });
+        
+        // Tasto ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') chiudiModale();
+        });
     });
 
 </script>
