@@ -24,8 +24,8 @@
         <div class="navigazione-giorni">
             <button class="btn-navigazione" onclick="cambiaGiorno(-1)">← Porta precedente</button>
             <div class="giorno-corrente">
-                <span class="data-giorno" id="dataGiorno">13 dicembre</span>
-                <span class="numero-giorno" id="numeroGiorno">13</span>
+                <span class="data-giorno" id="dataGiorno">1 dicembre</span>
+                <span class="numero-giorno" id="numeroGiorno">1</span>
             </div>
             <button class="btn-navigazione" onclick="cambiaGiorno(1)">Accanto →</button>
         </div>
@@ -107,8 +107,7 @@
 
     let currentDay = null;
     let currentTipo = null;
-    const mesi = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", 
-                  "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+    let currentFile = null;
 
     // 1. Generazione calendario
     function generaCalendario() {
@@ -151,6 +150,7 @@
         
         // Resetta selezione tipo
         currentTipo = null;
+        currentFile = null;
         debugTipo.textContent = '-';
         editorContainer.innerHTML = '';
         editorDinamico.style.display = 'none';
@@ -190,15 +190,15 @@
                     <div class="editor-tipo">
                         <h4>📸 Carica Foto</h4>
                         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                            <p>Clicca qui per selezionare un'immagine</p>
-                            <small>Formati supportati: JPG, PNG, GIF (max 2MB)</small>
+                            <p>📁 Clicca qui per selezionare un'immagine</p>
+                            <small>Formati: JPG, PNG, GIF (max 1MB)</small>
                         </div>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="anteprimaFoto(this)">
-                        <div id="anteprimaFoto" style="margin-top: 15px;"></div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
+                        <div id="anteprimaFile" style="margin-top: 15px;"></div>
                         <div class="link-alternativo" style="margin-top: 15px;">
-                            <p>Oppure incolla link immagine:</p>
+                            <p>🔗 Oppure incolla link immagine:</p>
                             <input type="text" id="linkFoto" placeholder="https://esempio.com/foto.jpg" 
-                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
                         </div>
                     </div>
                 `;
@@ -209,10 +209,10 @@
                     <div class="editor-tipo">
                         <h4>💬 Scrivi Messaggio</h4>
                         <textarea id="testoMessaggio" placeholder="Scrivi il tuo messaggio speciale..." 
-                                  style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+                                  style="width: 100%; height: 150px; padding: 15px; border: 2px solid #4CAF50; border-radius: 8px; resize: vertical; font-size: 1em;"></textarea>
                         <div class="suggerimenti-testo">
-                            <button type="button" onclick="inserisciTestoEsempio()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-top: 10px; cursor: pointer;">
-                                Inserisci testo esempio
+                            <button type="button" onclick="inserisciTestoEsempio()" style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">
+                                🎄 Inserisci testo esempio
                             </button>
                         </div>
                     </div>
@@ -224,9 +224,12 @@
                     <div class="editor-tipo">
                         <h4>▶️ Link YouTube</h4>
                         <input type="text" id="linkYouTube" placeholder="Incolla qui il link di YouTube..." 
-                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                        <div class="esempi-link" style="margin-top: 10px;">
-                            <small>Esempi: https://youtube.com/watch?v=... o https://youtu.be/...</small>
+                               style="width: 100%; padding: 12px; border: 2px solid #ff4444; border-radius: 8px; font-size: 1em;">
+                        <div class="esempi-link" style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                            <small>📋 Esempi: 
+                                <br>• https://youtube.com/watch?v=CODICE
+                                <br>• https://youtu.be/CODICE
+                            </small>
                         </div>
                     </div>
                 `;
@@ -236,19 +239,16 @@
                 html = `
                     <div class="editor-tipo">
                         <h4>🎤 Messaggio Vocale</h4>
-                        <div class="registrazione-audio">
-                            <button id="btnRegistra" onclick="iniziaRegistrazione()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px;">
-                                🎤 Inizia Registrazione
-                            </button>
-                            <button id="btnFerma" onclick="fermaRegistrazione()" disabled style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px;">
-                                ⏹️ Ferma
-                            </button>
-                            <div id="statoRegistrazione" style="margin: 10px 0;"></div>
-                            <audio id="audioPreview" controls style="width: 100%; margin: 10px 0;"></audio>
+                        <div class="upload-area" onclick="document.getElementById('fileAudioVocale').click()">
+                            <p>🎙️ Carica file audio</p>
+                            <small>Formati: MP3, WAV, M4A (max 5MB)</small>
                         </div>
-                        <div class="upload-audio" style="margin-top: 15px;">
-                            <p>Oppure carica file audio:</p>
-                            <input type="file" id="fileAudio" accept="audio/*" style="margin: 5px 0;">
+                        <input type="file" id="fileAudioVocale" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
+                        <div id="anteprimaAudio" style="margin-top: 15px;"></div>
+                        <div class="link-alternativo" style="margin-top: 15px;">
+                            <p>🔗 Oppure incolla link audio:</p>
+                            <input type="text" id="linkAudioVocale" placeholder="https://esempio.com/audio.mp3" 
+                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
                         </div>
                     </div>
                 `;
@@ -258,16 +258,17 @@
             case 'musica':
                 html = `
                     <div class="editor-tipo">
-                        <h4>🎵 ${tipo === 'audio' ? 'File Audio' : 'Brano Musicale'}</h4>
-                        <div class="upload-area" onclick="document.getElementById('fileAudioMusica').click()">
-                            <p>Clicca qui per selezionare un file audio</p>
-                            <small>Formati supportati: MP3, WAV, OGG (max 5MB)</small>
+                        <h4>${tipo === 'audio' ? '🎵 File Audio' : '🎶 Brano Musicale'}</h4>
+                        <div class="upload-area" onclick="document.getElementById('fileAudio${tipo}').click()">
+                            <p>📁 Carica file audio</p>
+                            <small>Formati: MP3, WAV, OGG (max 5MB)</small>
                         </div>
-                        <input type="file" id="fileAudioMusica" accept="audio/*" style="display: none;">
+                        <input type="file" id="fileAudio${tipo}" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
+                        <div id="anteprimaAudio${tipo}" style="margin-top: 15px;"></div>
                         <div class="link-alternativo" style="margin-top: 15px;">
-                            <p>Oppure incolla link audio:</p>
-                            <input type="text" id="linkAudio" placeholder="https://esempio.com/audio.mp3" 
-                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <p>🔗 Oppure incolla link audio:</p>
+                            <input type="text" id="linkAudio${tipo}" placeholder="https://esempio.com/audio.mp3" 
+                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
                         </div>
                     </div>
                 `;
@@ -278,14 +279,15 @@
                     <div class="editor-tipo">
                         <h4>🎥 Carica Video</h4>
                         <div class="upload-area" onclick="document.getElementById('fileVideo').click()">
-                            <p>Clicca qui per selezionare un video</p>
-                            <small>Formati supportati: MP4, WebM (max 10MB)</small>
+                            <p>📁 Carica file video</p>
+                            <small>Formati: MP4, WebM (max 10MB)</small>
                         </div>
-                        <input type="file" id="fileVideo" accept="video/*" style="display: none;">
+                        <input type="file" id="fileVideo" accept="video/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
+                        <div id="anteprimaVideo" style="margin-top: 15px;"></div>
                         <div class="link-alternativo" style="margin-top: 15px;">
-                            <p>Oppure incolla link video:</p>
+                            <p>🔗 Oppure incolla link video:</p>
                             <input type="text" id="linkVideo" placeholder="https://esempio.com/video.mp4" 
-                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
                         </div>
                     </div>
                 `;
@@ -293,18 +295,67 @@
         }
         
         editorContainer.innerHTML = html;
+        currentFile = null;
     }
 
-    // 6. Anteprima foto
-    function anteprimaFoto(input) {
+    // 6. Gestione file selezionato
+    function gestisciFileSelezionato(input) {
         if (input.files && input.files[0]) {
+            const file = input.files[0];
+            currentFile = file;
+            
+            // Controllo dimensione
+            let maxSize = 1024 * 1024; // 1MB default
+            if (currentTipo === 'audio' || currentTipo === 'musica' || currentTipo === 'messaggio-vocale') {
+                maxSize = 5 * 1024 * 1024; // 5MB
+            } else if (currentTipo === 'video') {
+                maxSize = 10 * 1024 * 1024; // 10MB
+            }
+            
+            if (file.size > maxSize) {
+                alert(`❌ File troppo grande! Massimo ${maxSize/(1024*1024)}MB`);
+                input.value = '';
+                currentFile = null;
+                return;
+            }
+            
+            // Anteprima
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('anteprimaFoto').innerHTML = `
-                    <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
-                `;
+                let anteprimaHTML = '';
+                const containerId = `anteprima${currentTipo.charAt(0).toUpperCase() + currentTipo.slice(1)}`;
+                
+                if (currentTipo === 'foto') {
+                    anteprimaHTML = `
+                        <div style="text-align: center; padding: 10px; background: #e8f5e8; border-radius: 8px;">
+                            <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                            <p style="margin: 5px 0; color: #2e7d32;">✅ ${file.name} (${(file.size/1024).toFixed(1)}KB)</p>
+                        </div>
+                    `;
+                } else if (currentTipo === 'video') {
+                    anteprimaHTML = `
+                        <div style="text-align: center; padding: 10px; background: #e3f2fd; border-radius: 8px;">
+                            <video controls style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                                <source src="${e.target.result}" type="${file.type}">
+                            </video>
+                            <p style="margin: 5px 0; color: #1565c0;">🎥 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
+                        </div>
+                    `;
+                } else {
+                    anteprimaHTML = `
+                        <div style="text-align: center; padding: 10px; background: #f3e5f5; border-radius: 8px;">
+                            <p style="margin: 5px 0; color: #7b1fa2;">🎵 ${file.name} (${(file.size/1024).toFixed(1)}KB)</p>
+                            <audio controls style="width: 100%; margin: 5px 0;">
+                                <source src="${e.target.result}" type="${file.type}">
+                            </audio>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById(containerId).innerHTML = anteprimaHTML;
             };
-            reader.readAsDataURL(input.files[0]);
+            
+            reader.readAsDataURL(file);
         }
     }
 
@@ -315,29 +366,15 @@
             "🌟 Possano le luci del Natale illuminare il tuo cammino!",
             "❄️ Che la magia di questo periodo ti avvolga di felicità!",
             "🎁 I migliori auguri per te e la tua famiglia!",
-            "🕯️ Che lo spirito natalizio riscaldi il tuo cuore!"
+            "🕯️ Che lo spirito natalizio riscaldi il tuo cuore!",
+            "✨ Che il tuo Natale sia pieno di amore e risate!"
         ];
         const esempio = esempi[Math.floor(Math.random() * esempi.length)];
         document.getElementById('testoMessaggio').value = esempio;
     }
 
-    // 8. Registrazione audio (simulata)
-    function iniziaRegistrazione() {
-        document.getElementById('statoRegistrazione').innerHTML = '<span style="color: red;">● Registrazione in corso...</span>';
-        document.getElementById('btnRegistra').disabled = true;
-        document.getElementById('btnFerma').disabled = false;
-    }
-
-    function fermaRegistrazione() {
-        document.getElementById('statoRegistrazione').innerHTML = '<span style="color: green;">✓ Registrazione completata</span>';
-        document.getElementById('btnRegistra').disabled = false;
-        document.getElementById('btnFerma').disabled = true;
-        // Simula un audio di preview
-        document.getElementById('audioPreview').innerHTML = 'Il tuo audio sarà riproducibile dopo il salvataggio';
-    }
-
-    // 9. Salva contenuto
-    function salvaContenuto() {
+    // 8. Salva contenuto - VERSIONE FUNZIONANTE
+    async function salvaContenuto() {
         if (!currentDay) {
             alert('❌ Nessun giorno selezionato!');
             return;
@@ -348,120 +385,288 @@
             return;
         }
 
-        let content = '';
-        
-        switch(currentTipo) {
-            case 'foto':
-                const linkFoto = document.getElementById('linkFoto');
-                const fileInput = document.getElementById('fileInput');
-                if (linkFoto && linkFoto.value) {
-                    content = `FOTO:${linkFoto.value}`;
-                } else if (fileInput && fileInput.files[0]) {
-                    // Per file, salviamo un riferimento
-                    content = `FOTO_FILE:${fileInput.files[0].name}`;
-                }
-                break;
-                
-            case 'messaggio':
-                const testo = document.getElementById('testoMessaggio');
-                if (testo && testo.value) {
-                    content = `MESSAGGIO:${testo.value}`;
-                }
-                break;
-                
-            case 'youtube':
-                const linkYT = document.getElementById('linkYouTube');
-                if (linkYT && linkYT.value) {
-                    content = `YOUTUBE:${linkYT.value}`;
-                }
-                break;
-                
-            case 'messaggio-vocale':
-            case 'audio':
-            case 'musica':
-            case 'video':
-                // Implementazione simile per altri tipi
-                content = `${currentTipo.toUpperCase()}:Contenuto_salvato`;
-                break;
-        }
+        let contentData = {
+            tipo: currentTipo,
+            valore: '',
+            extra: ''
+        };
 
-        if (!content) {
-            alert('❌ Inserisci il contenuto prima di salvare!');
-            return;
-        }
+        try {
+            switch(currentTipo) {
+                case 'foto':
+                    const linkFoto = document.getElementById('linkFoto');
+                    if (linkFoto && linkFoto.value) {
+                        contentData.valore = linkFoto.value;
+                        contentData.extra = 'link';
+                    } else if (currentFile) {
+                        contentData.valore = await fileToDataURL(currentFile);
+                        contentData.extra = currentFile.name;
+                    } else {
+                        alert('❌ Seleziona un file o inserisci un link!');
+                        return;
+                    }
+                    break;
+                    
+                case 'messaggio':
+                    const testo = document.getElementById('testoMessaggio');
+                    if (testo && testo.value.trim()) {
+                        contentData.valore = testo.value.trim();
+                    } else {
+                        alert('❌ Scrivi un messaggio!');
+                        return;
+                    }
+                    break;
+                    
+                case 'youtube':
+                    const linkYT = document.getElementById('linkYouTube');
+                    if (linkYT && linkYT.value.trim()) {
+                        const videoId = getYoutubeVideoId(linkYT.value.trim());
+                        if (videoId) {
+                            contentData.valore = videoId;
+                            contentData.extra = linkYT.value.trim();
+                        } else {
+                            alert('❌ Link YouTube non valido!');
+                            return;
+                        }
+                    } else {
+                        alert('❌ Inserisci un link YouTube!');
+                        return;
+                    }
+                    break;
+                    
+                case 'messaggio-vocale':
+                case 'audio':
+                case 'musica':
+                    const linkAudio = document.getElementById(`linkAudio${currentTipo}`) || document.getElementById('linkAudioVocale');
+                    if (linkAudio && linkAudio.value) {
+                        contentData.valore = linkAudio.value;
+                        contentData.extra = 'link';
+                    } else if (currentFile) {
+                        contentData.valore = await fileToDataURL(currentFile);
+                        contentData.extra = currentFile.name;
+                    } else {
+                        alert('❌ Seleziona un file o inserisci un link!');
+                        return;
+                    }
+                    break;
+                    
+                case 'video':
+                    const linkVideo = document.getElementById('linkVideo');
+                    if (linkVideo && linkVideo.value) {
+                        contentData.valore = linkVideo.value;
+                        contentData.extra = 'link';
+                    } else if (currentFile) {
+                        contentData.valore = await fileToDataURL(currentFile);
+                        contentData.extra = currentFile.name;
+                    } else {
+                        alert('❌ Seleziona un file o inserisci un link!');
+                        return;
+                    }
+                    break;
+            }
 
-        localStorage.setItem(`giorno${currentDay}`, content);
-        aggiornaStatoPulsante(currentDay);
-        visualizzaContenuto(content);
-        alert(`✅ Contenuto salvato per il Giorno ${currentDay}!`);
+            // Salva nel localStorage
+            const contentString = JSON.stringify(contentData);
+            localStorage.setItem(`giorno${currentDay}`, contentString);
+            
+            // Aggiorna interfaccia
+            aggiornaStatoPulsante(currentDay);
+            visualizzaContenuto(contentString);
+            
+            alert(`✅ ${getTipoNome(currentTipo)} salvato per il Giorno ${currentDay}!`);
+            
+        } catch (error) {
+            console.error('Errore salvataggio:', error);
+            alert('❌ Errore nel salvataggio: ' + error.message);
+        }
     }
 
-    // 10. Visualizza contenuto
+    // 8.1 Converti file in Data URL
+    function fileToDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // 8.2 Ottieni nome tipo
+    function getTipoNome(tipo) {
+        const nomi = {
+            'foto': 'Foto',
+            'messaggio': 'Messaggio',
+            'youtube': 'Video YouTube',
+            'messaggio-vocale': 'Messaggio vocale',
+            'audio': 'Audio',
+            'musica': 'Musica',
+            'video': 'Video'
+        };
+        return nomi[tipo] || 'Contenuto';
+    }
+
+    // 9. Visualizza contenuto - VERSIONE FUNZIONANTE
     function visualizzaContenuto(content) {
         if (!content) {
             contenutoVisuale.innerHTML = '<p class="nessun-contenuto">Nessun contenuto per questo giorno</p>';
             return;
         }
 
-        const [tipo, valore] = content.split(':');
-        
-        switch(tipo) {
-            case 'FOTO':
-                contenutoVisuale.innerHTML = `
-                    <div class="anteprima-tipo">
-                        <h4>📸 Foto</h4>
-                        <img src="${valore}" style="max-width: 100%; max-height: 300px; border-radius: 10px;">
-                    </div>
-                `;
-                break;
-                
-            case 'MESSAGGIO':
-                contenutoVisuale.innerHTML = `
-                    <div class="anteprima-tipo">
-                        <h4>💬 Messaggio</h4>
-                        <div class="messaggio-testo">${valore}</div>
-                    </div>
-                `;
-                break;
-                
-            case 'YOUTUBE':
-                const videoId = getYoutubeVideoId(valore);
-                if (videoId) {
+        try {
+            const contentData = JSON.parse(content);
+            
+            switch(contentData.tipo) {
+                case 'foto':
+                    if (contentData.valore.startsWith('data:')) {
+                        // Immagine salvata come Data URL
+                        contenutoVisuale.innerHTML = `
+                            <div class="anteprima-tipo">
+                                <h4>📸 Foto Caricata</h4>
+                                <img src="${contentData.valore}" 
+                                     style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #4CAF50;">
+                                <p style="margin-top: 10px; color: #666; font-size: 0.9em;">${contentData.extra || 'Immagine salvata'}</p>
+                            </div>
+                        `;
+                    } else {
+                        // Link immagine
+                        contenutoVisuale.innerHTML = `
+                            <div class="anteprima-tipo">
+                                <h4>📸 Foto da Link</h4>
+                                <img src="${contentData.valore}" 
+                                     style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #2196F3;"
+                                     onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\\'text-align:center; padding:20px;\\'><p style=\\'color:red;\\'>❌ Immagine non caricabile</p><a href=\\'${contentData.valore}\\' target=\\'_blank\\' style=\\'color:#2196F3;\\'>Apri link originale</a></div>'">
+                                <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                                    <a href="${contentData.valore}" target="_blank" style="color: #2196F3;">🔗 Apri link originale</a>
+                                </p>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'messaggio':
+                    contenutoVisuale.innerHTML = `
+                        <div class="anteprima-tipo">
+                            <h4>💬 Messaggio</h4>
+                            <div class="messaggio-testo">${contentData.valore.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'youtube':
                     contenutoVisuale.innerHTML = `
                         <div class="anteprima-tipo">
                             <h4>▶️ Video YouTube</h4>
-                            <iframe width="100%" height="250" src="https://www.youtube.com/embed/${videoId}" 
-                                    frameborder="0" allowfullscreen style="border-radius: 10px;"></iframe>
+                            <iframe width="100%" height="250" 
+                                    src="https://www.youtube.com/embed/${contentData.valore}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen 
+                                    style="border-radius: 10px; border: 3px solid #ff4444;">
+                            </iframe>
+                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                                <a href="${contentData.extra}" target="_blank" style="color: #ff4444;">🔗 Apri su YouTube</a>
+                            </p>
                         </div>
                     `;
-                } else {
+                    break;
+                    
+                case 'messaggio-vocale':
+                case 'audio':
+                case 'musica':
+                    if (contentData.valore.startsWith('data:')) {
+                        contenutoVisuale.innerHTML = `
+                            <div class="anteprima-tipo">
+                                <h4>${currentTipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
+                                <audio controls style="width: 100%; margin: 15px 0; border-radius: 8px;">
+                                    <source src="${contentData.valore}" type="audio/mpeg">
+                                    Il tuo browser non supporta l'audio.
+                                </audio>
+                                <p style="color: #666; font-size: 0.9em;">${contentData.extra || 'File audio'}</p>
+                            </div>
+                        `;
+                    } else {
+                        contenutoVisuale.innerHTML = `
+                            <div class="anteprima-tipo">
+                                <h4>${currentTipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
+                                <audio controls style="width: 100%; margin: 15px 0; border-radius: 8px;">
+                                    <source src="${contentData.valore}" type="audio/mpeg">
+                                </audio>
+                                <p style="color: #666; font-size: 0.9em;">
+                                    <a href="${contentData.valore}" target="_blank" style="color: #2196F3;">🔗 Apri link originale</a>
+                                </p>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'video':
+                    if (contentData.valore.startsWith('data:')) {
+                        contenutoVisuale.innerHTML = `
+                            <div class="anteprima-tipo">
+                                <h4>🎥 Video</h4>
+                                <video controls style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #9c27b0;">
+                                    <source src="${contentData.valore}" type="video/mp4">
+                                    Il tuo browser non supporta il video.
+                                </video>
+                                <p style="color: #666; font-size: 0.9em;">${contentData.extra || 'File video'}</p>
+                            </div>
+                        `;
+                    } else {
+                        contenutoVisuale.innerHTML = `
+                            <div class="anteprima-tipo">
+                                <h4>🎥 Video</h4>
+                                <video controls style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 3px solid #9c27b0;">
+                                    <source src="${contentData.valore}" type="video/mp4">
+                                </video>
+                                <p style="color: #666; font-size: 0.9em;">
+                                    <a href="${contentData.valore}" target="_blank" style="color: #2196F3;">🔗 Apri link originale</a>
+                                </p>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                default:
                     contenutoVisuale.innerHTML = `
                         <div class="anteprima-tipo">
-                            <h4>▶️ Video YouTube</h4>
-                            <a href="${valore}" target="_blank" class="link-esterno">Apri su YouTube</a>
+                            <h4>📁 Contenuto</h4>
+                            <p>${contentData.valore}</p>
                         </div>
                     `;
-                }
-                break;
-                
-            default:
-                contenutoVisuale.innerHTML = `
-                    <div class="anteprima-tipo">
-                        <h4>📁 Contenuto Salvato</h4>
-                        <p>${content}</p>
-                    </div>
-                `;
+            }
+        } catch (error) {
+            console.error('Errore visualizzazione contenuto:', error);
+            contenutoVisuale.innerHTML = `
+                <div class="anteprima-tipo">
+                    <h4>⚠️ Errore</h4>
+                    <p>Contenuto non valido o corrotto</p>
+                </div>
+            `;
         }
     }
 
-    // 11. Funzione helper per YouTube
+    // 10. Funzione helper per YouTube
     function getYoutubeVideoId(url) {
-        const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|[^#]*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-        const match = url.match(regex);
-        return (match && match[1]) ? match[1] : null;
+        if (!url) return null;
+        
+        const patterns = [
+            /(?:youtube\.com\/watch\?v=)([^&]+)/,
+            /(?:youtu\.be\/)([^?]+)/,
+            /(?:youtube\.com\/embed\/)([^?]+)/,
+            /(?:youtube\.com\/v\/)([^?]+)/
+        ];
+        
+        for (let pattern of patterns) {
+            const match = url.match(pattern);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+        
+        return null;
     }
 
-    // 12. Elimina contenuto
+    // 11. Elimina contenuto
     function eliminaContenuto() {
         if (!currentDay) return;
         
@@ -471,11 +676,14 @@
             visualizzaContenuto(null);
             editorContainer.innerHTML = '';
             editorDinamico.style.display = 'none';
+            currentTipo = null;
+            currentFile = null;
+            debugTipo.textContent = '-';
             alert(`🗑️ Contenuto eliminato!`);
         }
     }
 
-    // 13. Navigazione tra giorni
+    // 12. Navigazione tra giorni
     function cambiaGiorno(direzione) {
         if (!currentDay) return;
         
@@ -485,14 +693,15 @@
         }
     }
 
-    // 14. Chiudi modale
+    // 13. Chiudi modale
     function chiudiModale() {
         modale.classList.remove("mostra");
         currentDay = null;
         currentTipo = null;
+        currentFile = null;
     }
 
-    // 15. Inizializzazione
+    // 14. Inizializzazione
     document.addEventListener('DOMContentLoaded', function() {
         generaCalendario();
         
@@ -505,6 +714,8 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') chiudiModale();
         });
+        
+        console.log("🎄 Calendario dell'Avvento inizializzato!");
     });
 
 </script>
