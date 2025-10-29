@@ -21,10 +21,14 @@
             <div id="contenutoVisuale"></div> 
             
             <p>Scrivi qui o incolla un'immagine, video o link...</p>
+            <div class="azioni-rapide">
+                <button type="button" onclick="incollaDaAppunti()">📋 Incolla da appunti</button>
+            </div>
             <div id="editor" contenteditable="true"></div>
             
             <div class="azioni">
                 <button class="bottone" onclick="salvaContenuto()">💾 Salva</button>
+                <button class="bottone-elimina" onclick="eliminaContenuto()">🗑️ Elimina</button>
                 <button class="bottone-chiusura" onclick="chiudiModale()">❌ Chiudi</button>
             </div>
         </div>
@@ -47,7 +51,7 @@
             
             // Verifica se c'è contenuto salvato per marcare il pulsante
             const savedContent = localStorage.getItem(`giorno${i}`);
-            if (savedContent && savedContent.trim() !== '') {
+            if (savedContent && savedContent.trim() !== '' && savedContent !== '<br>') {
                 giorno.classList.add('contenutoSalvato');
             }
         }
@@ -57,30 +61,39 @@
             currentDay = giorno;
             const savedContent = localStorage.getItem(`giorno${giorno}`);
             
-            editor.innerText = savedContent || '';
+            editor.innerHTML = savedContent || '';
             modale.classList.add("mostra");
             visualizzaContenuto(savedContent); 
         }
 
-        // 3. Funzione per l'anteprima del contenuto
+        // 3. Funzione per l'anteprima del contenuto - VERSIONE MIGLIORATA
         function visualizzaContenuto(content) {
             contenutoVisuale.innerHTML = '';
-            if (!content || content.trim() === '') return;
+            if (!content || content.trim() === '' || content === '<br>') {
+                contenutoVisuale.innerHTML = '<p style="color: #666; font-style: italic;">Nessun contenuto salvato per questo giorno</p>';
+                return;
+            }
 
             const trimmedContent = content.trim();
 
-            if (trimmedContent.match(/\.(jpeg|jpg|gif|png)$/i)) {
-                // Se è un link ad immagine
-                contenutoVisuale.innerHTML = `<img src="${trimmedContent}" alt="Contenuto immagine">`;
+            // Se è HTML complesso (contenente tag), mostra direttamente
+            if (trimmedContent.includes('<') && !trimmedContent.match(/^https?:\/\//)) {
+                contenutoVisuale.innerHTML = trimmedContent;
+            }
+            // Altrimenti controlla se è un link semplice
+            else if (trimmedContent.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                contenutoVisuale.innerHTML = `<img src="${trimmedContent}" alt="Contenuto immagine" style="max-width: 100%; border-radius: 8px;">`;
             } else if (trimmedContent.includes("youtube.com") || trimmedContent.includes("youtu.be")) {
-                // Se è un link YouTube
-                contenutoVisuale.innerHTML = `<iframe width="100%" height="200px" src="https://www.youtube.com/embed/${getYoutubeVideoId(trimmedContent)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                const videoId = getYoutubeVideoId(trimmedContent);
+                if (videoId) {
+                    contenutoVisuale.innerHTML = `<iframe width="100%" height="200px" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+                } else {
+                    contenutoVisuale.innerHTML = `<a href="${trimmedContent}" target="_blank" style="color: #D32F2F; text-decoration: none; font-weight: bold;">🎥 Apri Video YouTube</a>`;
+                }
             } else if (trimmedContent.match(/^https?:\/\//i)) {
-                // Se è un link generico
-                contenutoVisuale.innerHTML = `<a href="${trimmedContent}" target="_blank">Apri Link</a>`;
+                contenutoVisuale.innerHTML = `<a href="${trimmedContent}" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: bold;">🔗 Apri Link Esterno</a>`;
             } else {
-                // Se è solo testo
-                contenutoVisuale.innerHTML = `<p>${trimmedContent}</p>`;
+                contenutoVisuale.innerHTML = `<p style="font-size: 1.1em; line-height: 1.5;">${trimmedContent}</p>`;
             }
         }
 
@@ -91,28 +104,96 @@
             return (match && match[1]) ? match[1] : null;
         }
 
-        // 5. Funzione per salvare il contenuto
+        // 5. Funzione per salvare il contenuto - VERSIONE CORRETTA
         function salvaContenuto() {
-            const content = editor.innerText;
+            // Usa innerHTML invece di innerText per catturare tutto il contenuto
+            const content = editor.innerHTML;
+            
+            console.log("Salvando per giorno", currentDay, "contenuto:", content); // Debug
+            
             localStorage.setItem(`giorno${currentDay}`, content);
             
             // Aggiorna la classe CSS sul pulsante salvato
             const buttons = calendario.querySelectorAll('.pulsante');
             const savedButton = buttons[currentDay - 1];
-            if (content.trim() !== '') {
+            if (content.trim() !== '' && content !== '<br>') {
                 savedButton.classList.add('contenutoSalvato');
             } else {
                 savedButton.classList.remove('contenutoSalvato');
             }
 
-            chiudiModale();
+            // Aggiorna anche l'anteprima
+            visualizzaContenuto(content);
+            
+            // Mostra conferma
+            alert('Contenuto salvato con successo! ✅');
         }
 
-        // 6. Funzione per chiudere il modale
+        // 6. Funzione per eliminare il contenuto
+        function eliminaContenuto() {
+            if (confirm('Sei sicuro di voler eliminare il contenuto di questo giorno?')) {
+                localStorage.removeItem(`giorno${currentDay}`);
+                const buttons = calendario.querySelectorAll('.pulsante');
+                buttons[currentDay - 1].classList.remove('contenutoSalvato');
+                editor.innerHTML = '';
+                visualizzaContenuto('');
+                alert('Contenuto eliminato! 🗑️');
+            }
+        }
+
+        // 7. Funzione per incollare immagini dagli appunti
+        async function incollaDaAppunti() {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                for (const item of clipboardItems) {
+                    for (const type of item.types) {
+                        if (type.startsWith('image/')) {
+                            const blob = await item.getType(type);
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.style.maxWidth = '100%';
+                                img.style.borderRadius = '8px';
+                                editor.appendChild(img);
+                            };
+                            reader.readAsDataURL(blob);
+                            return;
+                        }
+                    }
+                }
+                alert('Nessuna immagine trovata negli appunti. Copia prima un\'immagine.');
+            } catch (err) {
+                console.error('Errore incollando:', err);
+                alert('Incolla normalmente con Ctrl+V');
+            }
+        }
+
+        // 8. Funzione per chiudere il modale
         function chiudiModale() {
             modale.classList.remove("mostra");
+            editor.innerHTML = '';
             contenutoVisuale.innerHTML = ''; 
         }
+
+        // 9. Chiudi il modal cliccando fuori dal contenuto
+        modale.addEventListener('click', function(e) {
+            if (e.target === modale) {
+                chiudiModale();
+            }
+        });
+
+        // 10. Previeni il comportamento di default quando si incolla
+        editor.addEventListener('paste', function(e) {
+            // Permetti il comportamento normale di incolla
+            setTimeout(() => {
+                // Pulizia automatica del contenuto dopo l'incolla
+                const content = editor.innerHTML;
+                if (content.includes('data:')) {
+                    console.log("Contenuto con data URL incollato");
+                }
+            }, 100);
+        });
     </script>
 </body>
 </html>
