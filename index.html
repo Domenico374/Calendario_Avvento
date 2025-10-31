@@ -7,12 +7,21 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Audio Natalizio -->
+    <audio id="jingleNatalizio" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-christmas-jingle-278.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Controllo Audio -->
+    <div class="controllo-audio">
+        <button id="btnAudio" onclick="toggleAudio()">🎵 Attiva Musica</button>
+    </div>
+
     <!-- Header -->
     <div class="header-container">
         <h1>Calendario dell'Avvento</h1>
         <p>Un viaggio di 24 giorni di Meraviglia</p>
     </div>
-
     <!-- Griglia Calendario -->
     <div class="calendario-grid-container">
         <!-- Giorni 1-6 -->
