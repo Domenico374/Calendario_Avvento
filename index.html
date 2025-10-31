@@ -3,775 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendario dell'Avvento</title>
+    <title>Calendario dell'Avvento Magico</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-<div class="header-container">
-    <h1>Calendario dell'Avvento</h1>
-    <p>Un viaggio di 24 giorni di Meraviglia</p>
-</div>
+    <!-- Header -->
+    <div class="header-container">
+        <h1>Calendario dell'Avvento</h1>
+        <p>Un viaggio di 24 giorni di Meraviglia</p>
+    </div>
 
-<div class="calendario-grid-container" id="calendario">
-    <!-- I giorni verranno generati dinamicamente -->
-</div>
-
-<!-- Modal Principale -->
-<div class="modal-overlay" id="modal">
-    <div class="modal-content">
-        <!-- Intestazione con Navigazione -->
-        <div class="navigazione-giorni">
-            <button class="btn-navigazione" onclick="cambiaGiorno(-1)">← Porta precedente</button>
-            <div class="giorno-corrente">
-                <span class="data-giorno" id="dataGiorno">1 dicembre</span>
-                <span class="numero-giorno" id="numeroGiorno">1</span>
-            </div>
-            <button class="btn-navigazione" onclick="cambiaGiorno(1)">Accanto →</button>
+    <!-- Griglia Calendario -->
+    <div class="calendario-grid-container">
+        <!-- Giorni 1-6 -->
+        <div class="pulsante" onclick="gestisciClickCasella(1)">
+            <span class="numero-giorno">1</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(2)">
+            <span class="numero-giorno">2</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(3)">
+            <span class="numero-giorno">3</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(4)">
+            <span class="numero-giorno">4</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(5)">
+            <span class="numero-giorno">5</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(6)">
+            <span class="numero-giorno">6</span>
+            <span class="data-giorno">dicembre</span>
         </div>
 
-        <!-- Anteprima Contenuto -->
-        <div class="anteprima-contenuto" id="anteprimaContenuto">
-            <div id="contenutoVisuale">
-                <p class="nessun-contenuto">Nessun contenuto per questo giorno</p>
-            </div>
+        <!-- Giorni 7-12 -->
+        <div class="pulsante" onclick="gestisciClickCasella(7)">
+            <span class="numero-giorno">7</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(8)">
+            <span class="numero-giorno">8</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(9)">
+            <span class="numero-giorno">9</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(10)">
+            <span class="numero-giorno">10</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(11)">
+            <span class="numero-giorno">11</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(12)">
+            <span class="numero-giorno">12</span>
+            <span class="data-giorno">dicembre</span>
         </div>
 
-        <!-- Controllo Spazio -->
-        <div class="controllo-spazio">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.9em;">💾 Spazio: <strong id="spazioUtilizzato">0MB</strong></span>
-                <button onclick="controllaSpazioDisponibile()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer;">
-                    Controlla
-                </button>
-                <button onclick="pulisciSpazio()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 0.8em; cursor: pointer;">
-                    Pulisci Tutto
-                </button>
-            </div>
+        <!-- Giorni 13-18 -->
+        <div class="pulsante" onclick="gestisciClickCasella(13)">
+            <span class="numero-giorno">13</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(14)">
+            <span class="numero-giorno">14</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(15)">
+            <span class="numero-giorno">15</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(16)">
+            <span class="numero-giorno">16</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(17)">
+            <span class="numero-giorno">17</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(18)">
+            <span class="numero-giorno">18</span>
+            <span class="data-giorno">dicembre</span>
         </div>
 
-        <!-- Selezione Tipo Contenuto -->
-        <div class="selezione-tipo">
-            <h4>Scegli il tipo di contenuto:</h4>
-            <div class="grid-tipo-contenuto">
-                <button class="btn-tipo" onclick="selezionaTipo('foto')">
-                    <span class="icona">📸</span>
-                    <span>Foto</span>
-                </button>
-                <button class="btn-tipo" onclick="selezionaTipo('messaggio')">
-                    <span class="icona">💬</span>
-                    <span>Messaggio</span>
-                </button>
-                <button class="btn-tipo" onclick="selezionaTipo('messaggio-vocale')">
-                    <span class="icona">🎤</span>
-                    <span>Messaggio vocale</span>
-                </button>
-                <button class="btn-tipo" onclick="selezionaTipo('audio')">
-                    <span class="icona">🎵</span>
-                    <span>Audio</span>
-                </button>
-                <button class="btn-tipo" onclick="selezionaTipo('musica')">
-                    <span class="icona">🎶</span>
-                    <span>Musica</span>
-                </button>
-                <button class="btn-tipo" onclick="selezionaTipo('youtube')">
-                    <span class="icona">▶️</span>
-                    <span>Video di YouTube</span>
-                </button>
-                <button class="btn-tipo" onclick="selezionaTipo('video')">
-                    <span class="icona">🎥</span>
-                    <span>Video</span>
-                </button>
-            </div>
+        <!-- Giorni 19-24 -->
+        <div class="pulsante" onclick="gestisciClickCasella(19)">
+            <span class="numero-giorno">19</span>
+            <span class="data-giorno">dicembre</span>
         </div>
-
-        <!-- Editor Dinamico -->
-        <div class="editor-dinamico" id="editorDinamico">
-            <div id="editorContainer"></div>
+        <div class="pulsante" onclick="gestisciClickCasella(20)">
+            <span class="numero-giorno">20</span>
+            <span class="data-giorno">dicembre</span>
         </div>
-
-        <!-- Azioni -->
-        <div class="azioni">
-            <button class="bottone" onclick="salvaContenuto()">💾 Salva</button>
-            <button class="bottone-elimina" onclick="eliminaContenuto()">🗑️ Elimina</button>
-            <button class="bottone-chiusura" onclick="chiudiModale()">❌ Chiudi</button>
+        <div class="pulsante" onclick="gestisciClickCasella(21)">
+            <span class="numero-giorno">21</span>
+            <span class="data-giorno">dicembre</span>
         </div>
-
-        <!-- Info Debug -->
-        <div class="debug-info">
-            <span>Giorno: <strong id="debugDay">-</strong></span>
-            <span>Tipo: <strong id="debugTipo">-</strong></span>
+        <div class="pulsante" onclick="gestisciClickCasella(22)">
+            <span class="numero-giorno">22</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(23)">
+            <span class="numero-giorno">23</span>
+            <span class="data-giorno">dicembre</span>
+        </div>
+        <div class="pulsante" onclick="gestisciClickCasella(24)">
+            <span class="numero-giorno">24</span>
+            <span class="data-giorno">dicembre</span>
         </div>
     </div>
-</div>
 
-<script>
-    // Variabili globali
-    const calendario = document.getElementById("calendario");
-    const modale = document.getElementById("modal");
-    const contenutoVisuale = document.getElementById("contenutoVisuale");
-    const editorDinamico = document.getElementById("editorDinamico");
-    const editorContainer = document.getElementById("editorContainer");
-    const dataGiorno = document.getElementById("dataGiorno");
-    const numeroGiorno = document.getElementById("numeroGiorno");
-    const debugDay = document.getElementById("debugDay");
-    const debugTipo = document.getElementById("debugTipo");
-
-    let currentDay = null;
-    let currentTipo = null;
-    let currentFile = null;
-
-    // 1. Generazione calendario
-    function generaCalendario() {
-        calendario.innerHTML = '';
-        for (let i = 1; i <= 24; i++) {
-            const giorno = document.createElement("button");
-            giorno.classList.add("pulsante");
-            giorno.innerHTML = `
-                <span class="numero-giorno">${i}</span>
-                <span class="data-giorno">${i} dicembre</span>
-            `;
-            giorno.setAttribute('data-giorno', i);
-            giorno.onclick = () => apriGiornata(i); 
-            calendario.appendChild(giorno);
-            aggiornaStatoPulsante(i);
-        }
-    }
-
-    // 2. Aggiorna stato pulsante
-    function aggiornaStatoPulsante(giorno) {
-        const pulsante = document.querySelector(`.pulsante[data-giorno="${giorno}"]`);
-        if (!pulsante) return;
-        
-        const savedContent = localStorage.getItem(`giorno${giorno}`);
-        if (savedContent && savedContent.trim() !== '') {
-            pulsante.classList.add('contenutoSalvato');
-        } else {
-            pulsante.classList.remove('contenutoSalvato');
-        }
-    }
-
-    // 3. Apri giornata
-    function apriGiornata(giorno) {
-        currentDay = giorno;
-        debugDay.textContent = giorno;
-        
-        // Aggiorna interfaccia
-        dataGiorno.textContent = `${giorno} dicembre`;
-        numeroGiorno.textContent = giorno;
-        
-        // Resetta selezione tipo
-        currentTipo = null;
-        currentFile = null;
-        debugTipo.textContent = '-';
-        editorContainer.innerHTML = '';
-        editorDinamico.style.display = 'none';
-        
-        // Carica contenuto salvato
-        const savedContent = localStorage.getItem(`giorno${giorno}`);
-        visualizzaContenuto(savedContent);
-        
-        // Aggiorna spazio utilizzato
-        aggiornaSpazioUtilizzato();
-        
-        modale.classList.add("mostra");
-    }
-
-    // 4. Selezione tipo contenuto
-    function selezionaTipo(tipo) {
-        currentTipo = tipo;
-        debugTipo.textContent = tipo;
-        
-        // Rimuovi selezione precedente
-        document.querySelectorAll('.btn-tipo').forEach(btn => {
-            btn.classList.remove('selezionato');
-        });
-        
-        // Aggiungi selezione corrente
-        event.currentTarget.classList.add('selezionato');
-        
-        // Mostra editor appropriato
-        editorDinamico.style.display = 'block';
-        mostraEditorPerTipo(tipo);
-    }
-
-    // 5. Mostra editor per tipo
-    function mostraEditorPerTipo(tipo) {
-        let html = '';
-        
-        switch(tipo) {
-            case 'foto':
-                html = `
-                    <div class="editor-tipo">
-                        <h4>📸 Carica Foto</h4>
-                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                            <p>📁 Clicca qui per selezionare un'immagine</p>
-                            <small>Formati: JPG, PNG, GIF (max 5MB)</small>
-                        </div>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
-                        <div id="anteprimaFile" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo">
-                            <p>🔗 Oppure incolla link immagine:</p>
-                            <input type="text" id="linkFoto" placeholder="https://esempio.com/foto.jpg">
-                        </div>
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <!-- MODALITÀ AMMINISTRAZIONE -->
+            <div id="modal-amministrazione">
+                <!-- Navigazione Giorni -->
+                <div class="navigazione-giorni">
+                    <button class="btn-navigazione" onclick="cambiaGiorno(-1)">← Precedente</button>
+                    <div class="giorno-corrente">
+                        <span class="data-giorno" id="modal-data-giorno">1 dicembre</span>
+                        <span class="numero-giorno" id="modal-numero-giorno">1</span>
                     </div>
-                `;
-                break;
-                
-            case 'messaggio':
-                html = `
-                    <div class="editor-tipo">
-                        <h4>💬 Scrivi Messaggio</h4>
-                        <textarea id="testoMessaggio" placeholder="Scrivi il tuo messaggio speciale..."></textarea>
-                        <div class="suggerimenti-testo">
-                            <button type="button" onclick="inserisciTestoEsempio()">
-                                🎄 Inserisci testo esempio
-                            </button>
-                        </div>
-                    </div>
-                `;
-                break;
-                
-            case 'youtube':
-                html = `
-                    <div class="editor-tipo">
-                        <h4>▶️ Link YouTube</h4>
-                        <input type="text" id="linkYouTube" placeholder="Incolla qui il link di YouTube...">
-                        <div class="esempi-link">
-                            <small>📋 Esempi: 
-                                <br>• https://youtube.com/watch?v=CODICE
-                                <br>• https://youtu.be/CODICE
-                            </small>
-                        </div>
-                    </div>
-                `;
-                break;
-                
-            case 'messaggio-vocale':
-                html = `
-                    <div class="editor-tipo">
-                        <h4>🎤 Messaggio Vocale</h4>
-                        <div class="upload-area" onclick="document.getElementById('fileAudioVocale').click()">
-                            <p>🎙️ Carica file audio</p>
-                            <small>Formati: MP3, WAV, M4A (max 10MB)</small>
-                        </div>
-                        <input type="file" id="fileAudioVocale" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
-                        <div id="anteprimaAudio" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo">
-                            <p>🔗 Oppure incolla link audio:</p>
-                            <input type="text" id="linkAudioVocale" placeholder="https://esempio.com/audio.mp3">
-                        </div>
-                    </div>
-                `;
-                break;
-                
-            case 'audio':
-            case 'musica':
-                html = `
-                    <div class="editor-tipo">
-                        <h4>${tipo === 'audio' ? '🎵 File Audio' : '🎶 Brano Musicale'}</h4>
-                        <div class="upload-area" onclick="document.getElementById('fileAudio${tipo}').click()">
-                            <p>📁 Carica file audio</p>
-                            <small>Formati: MP3, WAV, OGG (max 10MB)</small>
-                        </div>
-                        <input type="file" id="fileAudio${tipo}" accept="audio/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
-                        <div id="anteprimaAudio${tipo}" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo">
-                            <p>🔗 Oppure incolla link audio:</p>
-                            <input type="text" id="linkAudio${tipo}" placeholder="https://esempio.com/audio.mp3">
-                        </div>
-                    </div>
-                `;
-                break;
-                
-            case 'video':
-                html = `
-                    <div class="editor-tipo">
-                        <h4>🎥 Carica Video</h4>
-                        <div class="upload-area" onclick="document.getElementById('fileVideo').click()">
-                            <p>📁 Carica file video</p>
-                            <small>Formati: MP4, WebM (max 20MB)</small>
-                        </div>
-                        <input type="file" id="fileVideo" accept="video/*" style="display: none;" onchange="gestisciFileSelezionato(this)">
-                        <div id="anteprimaVideo" style="margin-top: 15px;"></div>
-                        <div class="link-alternativo">
-                            <p>🔗 Oppure incolla link video:</p>
-                            <input type="text" id="linkVideo" placeholder="https://esempio.com/video.mp4">
-                        </div>
-                    </div>
-                `;
-                break;
-        }
-        
-        editorContainer.innerHTML = html;
-        currentFile = null;
-    }
-
-    // 6. Gestione file selezionato
-    function gestisciFileSelezionato(input) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            currentFile = file;
-            
-            // LIMITI AUMENTATI
-            let maxSize = 5 * 1024 * 1024; // 5MB per immagini
-            if (currentTipo === 'audio' || currentTipo === 'musica' || currentTipo === 'messaggio-vocale') {
-                maxSize = 10 * 1024 * 1024; // 10MB per audio
-            } else if (currentTipo === 'video') {
-                maxSize = 20 * 1024 * 1024; // 20MB per video
-            }
-            
-            if (file.size > maxSize) {
-                alert(`❌ File troppo grande! Massimo ${maxSize/(1024*1024)}MB`);
-                input.value = '';
-                currentFile = null;
-                return;
-            }
-            
-            // Avviso per file grandi
-            if (file.size > 2 * 1024 * 1024) {
-                const conferma = confirm(`⚠️ Questo file è grande (${(file.size/1024/1024).toFixed(1)}MB).\n\nIl salvataggio potrebbe essere lento e occupare molto spazio.\nVuoi continuare?`);
-                if (!conferma) {
-                    input.value = '';
-                    currentFile = null;
-                    return;
-                }
-            }
-            
-            // Anteprima
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let anteprimaHTML = '';
-                const containerId = `anteprima${currentTipo.charAt(0).toUpperCase() + currentTipo.slice(1)}`;
-                
-                if (currentTipo === 'foto') {
-                    anteprimaHTML = `
-                        <div class="anteprima-contenuto">
-                            <img src="${e.target.result}">
-                            <p>✅ ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
-                            ${file.size > 2 * 1024 * 1024 ? '<p class="avviso-grande">⚠️ File di grandi dimensioni</p>' : ''}
-                        </div>
-                    `;
-                } else if (currentTipo === 'video') {
-                    anteprimaHTML = `
-                        <div class="anteprima-contenuto">
-                            <video controls>
-                                <source src="${e.target.result}" type="${file.type}">
-                            </video>
-                            <p>🎥 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
-                            ${file.size > 5 * 1024 * 1024 ? '<p class="avviso-grande">⚠️ File di grandi dimensioni</p>' : ''}
-                        </div>
-                    `;
-                } else {
-                    anteprimaHTML = `
-                        <div class="anteprima-contenuto">
-                            <p>🎵 ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)</p>
-                            <audio controls>
-                                <source src="${e.target.result}" type="${file.type}">
-                            </audio>
-                            ${file.size > 5 * 1024 * 1024 ? '<p class="avviso-grande">⚠️ File di grandi dimensioni</p>' : ''}
-                        </div>
-                    `;
-                }
-                
-                document.getElementById(containerId).innerHTML = anteprimaHTML;
-            };
-            
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // 7. Testo esempio
-    function inserisciTestoEsempio() {
-        const esempi = [
-            "🎄 Che questo Natale porti gioia e serenità nel tuo cuore!",
-            "🌟 Possano le luci del Natale illuminare il tuo cammino!",
-            "❄️ Che la magia di questo periodo ti avvolga di felicità!",
-            "🎁 I migliori auguri per te e la tua famiglia!",
-            "🕯️ Che lo spirito natalizio riscaldi il tuo cuore!",
-            "✨ Che il tuo Natale sia pieno di amore e risate!"
-        ];
-        const esempio = esempi[Math.floor(Math.random() * esempi.length)];
-        document.getElementById('testoMessaggio').value = esempio;
-    }
-
-    // 8. Salva contenuto
-    async function salvaContenuto() {
-        if (!currentDay) {
-            alert('❌ Nessun giorno selezionato!');
-            return;
-        }
-
-        if (!currentTipo) {
-            alert('❌ Seleziona un tipo di contenuto!');
-            return;
-        }
-
-        let contentData = {
-            tipo: currentTipo,
-            valore: '',
-            extra: ''
-        };
-
-        try {
-            switch(currentTipo) {
-                case 'foto':
-                    const linkFoto = document.getElementById('linkFoto');
-                    if (linkFoto && linkFoto.value) {
-                        contentData.valore = linkFoto.value;
-                        contentData.extra = 'link';
-                    } else if (currentFile) {
-                        contentData.valore = await fileToDataURL(currentFile);
-                        contentData.extra = currentFile.name;
-                    } else {
-                        alert('❌ Seleziona un file o inserisci un link!');
-                        return;
-                    }
-                    break;
-                    
-                case 'messaggio':
-                    const testo = document.getElementById('testoMessaggio');
-                    if (testo && testo.value.trim()) {
-                        contentData.valore = testo.value.trim();
-                    } else {
-                        alert('❌ Scrivi un messaggio!');
-                        return;
-                    }
-                    break;
-                    
-                case 'youtube':
-                    const linkYT = document.getElementById('linkYouTube');
-                    if (linkYT && linkYT.value.trim()) {
-                        const videoId = getYoutubeVideoId(linkYT.value.trim());
-                        if (videoId) {
-                            contentData.valore = videoId;
-                            contentData.extra = linkYT.value.trim();
-                        } else {
-                            alert('❌ Link YouTube non valido!');
-                            return;
-                        }
-                    } else {
-                        alert('❌ Inserisci un link YouTube!');
-                        return;
-                    }
-                    break;
-                    
-                case 'messaggio-vocale':
-                case 'audio':
-                case 'musica':
-                    const linkAudio = document.getElementById(`linkAudio${currentTipo}`) || document.getElementById('linkAudioVocale');
-                    if (linkAudio && linkAudio.value) {
-                        contentData.valore = linkAudio.value;
-                        contentData.extra = 'link';
-                    } else if (currentFile) {
-                        contentData.valore = await fileToDataURL(currentFile);
-                        contentData.extra = currentFile.name;
-                    } else {
-                        alert('❌ Seleziona un file o inserisci un link!');
-                        return;
-                    }
-                    break;
-                    
-                case 'video':
-                    const linkVideo = document.getElementById('linkVideo');
-                    if (linkVideo && linkVideo.value) {
-                        contentData.valore = linkVideo.value;
-                        contentData.extra = 'link';
-                    } else if (currentFile) {
-                        contentData.valore = await fileToDataURL(currentFile);
-                        contentData.extra = currentFile.name;
-                    } else {
-                        alert('❌ Seleziona un file o inserisci un link!');
-                        return;
-                    }
-                    break;
-            }
-
-            // Salva nel localStorage
-            const contentString = JSON.stringify(contentData);
-            localStorage.setItem(`giorno${currentDay}`, contentString);
-            
-            // Aggiorna interfaccia
-            aggiornaStatoPulsante(currentDay);
-            visualizzaContenuto(contentString);
-            aggiornaSpazioUtilizzato();
-            
-            alert(`✅ ${getTipoNome(currentTipo)} salvato per il Giorno ${currentDay}!`);
-            
-        } catch (error) {
-            console.error('Errore salvataggio:', error);
-            if (error.name === 'QuotaExceededError') {
-                alert('❌ Spazio di archiviazione pieno! Elimina qualche contenuto o usa file più piccoli.');
-            } else {
-                alert('❌ Errore nel salvataggio: ' + error.message);
-            }
-        }
-    }
-
-    // 8.1 Converti file in Data URL
-    function fileToDataURL(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
-    // 8.2 Ottieni nome tipo
-    function getTipoNome(tipo) {
-        const nomi = {
-            'foto': 'Foto',
-            'messaggio': 'Messaggio',
-            'youtube': 'Video YouTube',
-            'messaggio-vocale': 'Messaggio vocale',
-            'audio': 'Audio',
-            'musica': 'Musica',
-            'video': 'Video'
-        };
-        return nomi[tipo] || 'Contenuto';
-    }
-
-    // 9. Visualizza contenuto
-    function visualizzaContenuto(content) {
-        if (!content) {
-            contenutoVisuale.innerHTML = '<p class="nessun-contenuto">Nessun contenuto per questo giorno</p>';
-            return;
-        }
-
-        try {
-            const contentData = JSON.parse(content);
-            
-            switch(contentData.tipo) {
-                case 'foto':
-                    if (contentData.valore.startsWith('data:')) {
-                        // Immagine salvata come Data URL
-                        contenutoVisuale.innerHTML = `
-                            <div class="anteprima-tipo">
-                                <h4>📸 Foto Caricata</h4>
-                                <img src="${contentData.valore}">
-                                <p>${contentData.extra || 'Immagine salvata'}</p>
-                            </div>
-                        `;
-                    } else {
-                        // Link immagine
-                        contenutoVisuale.innerHTML = `
-                            <div class="anteprima-tipo">
-                                <h4>📸 Foto da Link</h4>
-                                <img src="${contentData.valore}" onerror="this.style.display='none'; this.parentNode.innerHTML='<p style=\\'color:red;\\'>❌ Immagine non caricabile</p><a href=\\'${contentData.valore}\\' target=\\'_blank\\'>Apri link originale</a>'">
-                                <p><a href="${contentData.valore}" target="_blank">🔗 Apri link originale</a></p>
-                            </div>
-                        `;
-                    }
-                    break;
-                    
-                case 'messaggio':
-                    contenutoVisuale.innerHTML = `
-                        <div class="anteprima-tipo">
-                            <h4>💬 Messaggio</h4>
-                            <div class="messaggio-testo">${contentData.valore.replace(/\n/g, '<br>')}</div>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'youtube':
-                    contenutoVisuale.innerHTML = `
-                        <div class="anteprima-tipo">
-                            <h4>▶️ Video YouTube</h4>
-                            <iframe width="100%" height="250" 
-                                    src="https://www.youtube.com/embed/${contentData.valore}" 
-                                    frameborder="0" 
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                    allowfullscreen>
-                            </iframe>
-                            <p><a href="${contentData.extra}" target="_blank">🔗 Apri su YouTube</a></p>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'messaggio-vocale':
-                case 'audio':
-                case 'musica':
-                    if (contentData.valore.startsWith('data:')) {
-                        contenutoVisuale.innerHTML = `
-                            <div class="anteprima-tipo">
-                                <h4>${contentData.tipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
-                                <audio controls>
-                                    <source src="${contentData.valore}" type="audio/mpeg">
-                                </audio>
-                                <p>${contentData.extra || 'File audio'}</p>
-                            </div>
-                        `;
-                    } else {
-                        contenutoVisuale.innerHTML = `
-                            <div class="anteprima-tipo">
-                                <h4>${contentData.tipo === 'musica' ? '🎶 Musica' : '🎵 Audio'}</h4>
-                                <audio controls>
-                                    <source src="${contentData.valore}" type="audio/mpeg">
-                                </audio>
-                                <p><a href="${contentData.valore}" target="_blank">🔗 Apri link originale</a></p>
-                            </div>
-                        `;
-                    }
-                    break;
-                    
-                case 'video':
-                    if (contentData.valore.startsWith('data:')) {
-                        contenutoVisuale.innerHTML = `
-                            <div class="anteprima-tipo">
-                                <h4>🎥 Video</h4>
-                                <video controls>
-                                    <source src="${contentData.valore}" type="video/mp4">
-                                </video>
-                                <p>${contentData.extra || 'File video'}</p>
-                            </div>
-                        `;
-                    } else {
-                        contenutoVisuale.innerHTML = `
-                            <div class="anteprima-tipo">
-                                <h4>🎥 Video</h4>
-                                <video controls>
-                                    <source src="${contentData.valore}" type="video/mp4">
-                                </video>
-                                <p><a href="${contentData.valore}" target="_blank">🔗 Apri link originale</a></p>
-                            </div>
-                        `;
-                    }
-                    break;
-                    
-                default:
-                    contenutoVisuale.innerHTML = `
-                        <div class="anteprima-tipo">
-                            <h4>📁 Contenuto</h4>
-                            <p>${contentData.valore}</p>
-                        </div>
-                    `;
-            }
-        } catch (error) {
-            console.error('Errore visualizzazione contenuto:', error);
-            contenutoVisuale.innerHTML = `
-                <div class="anteprima-tipo">
-                    <h4>⚠️ Errore</h4>
-                    <p>Contenuto non valido o corrotto</p>
+                    <button class="btn-navigazione" onclick="cambiaGiorno(1)">Successivo →</button>
                 </div>
-            `;
-        }
-    }
 
-    // 10. Funzione helper per YouTube
-    function getYoutubeVideoId(url) {
-        if (!url) return null;
-        
-        const patterns = [
-            /(?:youtube\.com\/watch\?v=)([^&]+)/,
-            /(?:youtu\.be\/)([^?]+)/,
-            /(?:youtube\.com\/embed\/)([^?]+)/,
-            /(?:youtube\.com\/v\/)([^?]+)/
-        ];
-        
-        for (let pattern of patterns) {
-            const match = url.match(pattern);
-            if (match && match[1]) {
-                return match[1];
-            }
-        }
-        
-        return null;
-    }
+                <!-- Gestione Spazio -->
+                <div class="gestione-spazio">
+                    <div id="spazio-display" class="spazio-info">
+                        Spazio: 0.0MB / 100MB
+                    </div>
+                    <div class="controlli-spazio">
+                        <button onclick="controllaSpazio()" class="bottone-piccolo">Controlla</button>
+                        <button onclick="pulisciTutto()" class="bottone-piccolo elimina">Pulisci Tutto</button>
+                    </div>
+                </div>
 
-    // 11. Elimina contenuto
-    function eliminaContenuto() {
-        if (!currentDay) return;
-        
-        if (confirm(`Sei sicuro di voler eliminare il contenuto del Giorno ${currentDay}?`)) {
-            localStorage.removeItem(`giorno${currentDay}`);
-            aggiornaStatoPulsante(currentDay);
-            visualizzaContenuto(null);
-            editorContainer.innerHTML = '';
-            editorDinamico.style.display = 'none';
-            currentTipo = null;
-            currentFile = null;
-            debugTipo.textContent = '-';
-            aggiornaSpazioUtilizzato();
-            alert(`🗑️ Contenuto eliminato!`);
-        }
-    }
+                <!-- Anteprima Contenuto -->
+                <div class="anteprima-contenuto">
+                    <div id="anteprima-tipo" class="anteprima-tipo">
+                        <h4>Contenuto Attuale</h4>
+                        <div id="anteprima-contenuto-attuale" class="nessun-contenuto">
+                            Nessun contenuto salvato per questo giorno
+                        </div>
+                    </div>
+                </div>
 
-    // 12. Navigazione tra giorni
-    function cambiaGiorno(direzione) {
-        if (!currentDay) return;
-        
-        const nuovoGiorno = currentDay + direzione;
-        if (nuovoGiorno >= 1 && nuovoGiorno <= 24) {
-            apriGiornata(nuovoGiorno);
-        }
-    }
+                <!-- Selezione Tipo Contenuto -->
+                <div class="selezione-tipo">
+                    <h4>Scegli il tipo di contenuto:</h4>
+                    <div class="grid-tipo-contenuto">
+                        <button class="btn-tipo" onclick="mostraEditorFoto()">
+                            <span class="icona">🖼️</span>
+                            <span>Foto</span>
+                        </button>
+                        <button class="btn-tipo" onclick="mostraEditorMessaggio()">
+                            <span class="icona">💬</span>
+                            <span>Messaggio</span>
+                        </button>
+                        <button class="btn-tipo" onclick="mostraEditorAudio()">
+                            <span class="icona">🎵</span>
+                            <span>Audio</span>
+                        </button>
+                        <button class="btn-tipo" onclick="mostraEditorVideo()">
+                            <span class="icona">🎬</span>
+                            <span>Video</span>
+                        </button>
+                        <button class="btn-tipo" onclick="mostraEditorYouTube()">
+                            <span class="icona">📺</span>
+                            <span>YouTube</span>
+                        </button>
+                        <button class="btn-tipo" onclick="mostraEditorMessaggioVocale()">
+                            <span class="icona">🎤</span>
+                            <span>Messaggio Vocale</span>
+                        </button>
+                    </div>
+                </div>
 
-    // 13. Controllo spazio disponibile
-    function controllaSpazioDisponibile() {
-        let totale = 0;
-        for (let i = 1; i <= 24; i++) {
-            const content = localStorage.getItem(`giorno${i}`);
-            if (content) {
-                totale += new Blob([content]).size;
-            }
-        }
-        
-        const totaleMB = (totale / (1024 * 1024)).toFixed(1);
-        const limiteMB = 50;
-        
-        console.log(`Spazio utilizzato: ${totaleMB}MB / ${limiteMB}MB`);
-        
-        if (totaleMB > limiteMB * 0.8) {
-            alert(`⚠️ Attenzione: stai usando ${totaleMB}MB di spazio.\n\nPotresti raggiungere presto il limite massimo.`);
-        }
-        
-        return totaleMB;
-    }
+                <!-- Editor Dinamico - FOTO -->
+                <div class="editor-dinamico" id="editor-foto" style="display: none;">
+                    <h4>🎨 Carica Immagine</h4>
+                    
+                    <div class="upload-advanced">
+                        <!-- Upload Drag & Drop -->
+                        <div class="upload-area" id="dropArea">
+                            <div class="upload-icon">📁</div>
+                            <p><strong>Trascina un'immagine qui</strong></p>
+                            <p>oppure</p>
+                            <button class="bottone" onclick="document.getElementById('fileInput').click()">
+                                Scegli dal computer
+                            </button>
+                            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif,.webp,.bmp" style="display: none">
+                            <p class="upload-info">
+                                Formati supportati: JPG, PNG, GIF, WEBP, BMP<br>
+                                Dimensione massima: 10MB
+                            </p>
+                        </div>
 
-    // 14. Aggiorna display spazio
-    function aggiornaSpazioUtilizzato() {
-        const spazioMB = controllaSpazioDisponibile();
-        document.getElementById('spazioUtilizzato').textContent = `${spazioMB}MB`;
-    }
+                        <!-- Opzioni Avanzate -->
+                        <div class="opzioni-avanzate">
+                            <h5>⚙️ Opzioni Compressione</h5>
+                            <div class="opzioni-grid">
+                                <div class="opzione">
+                                    <label>Qualità:</label>
+                                    <input type="range" id="qualitaSlider" min="0.3" max="1" step="0.1" value="0.8">
+                                    <span id="qualitaValue">80%</span>
+                                </div>
+                                <div class="opzione">
+                                    <label>Dimensione massima:</label>
+                                    <select id="dimensioneSelect">
+                                        <option value="800">Piccola (800px)</option>
+                                        <option value="1200" selected>Media (1200px)</option>
+                                        <option value="1600">Grande (1600px)</option>
+                                        <option value="originale">Originale</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-    // 15. Pulisci spazio
-    function pulisciSpazio() {
-        if (confirm('Vuoi eliminare TUTTI i contenuti del calendario?\nQuesta azione non può essere annullata.')) {
-            for (let i = 1; i <= 24; i++) {
-                localStorage.removeItem(`giorno${i}`);
-            }
-            generaCalendario();
-            aggiornaSpazioUtilizzato();
-            alert('🗑️ Tutti i contenuti sono stati eliminati!');
-        }
-    }
+                        <!-- Anteprima Compressione -->
+                        <div class="anteprima-compressione" id="anteprimaCompressione" style="display: none;">
+                            <h5>👁️ Anteprima</h5>
+                            <div class="comparison-container">
+                                <div class="comparison-item">
+                                    <p><strong>Originale</strong></p>
+                                    <div id="anteprimaOriginale"></div>
+                                    <p id="dimensioneOriginale"></p>
+                                </div>
+                                <div class="comparison-item">
+                                    <p><strong>Compressa</strong></p>
+                                    <div id="anteprimaCompressa"></div>
+                                    <p id="dimensioneCompressa"></p>
+                                </div>
+                            </div>
+                            <div class="risparmio-spazio" id="risparmioSpazio"></div>
+                        </div>
 
-    // 16. Chiudi modale
-    function chiudiModale() {
-        modale.classList.remove("mostra");
-        currentDay = null;
-        currentTipo = null;
-        currentFile = null;
-    }
+                        <!-- Alternative -->
+                        <div class="link-alternativo">
+                            <p>Oppure usa un'immagine online:</p>
+                            <div class="input-group">
+                                <input type="url" id="urlImmagine" placeholder="https://example.com/immagine.jpg">
+                                <button class="bottone" onclick="caricaDaURL()">Carica da URL</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    // 17. Inizializzazione
-    document.addEventListener('DOMContentLoaded', function() {
-        generaCalendario();
-        
-        // Chiudi modal cliccando fuori
-        modale.addEventListener('click', function(e) {
-            if (e.target === modale) chiudiModale();
-        });
-        
-        // Tasto ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') chiudiModale();
-        });
-        
-        console.log("🎄 Calendario dell'Avvento inizializzato!");
-    });
-</script>
+                <!-- Editor Dinamico - MESSAGGIO -->
+                <div class="editor-dinamico" id="editor-messaggio" style="display: none;">
+                    <h4>💬 Scrivi il tuo messaggio</h4>
+                    <textarea id="testo-messaggio" placeholder="Scrivi qui il tuo messaggio speciale..." rows="6" style="width: 100%; padding: 10px; border: 2px solid #ced4da; border-radius: 8px; font-family: Arial, sans-serif; resize: vertical;"></textarea>
+                </div>
 
+                <!-- Editor Dinamico - AUDIO -->
+                <div class="editor-dinamico" id="editor-audio" style="display: none;">
+                    <h4>🎵 Carica Audio</h4>
+                    <div class="upload-area">
+                        <input type="file" id="fileAudio" accept=".mp3,.wav,.ogg,.m4a" style="display: none">
+                        <button class="bottone" onclick="document.getElementById('fileAudio').click()">
+                            Scegli file audio
+                        </button>
+                        <p class="upload-info">
+                            Formati supportati: MP3, WAV, OGG, M4A<br>
+                            Dimensione massima: 20MB
+                        </p>
+                    </div>
+                    <div class="link-alternativo">
+                        <p>Oppure incolla URL audio:</p>
+                        <div class="input-group">
+                            <input type="url" id="urlAudio" placeholder="https://example.com/audio.mp3">
+                            <button class="bottone" onclick="salvaAudioDaURL()">Carica da URL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Dinamico - VIDEO -->
+                <div class="editor-dinamico" id="editor-video" style="display: none;">
+                    <h4>🎬 Carica Video</h4>
+                    <div class="upload-area">
+                        <input type="file" id="fileVideo" accept=".mp4,.webm,.mov,.avi" style="display: none">
+                        <button class="bottone" onclick="document.getElementById('fileVideo').click()">
+                            Scegli file video
+                        </button>
+                        <p class="upload-info">
+                            Formati supportati: MP4, WEBM, MOV, AVI<br>
+                            Dimensione massima: 30MB
+                        </p>
+                    </div>
+                    <div class="link-alternativo">
+                        <p>Oppure incolla URL video:</p>
+                        <div class="input-group">
+                            <input type="url" id="urlVideo" placeholder="https://example.com/video.mp4">
+                            <button class="bottone" onclick="salvaVideoDaURL()">Carica da URL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Dinamico - YOUTUBE -->
+                <div class="editor-dinamico" id="editor-youtube" style="display: none;">
+                    <h4>📺 Inserisci Video YouTube</h4>
+                    <div class="input-group" style="flex-direction: column; gap: 10px;">
+                        <input type="url" id="urlYouTube" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 10px; border: 2px solid #ced4da; border-radius: 5px;">
+                        <button class="bottone" onclick="salvaYouTube()">Salva Video YouTube</button>
+                    </div>
+                    <p class="upload-info" style="margin-top: 10px;">
+                        Incolla l'URL completo del video YouTube
+                    </p>
+                </div>
+
+                <!-- Editor Dinamico - MESSAGGIO VOCALE -->
+                <div class="editor-dinamico" id="editor-messaggio-vocale" style="display: none;">
+                    <h4>🎤 Registra Messaggio Vocale</h4>
+                    <div class="upload-area">
+                        <button class="bottone" id="btnRegistra" onclick="iniziaRegistrazione()">
+                            🎤 Inizia Registrazione
+                        </button>
+                        <div id="controlliRegistrazione" style="display: none; text-align: center; margin-top: 15px;">
+                            <p id="timerRegistrazione">00:00</p>
+                            <button class="bottone-elimina" onclick="fermaRegistrazione()">⏹️ Ferma</button>
+                        </div>
+                        <p class="upload-info">
+                            Clicca per iniziare a registrare il tuo messaggio vocale
+                        </p>
+                    </div>
+                    <div class="link-alternativo">
+                        <p>Oppure carica file audio esistente:</p>
+                        <input type="file" id="fileVocale" accept=".mp3,.wav,.ogg,.m4a" style="display: none">
+                        <button class="bottone" onclick="document.getElementById('fileVocale').click()">
+                            Carica file audio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Azioni -->
+                <div class="azioni">
+                    <button class="bottone" onclick="salvaContenutoAttuale()">Salva</button>
+                    <button class="bottone-elimina" onclick="eliminaContenuto()">Elimina</button>
+                    <button class="bottone-chiusura" onclick="chiudiModal()">Chiudi</button>
+                </div>
+
+                <!-- Debug Info -->
+                <div class="debug-info">
+                    <span>Giorno: <span id="debug-giorno">1</span></span>
+                    <span>Tipo: <span id="debug-tipo">-</span></span>
+                </div>
+            </div>
+
+            <!-- MODALITÀ VISUALIZZAZIONE -->
+            <div id="modal-visualizzazione" style="display: none;">
+                <button class="btn-admin" onclick="tornaAdAdmin()" title="Torna alla modalità amministrazione">⚙️</button>
+                <div class="visualizzazione-contenuto">
+                    <h2 id="visualizzazione-titolo">1 dicembre</h2>
+                    <div id="visualizzazione-contenuto">
+                        <!-- Qui apparirà solo il messaggio/contenuto -->
+                    </div>
+                    <button class="bottone-chiusura" onclick="chiudiModal()">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
