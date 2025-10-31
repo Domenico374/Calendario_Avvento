@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     caricaCalendario();
     inizializzaDragDrop();
     aggiornaSpazioDisplay();
+    inizializzaAudio(); // ← AGGIUNGI QUESTA RIGA!
 });
 
 // ========== GESTIONE CALENDARIO ==========
@@ -842,4 +843,69 @@ function mostraMessaggio(testo, tipo) {
 function salvaContenutoAttuale() {
     // Questa funzione viene sovrascritta dai vari editor
     mostraMessaggio('Seleziona un tipo di contenuto e compila i campi!', 'errore');
+}
+// ========== FUNZIONI AUDIO NATALIZIE ==========
+
+// Variabili audio
+let audioNatalizio = null;
+let audioAttivo = false;
+
+// Funzioni Audio
+function inizializzaAudio() {
+    audioNatalizio = document.getElementById('jingleNatalizio');
+    audioNatalizio.volume = 0.3; // Volume basso di default
+    
+    // Auto-play quando l'utente clicca da qualche parte
+    document.addEventListener('click', function inizializzaPlay() {
+        if (!audioAttivo) {
+            audioNatalizio.play().then(() => {
+                audioAttivo = true;
+                document.getElementById('btnAudio').textContent = '🔇 Musica';
+                document.getElementById('btnAudio').classList.add('attivo');
+            }).catch(e => {
+                console.log('Audio non attivato automaticamente');
+            });
+        }
+    });
+}
+
+function toggleAudio() {
+    const btnAudio = document.getElementById('btnAudio');
+    
+    if (!audioAttivo) {
+        // Attiva audio
+        audioNatalizio.play().then(() => {
+            audioAttivo = true;
+            btnAudio.textContent = '🔇 Musica';
+            btnAudio.classList.add('attivo');
+        }).catch(e => {
+            console.log('Errore riproduzione audio:', e);
+        });
+    } else {
+        // Disattiva audio
+        audioNatalizio.pause();
+        audioAttivo = false;
+        btnAudio.textContent = '🎵 Attiva Musica';
+        btnAudio.classList.remove('attivo');
+    }
+}
+
+// Suono magico quando si aprono le caselle
+function suonoAperturaCasella() {
+    const suono = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-magic-chime-1937.mp3');
+    suono.volume = 0.3;
+    suono.play();
+}
+
+// Modifica la funzione di apertura casella per aggiungere il suono
+function apriCasellaVisualizzazione(giorno) {
+    suonoAperturaCasella(); // ← AGGIUNGI QUESTA RIGA
+    const contenutoSalvato = localStorage.getItem(`giorno_${giorno}`);
+    
+    if (contenutoSalvato) {
+        const dati = JSON.parse(contenutoSalvato);
+        mostraVisualizzazione(giorno, dati);
+    } else {
+        apriModal(giorno);
+    }
 }
