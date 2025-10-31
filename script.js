@@ -45,9 +45,12 @@ function inizializzaAudio() {
         console.log('Elemento audio non trovato');
         return;
     }
-    audioNatalizio.volume = 0.5;
+    audioNatalizio.volume = 0.6; // Volume aumentato
     
-    console.log('Audio inizializzato - pronto per essere attivato');
+    console.log('Jingle Bells inizializzato - pronto per essere attivato');
+    
+    // Precarica l'audio
+    audioNatalizio.load();
 }
 
 function toggleAudio() {
@@ -58,30 +61,32 @@ function toggleAudio() {
     }
     
     if (!audioAttivo) {
-        // Attiva audio
+        // Attiva audio - Jingle Bells!
         audioNatalizio.play().then(() => {
             audioAttivo = true;
-            btnAudio.textContent = '🔇 Disattiva';
+            btnAudio.textContent = '🔇 Disattiva Jingle Bells';
             btnAudio.classList.add('attivo');
-            console.log('Musica attivata');
+            console.log('🎵 Jingle Bells attivato!');
+            mostraMessaggio('🎶 Jingle Bells attivato!', 'successo');
         }).catch(e => {
-            console.log('Errore attivazione audio:', e);
-            // Mostra messaggio all'utente
-            alert('Clicca "OK" per attivare la musica natalizia! 🎵\nPotrebbe essere necessario un click esplicito per attivare l\'audio.');
-            // Riprova dopo l'interazione utente
+            console.log('Errore attivazione Jingle Bells:', e);
+            // Riprova con interazione utente
+            mostraMessaggio('🎅 Clicca di nuovo per attivare Jingle Bells!', 'info');
             audioNatalizio.play().then(() => {
                 audioAttivo = true;
-                btnAudio.textContent = '🔇 Disattiva';
+                btnAudio.textContent = '🔇 Disattiva Jingle Bells';
                 btnAudio.classList.add('attivo');
             });
         });
     } else {
         // Disattiva audio
         audioNatalizio.pause();
+        audioNatalizio.currentTime = 0; // Riavvolgi
         audioAttivo = false;
-        btnAudio.textContent = '🎵 Attiva Musica';
+        btnAudio.textContent = '🎵 Attiva Jingle Bells';
         btnAudio.classList.remove('attivo');
-        console.log('Musica disattivata');
+        console.log('Jingle Bells disattivato');
+        mostraMessaggio('🔇 Musica disattivata', 'info');
     }
 }
 
@@ -89,7 +94,7 @@ function toggleAudio() {
 function suonoAperturaCasella() {
     try {
         const suono = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-magic-chime-1937.mp3');
-        suono.volume = 0.3;
+        suono.volume = 0.4;
         suono.play().catch(e => console.log('Suono magico non riprodotto:', e));
     } catch (error) {
         console.log('Errore suono apertura:', error);
