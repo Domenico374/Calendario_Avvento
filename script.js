@@ -25,13 +25,76 @@ let audioChunks = [];
 let timerInterval = null;
 let tempoRegistrazione = 0;
 
+// Variabili audio
+let audioNatalizio = null;
+let audioAttivo = false;
+
 // Inizializzazione quando la pagina carica
 document.addEventListener('DOMContentLoaded', function() {
     caricaCalendario();
     inizializzaDragDrop();
     aggiornaSpazioDisplay();
-    inizializzaAudio(); // ← AGGIUNGI QUESTA RIGA!
+    inizializzaAudio();
 });
+
+// ========== FUNZIONI AUDIO NATALIZIE ==========
+
+function inizializzaAudio() {
+    audioNatalizio = document.getElementById('jingleNatalizio');
+    if (!audioNatalizio) {
+        console.log('Elemento audio non trovato');
+        return;
+    }
+    audioNatalizio.volume = 0.5;
+    
+    console.log('Audio inizializzato - pronto per essere attivato');
+}
+
+function toggleAudio() {
+    const btnAudio = document.getElementById('btnAudio');
+    if (!btnAudio) {
+        console.log('Pulsante audio non trovato');
+        return;
+    }
+    
+    if (!audioAttivo) {
+        // Attiva audio
+        audioNatalizio.play().then(() => {
+            audioAttivo = true;
+            btnAudio.textContent = '🔇 Disattiva';
+            btnAudio.classList.add('attivo');
+            console.log('Musica attivata');
+        }).catch(e => {
+            console.log('Errore attivazione audio:', e);
+            // Mostra messaggio all'utente
+            alert('Clicca "OK" per attivare la musica natalizia! 🎵\nPotrebbe essere necessario un click esplicito per attivare l\'audio.');
+            // Riprova dopo l'interazione utente
+            audioNatalizio.play().then(() => {
+                audioAttivo = true;
+                btnAudio.textContent = '🔇 Disattiva';
+                btnAudio.classList.add('attivo');
+            });
+        });
+    } else {
+        // Disattiva audio
+        audioNatalizio.pause();
+        audioAttivo = false;
+        btnAudio.textContent = '🎵 Attiva Musica';
+        btnAudio.classList.remove('attivo');
+        console.log('Musica disattivata');
+    }
+}
+
+// Suono magico quando si aprono le caselle
+function suonoAperturaCasella() {
+    try {
+        const suono = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-magic-chime-1937.mp3');
+        suono.volume = 0.3;
+        suono.play().catch(e => console.log('Suono magico non riprodotto:', e));
+    } catch (error) {
+        console.log('Errore suono apertura:', error);
+    }
+}
 
 // ========== GESTIONE CALENDARIO ==========
 
@@ -74,6 +137,7 @@ function apriModal(giorno) {
 }
 
 function apriCasellaVisualizzazione(giorno) {
+    suonoAperturaCasella();
     const contenutoSalvato = localStorage.getItem(`giorno_${giorno}`);
     
     if (contenutoSalvato) {
@@ -224,7 +288,9 @@ function salvaContenuto(tipo, contenuto, dimensione = 0) {
     
     // Aggiorna interfaccia
     const pulsante = document.querySelector(`.pulsante[onclick*="${giornoCorrente}"]`);
-    pulsante.classList.add('contenutoSalvato');
+    if (pulsante) {
+        pulsante.classList.add('contenutoSalvato');
+    }
     
     caricaContenutoGiorno();
     aggiornaSpazioDisplay();
@@ -239,7 +305,9 @@ function eliminaContenuto() {
         
         // Aggiorna interfaccia
         const pulsante = document.querySelector(`.pulsante[onclick*="${giornoCorrente}"]`);
-        pulsante.classList.remove('contenutoSalvato');
+        if (pulsante) {
+            pulsante.classList.remove('contenutoSalvato');
+        }
         
         caricaContenutoGiorno();
         aggiornaSpazioDisplay();
@@ -269,6 +337,11 @@ function inizializzaDragDrop() {
     const dropArea = document.getElementById('dropArea');
     const fileInput = document.getElementById('fileInput');
     
+    if (!dropArea || !fileInput) {
+        console.log('Elementi drag-drop non trovati');
+        return;
+    }
+    
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, false);
@@ -294,19 +367,24 @@ function inizializzaDragDrop() {
     const qualitaSlider = document.getElementById('qualitaSlider');
     const qualitaValue = document.getElementById('qualitaValue');
     
-    qualitaSlider.addEventListener('input', function() {
-        qualitaValue.textContent = Math.round(this.value * 100) + '%';
-        if (fileOriginale) {
-            processaImmagine(fileOriginale);
-        }
-    });
+    if (qualitaSlider && qualitaValue) {
+        qualitaSlider.addEventListener('input', function() {
+            qualitaValue.textContent = Math.round(this.value * 100) + '%';
+            if (fileOriginale) {
+                processaImmagine(fileOriginale);
+            }
+        });
+    }
     
     // Inizializza select dimensione
-    document.getElementById('dimensioneSelect').addEventListener('change', function() {
-        if (fileOriginale) {
-            processaImmagine(fileOriginale);
-        }
-    });
+    const dimensioneSelect = document.getElementById('dimensioneSelect');
+    if (dimensioneSelect) {
+        dimensioneSelect.addEventListener('change', function() {
+            if (fileOriginale) {
+                processaImmagine(fileOriginale);
+            }
+        });
+    }
 }
 
 function preventDefaults(e) {
@@ -315,11 +393,17 @@ function preventDefaults(e) {
 }
 
 function highlight() {
-    document.getElementById('dropArea').classList.add('dragover');
+    const dropArea = document.getElementById('dropArea');
+    if (dropArea) {
+        dropArea.classList.add('dragover');
+    }
 }
 
 function unhighlight() {
-    document.getElementById('dropArea').classList.remove('dragover');
+    const dropArea = document.getElementById('dropArea');
+    if (dropArea) {
+        dropArea.classList.remove('dragover');
+    }
 }
 
 function handleDrop(e) {
@@ -360,8 +444,11 @@ async function processaImmagine(file) {
     mostraMessaggio('Sto processando l\'immagine...', 'info');
     
     try {
-        const qualita = parseFloat(document.getElementById('qualitaSlider').value);
-        const dimensioneMax = document.getElementById('dimensioneSelect').value;
+        const qualitaSlider = document.getElementById('qualitaSlider');
+        const dimensioneSelect = document.getElementById('dimensioneSelect');
+        
+        const qualita = qualitaSlider ? parseFloat(qualitaSlider.value) : 0.8;
+        const dimensioneMax = dimensioneSelect ? dimensioneSelect.value : '1200';
         
         // Leggi il file originale
         const arrayBuffer = await file.arrayBuffer();
@@ -383,12 +470,18 @@ async function processaImmagine(file) {
         mostraAnteprima('anteprimaCompressa', immagineComprimita, immagineComprimita.length * 0.75, 'compressa');
         
         // Mostra risparmio
-        document.getElementById('risparmioSpazio').innerHTML = 
-            `🎉 Risparmiato il ${risparmio}% di spazio!<br>
-             ${dimensioneOriginaleMB}MB → ${dimensioneComprimitaMB}MB`;
+        const risparmioSpazio = document.getElementById('risparmioSpazio');
+        if (risparmioSpazio) {
+            risparmioSpazio.innerHTML = 
+                `🎉 Risparmiato il ${risparmio}% di spazio!<br>
+                 ${dimensioneOriginaleMB}MB → ${dimensioneComprimitaMB}MB`;
+        }
         
         // Mostra sezione anteprima
-        document.getElementById('anteprimaCompressione').style.display = 'block';
+        const anteprimaCompressione = document.getElementById('anteprimaCompressione');
+        if (anteprimaCompressione) {
+            anteprimaCompressione.style.display = 'block';
+        }
         
         mostraMessaggio('Immagine pronta! Clicca Salva per confermare.', 'successo');
         
@@ -454,6 +547,8 @@ function calcolaDimensioni(larghezzaOriginale, altezzaOriginale, dimensioneMax) 
 
 function mostraAnteprima(elementId, src, dimensioneBytes, tipo) {
     const container = document.getElementById(elementId);
+    if (!container) return;
+    
     const dimensioneMB = (dimensioneBytes / (1024 * 1024)).toFixed(2);
     
     container.innerHTML = `
@@ -464,6 +559,8 @@ function mostraAnteprima(elementId, src, dimensioneBytes, tipo) {
 
 async function caricaDaURL() {
     const urlInput = document.getElementById('urlImmagine');
+    if (!urlInput) return;
+    
     const url = urlInput.value.trim();
     
     if (!url) {
@@ -514,9 +611,14 @@ function salvaContenutoFoto() {
 function resetUploadFoto() {
     immagineComprimita = null;
     fileOriginale = null;
-    document.getElementById('anteprimaCompressione').style.display = 'none';
-    document.getElementById('fileInput').value = '';
-    document.getElementById('urlImmagine').value = '';
+    const anteprimaCompressione = document.getElementById('anteprimaCompressione');
+    if (anteprimaCompressione) {
+        anteprimaCompressione.style.display = 'none';
+    }
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.value = '';
+    const urlImmagine = document.getElementById('urlImmagine');
+    if (urlImmagine) urlImmagine.value = '';
 }
 
 // === EDITOR MESSAGGIO ===
@@ -527,14 +629,17 @@ function mostraEditorMessaggio() {
 }
 
 function salvaContenutoMessaggio() {
-    const testo = document.getElementById('testo-messaggio').value.trim();
+    const testoInput = document.getElementById('testo-messaggio');
+    if (!testoInput) return;
+    
+    const testo = testoInput.value.trim();
     if (!testo) {
         mostraMessaggio('Inserisci un messaggio!', 'errore');
         return;
     }
     
-    salvaContenuto('messaggio', testo, 0.01); // Messaggi occupano pochissimo spazio
-    document.getElementById('testo-messaggio').value = '';
+    salvaContenuto('messaggio', testo, 0.01);
+    testoInput.value = '';
 }
 
 // === EDITOR AUDIO ===
@@ -546,9 +651,9 @@ function mostraEditorAudio() {
 
 function salvaContenutoAudio() {
     const fileInput = document.getElementById('fileAudio');
-    const urlInput = document.getElementById('urlAudio').value.trim();
+    const urlInput = document.getElementById('urlAudio');
     
-    if (fileInput.files.length > 0) {
+    if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const reader = new FileReader();
         
@@ -559,9 +664,9 @@ function salvaContenutoAudio() {
         };
         
         reader.readAsDataURL(file);
-    } else if (urlInput) {
-        salvaContenuto('audio', urlInput, 0.1); // URL occupa poco spazio
-        document.getElementById('urlAudio').value = '';
+    } else if (urlInput && urlInput.value.trim()) {
+        salvaContenuto('audio', urlInput.value.trim(), 0.1);
+        urlInput.value = '';
     } else {
         mostraMessaggio('Carica un file audio o inserisci un URL!', 'errore');
     }
@@ -569,8 +674,9 @@ function salvaContenutoAudio() {
 
 function salvaAudioDaURL() {
     const urlInput = document.getElementById('urlAudio');
-    const url = urlInput.value.trim();
+    if (!urlInput) return;
     
+    const url = urlInput.value.trim();
     if (url) {
         salvaContenuto('audio', url, 0.1);
         urlInput.value = '';
@@ -588,9 +694,9 @@ function mostraEditorVideo() {
 
 function salvaContenutoVideo() {
     const fileInput = document.getElementById('fileVideo');
-    const urlInput = document.getElementById('urlVideo').value.trim();
+    const urlInput = document.getElementById('urlVideo');
     
-    if (fileInput.files.length > 0) {
+    if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const reader = new FileReader();
         
@@ -601,9 +707,9 @@ function salvaContenutoVideo() {
         };
         
         reader.readAsDataURL(file);
-    } else if (urlInput) {
-        salvaContenuto('video', urlInput, 0.1);
-        document.getElementById('urlVideo').value = '';
+    } else if (urlInput && urlInput.value.trim()) {
+        salvaContenuto('video', urlInput.value.trim(), 0.1);
+        urlInput.value = '';
     } else {
         mostraMessaggio('Carica un file video o inserisci un URL!', 'errore');
     }
@@ -611,8 +717,9 @@ function salvaContenutoVideo() {
 
 function salvaVideoDaURL() {
     const urlInput = document.getElementById('urlVideo');
-    const url = urlInput.value.trim();
+    if (!urlInput) return;
     
+    const url = urlInput.value.trim();
     if (url) {
         salvaContenuto('video', url, 0.1);
         urlInput.value = '';
@@ -629,7 +736,10 @@ function mostraEditorYouTube() {
 }
 
 function salvaYouTube() {
-    const url = document.getElementById('urlYouTube').value.trim();
+    const urlInput = document.getElementById('urlYouTube');
+    if (!urlInput) return;
+    
+    const url = urlInput.value.trim();
     if (!url) {
         mostraMessaggio('Inserisci un URL di YouTube!', 'errore');
         return;
@@ -641,7 +751,7 @@ function salvaYouTube() {
     }
     
     salvaContenuto('youtube', url, 0.01);
-    document.getElementById('urlYouTube').value = '';
+    urlInput.value = '';
 }
 
 // === EDITOR MESSAGGIO VOCALE ===
@@ -676,8 +786,10 @@ async function iniziaRegistrazione() {
         mediaRecorder.start();
         
         // Mostra controlli registrazione
-        document.getElementById('btnRegistra').style.display = 'none';
-        document.getElementById('controlliRegistrazione').style.display = 'block';
+        const btnRegistra = document.getElementById('btnRegistra');
+        const controlliRegistrazione = document.getElementById('controlliRegistrazione');
+        if (btnRegistra) btnRegistra.style.display = 'none';
+        if (controlliRegistrazione) controlliRegistrazione.style.display = 'block';
         
         // Avvia timer
         tempoRegistrazione = 0;
@@ -685,7 +797,8 @@ async function iniziaRegistrazione() {
             tempoRegistrazione++;
             const minuti = Math.floor(tempoRegistrazione / 60).toString().padStart(2, '0');
             const secondi = (tempoRegistrazione % 60).toString().padStart(2, '0');
-            document.getElementById('timerRegistrazione').textContent = `${minuti}:${secondi}`;
+            const timer = document.getElementById('timerRegistrazione');
+            if (timer) timer.textContent = `${minuti}:${secondi}`;
         }, 1000);
         
     } catch (error) {
@@ -697,19 +810,23 @@ async function iniziaRegistrazione() {
 function fermaRegistrazione() {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
-        clearInterval(timerInterval);
+        if (timerInterval) clearInterval(timerInterval);
         
         // Ripristina interfaccia
-        document.getElementById('btnRegistra').style.display = 'block';
-        document.getElementById('controlliRegistrazione').style.display = 'none';
-        document.getElementById('timerRegistrazione').textContent = '00:00';
+        const btnRegistra = document.getElementById('btnRegistra');
+        const controlliRegistrazione = document.getElementById('controlliRegistrazione');
+        const timer = document.getElementById('timerRegistrazione');
+        
+        if (btnRegistra) btnRegistra.style.display = 'block';
+        if (controlliRegistrazione) controlliRegistrazione.style.display = 'none';
+        if (timer) timer.textContent = '00:00';
     }
 }
 
 function salvaContenutoMessaggioVocale() {
     const fileInput = document.getElementById('fileVocale');
     
-    if (fileInput.files.length > 0) {
+    if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const reader = new FileReader();
         
@@ -746,22 +863,24 @@ function aggiornaSpazioDisplay() {
     const spazioLibero = CONFIG.spazioTotale - spazioUtilizzato;
     const percentuale = (spazioUtilizzato / CONFIG.spazioTotale) * 100;
     
-    document.getElementById('spazio-display').innerHTML = `
-        <strong>Spazio: ${spazioUtilizzato.toFixed(1)}MB / ${CONFIG.spazioTotale}MB</strong>
-        <div class="barra-progresso">
-            <div class="barra-riempimento" style="width: ${percentuale}%"></div>
-        </div>
-        <small>Libero: ${spazioLibero.toFixed(1)}MB</small>
-    `;
-    
-    // Cambia colore in base allo spazio rimanente
-    const display = document.getElementById('spazio-display');
-    if (spazioLibero < 10) {
-        display.style.color = '#dc3545';
-    } else if (spazioLibero < 25) {
-        display.style.color = '#ffc107';
-    } else {
-        display.style.color = '#28a745';
+    const spazioDisplay = document.getElementById('spazio-display');
+    if (spazioDisplay) {
+        spazioDisplay.innerHTML = `
+            <strong>Spazio: ${spazioUtilizzato.toFixed(1)}MB / ${CONFIG.spazioTotale}MB</strong>
+            <div class="barra-progresso">
+                <div class="barra-riempimento" style="width: ${percentuale}%"></div>
+            </div>
+            <small>Libero: ${spazioLibero.toFixed(1)}MB</small>
+        `;
+        
+        // Cambia colore in base allo spazio rimanente
+        if (spazioLibero < 10) {
+            spazioDisplay.style.color = '#dc3545';
+        } else if (spazioLibero < 25) {
+            spazioDisplay.style.color = '#ffc107';
+        } else {
+            spazioDisplay.style.color = '#28a745';
+        }
     }
 }
 
@@ -818,7 +937,11 @@ function pulisciTutto() {
 function mostraMessaggio(testo, tipo) {
     // Rimuovi messaggi precedenti
     const messaggiEsistenti = document.querySelectorAll('.messaggio-stato');
-    messaggiEsistenti.forEach(msg => msg.remove());
+    messaggiEsistenti.forEach(msg => {
+        if (msg.parentNode) {
+            msg.remove();
+        }
+    });
     
     const messaggio = document.createElement('div');
     messaggio.className = `messaggio-stato messaggio-${tipo}`;
@@ -828,7 +951,11 @@ function mostraMessaggio(testo, tipo) {
     if (editorAttivo) {
         editorAttivo.insertBefore(messaggio, editorAttivo.firstChild);
     } else {
-        document.querySelector('.modal-content').insertBefore(messaggio, document.querySelector('.azioni'));
+        const modalContent = document.querySelector('.modal-content');
+        const azioni = document.querySelector('.azioni');
+        if (modalContent && azioni) {
+            modalContent.insertBefore(messaggio, azioni);
+        }
     }
     
     // Auto-rimuovi dopo 5 secondi
@@ -843,69 +970,4 @@ function mostraMessaggio(testo, tipo) {
 function salvaContenutoAttuale() {
     // Questa funzione viene sovrascritta dai vari editor
     mostraMessaggio('Seleziona un tipo di contenuto e compila i campi!', 'errore');
-}
-// ========== FUNZIONI AUDIO NATALIZIE ==========
-
-// Variabili audio
-let audioNatalizio = null;
-let audioAttivo = false;
-
-// Funzioni Audio
-function inizializzaAudio() {
-    audioNatalizio = document.getElementById('jingleNatalizio');
-    audioNatalizio.volume = 0.3; // Volume basso di default
-    
-    // Auto-play quando l'utente clicca da qualche parte
-    document.addEventListener('click', function inizializzaPlay() {
-        if (!audioAttivo) {
-            audioNatalizio.play().then(() => {
-                audioAttivo = true;
-                document.getElementById('btnAudio').textContent = '🔇 Musica';
-                document.getElementById('btnAudio').classList.add('attivo');
-            }).catch(e => {
-                console.log('Audio non attivato automaticamente');
-            });
-        }
-    });
-}
-
-function toggleAudio() {
-    const btnAudio = document.getElementById('btnAudio');
-    
-    if (!audioAttivo) {
-        // Attiva audio
-        audioNatalizio.play().then(() => {
-            audioAttivo = true;
-            btnAudio.textContent = '🔇 Musica';
-            btnAudio.classList.add('attivo');
-        }).catch(e => {
-            console.log('Errore riproduzione audio:', e);
-        });
-    } else {
-        // Disattiva audio
-        audioNatalizio.pause();
-        audioAttivo = false;
-        btnAudio.textContent = '🎵 Attiva Musica';
-        btnAudio.classList.remove('attivo');
-    }
-}
-
-// Suono magico quando si aprono le caselle
-function suonoAperturaCasella() {
-    const suono = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-magic-chime-1937.mp3');
-    suono.volume = 0.3;
-    suono.play();
-}
-
-// Modifica la funzione di apertura casella per aggiungere il suono
-function apriCasellaVisualizzazione(giorno) {
-    suonoAperturaCasella(); // ← AGGIUNGI QUESTA RIGA
-    const contenutoSalvato = localStorage.getItem(`giorno_${giorno}`);
-    
-    if (contenutoSalvato) {
-        const dati = JSON.parse(contenutoSalvato);
-        mostraVisualizzazione(giorno, dati);
-    } else {
-        apriModal(giorno);
-    }
 }
