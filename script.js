@@ -29,8 +29,29 @@ let tempoRegistrazione = 0;
 let audioNatalizio = null;
 let audioAttivo = false;
 
+// ========== SISTEMA MULTI-UTENTE ==========
+let UTENTE_CORRENTE = '';
+
+function inizializzaUtente() {
+    // Verifica se c'è un utente nell'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const userFromURL = urlParams.get('user');
+    
+    if (userFromURL) {
+        UTENTE_CORRENTE = userFromURL;
+        localStorage.setItem('utente_calendario', UTENTE_CORRENTE);
+    } else {
+        // Usa l'utente salvato o creane uno nuovo
+        UTENTE_CORRENTE = localStorage.getItem('utente_calendario') || 'utente_' + Date.now();
+        localStorage.setItem('utente_calendario', UTENTE_CORRENTE);
+    }
+    
+    console.log('Utente corrente:', UTENTE_CORRENTE);
+}
+
 // Inizializzazione quando la pagina carica
 document.addEventListener('DOMContentLoaded', function() {
+    inizializzaUtente();
     caricaCalendario();
     inizializzaDragDrop();
     aggiornaSpazioDisplay();
@@ -105,7 +126,8 @@ function suonoAperturaCasella() {
 
 function caricaCalendario() {
     for (let giorno = 1; giorno <= 24; giorno++) {
-        const contenuto = localStorage.getItem(`giorno_${giorno}`);
+        // MODIFICA: carica solo i contenuti dell'utente corrente
+        const contenuto = localStorage.getItem(`giorno_${giorno}_${UTENTE_CORRENTE}`);
         if (contenuto) {
             const pulsante = document.querySelector(`.pulsante[onclick*="${giorno}"]`);
             if (pulsante) {
@@ -143,7 +165,7 @@ function apriModal(giorno) {
 
 function apriCasellaVisualizzazione(giorno) {
     suonoAperturaCasella();
-    const contenutoSalvato = localStorage.getItem(`giorno_${giorno}`);
+    const contenutoSalvato = localStorage.getItem(`giorno_${giorno}_${UTENTE_CORRENTE}`);
     
     if (contenutoSalvato) {
         const dati = JSON.parse(contenutoSalvato);
@@ -237,7 +259,8 @@ function cambiaGiorno(direzione) {
 // ========== GESTIONE CONTENUTI ==========
 
 function caricaContenutoGiorno() {
-    const contenuto = localStorage.getItem(`giorno_${giornoCorrente}`);
+    // MODIFICA: carica solo i contenuti dell'utente corrente
+    const contenuto = localStorage.getItem(`giorno_${giornoCorrente}_${UTENTE_CORRENTE}`);
     const container = document.getElementById('anteprima-contenuto-attuale');
     
     if (contenuto) {
@@ -286,10 +309,12 @@ function salvaContenuto(tipo, contenuto, dimensione = 0) {
         tipo: tipo,
         contenuto: contenuto,
         dimensione: dimensione,
-        dataSalvataggio: new Date().toISOString()
+        dataSalvataggio: new Date().toISOString(),
+        utente: UTENTE_CORRENTE // Aggiungi l'utente ai dati
     };
     
-    localStorage.setItem(`giorno_${giornoCorrente}`, JSON.stringify(dati));
+    // MODIFICA: aggiungi l'utente alla chiave
+    localStorage.setItem(`giorno_${giornoCorrente}_${UTENTE_CORRENTE}`, JSON.stringify(dati));
     
     // Aggiorna interfaccia
     const pulsante = document.querySelector(`.pulsante[onclick*="${giornoCorrente}"]`);
@@ -306,7 +331,8 @@ function salvaContenuto(tipo, contenuto, dimensione = 0) {
 
 function eliminaContenuto() {
     if (confirm('Sei sicuro di voler eliminare il contenuto di questo giorno?')) {
-        localStorage.removeItem(`giorno_${giornoCorrente}`);
+        // MODIFICA: elimina solo i contenuti dell'utente corrente
+        localStorage.removeItem(`giorno_${giornoCorrente}_${UTENTE_CORRENTE}`);
         
         // Aggiorna interfaccia
         const pulsante = document.querySelector(`.pulsante[onclick*="${giornoCorrente}"]`);
@@ -853,7 +879,8 @@ function calcolaSpazioUtilizzato() {
     let spazioTotale = 0;
     
     for (let giorno = 1; giorno <= 24; giorno++) {
-        const contenuto = localStorage.getItem(`giorno_${giorno}`);
+        // MODIFICA: calcola solo lo spazio dell'utente corrente
+        const contenuto = localStorage.getItem(`giorno_${giorno}_${UTENTE_CORRENTE}`);
         if (contenuto) {
             const dati = JSON.parse(contenuto);
             spazioTotale += dati.dimensione || 0;
@@ -894,7 +921,8 @@ function controllaSpazio() {
     const giorni = [];
     
     for (let i = 1; i <= 24; i++) {
-        const contenuto = localStorage.getItem(`giorno_${i}`);
+        // MODIFICA: controlla solo i contenuti dell'utente corrente
+        const contenuto = localStorage.getItem(`giorno_${i}_${UTENTE_CORRENTE}`);
         if (contenuto) {
             const dati = JSON.parse(contenuto);
             giorni.push({
@@ -925,7 +953,8 @@ function controllaSpazio() {
 function pulisciTutto() {
     if (confirm("Sei sicuro di voler cancellare TUTTI i contenuti? Questa azione non può essere annullata.")) {
         for (let i = 1; i <= 24; i++) {
-            localStorage.removeItem(`giorno_${i}`);
+            // MODIFICA: elimina solo i contenuti dell'utente corrente
+            localStorage.removeItem(`giorno_${i}_${UTENTE_CORRENTE}`);
             const pulsante = document.querySelector(`.pulsante[onclick*="${i}"]`);
             if (pulsante) {
                 pulsante.classList.remove('contenutoSalvato');
