@@ -4,382 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario dell'Avvento Magico</title>
+    <meta name="description" content="Un viaggio di 24 giorni di Meraviglia: crea il tuo calendario dell'Avvento e regalalo con un link.">
+    <meta property="og:title" content="Calendario dell'Avvento Magico">
+    <meta property="og:description" content="Un viaggio di 24 giorni di Meraviglia. Ogni giorno si apre una casella.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://calendario-avvento-two.vercel.app/albero_natale.jpeg">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Audio Natalizio -->
-    <audio id="jingleNatalizio" loop>
-        <source src="https://assets.mixkit.co/music/preview/mixkit-christmas-jingle-278.mp3" type="audio/mpeg">
-    </audio>
-
     <!-- Controllo Audio -->
     <div class="controllo-audio">
-        <button id="btnAudio" onclick="toggleAudio()">🎵 Attiva Musica</button>
+        <button id="btnAudio" type="button">🎵 Attiva Musica</button>
     </div>
 
     <!-- Header -->
-    <div class="header-container">
-        <h1>Calendario dell'Avvento</h1>
-        <p>Un viaggio di 24 giorni di Meraviglia</p>
-    </div>
+    <header class="header-container">
+        <h1 id="titolo">Calendario dell'Avvento</h1>
+        <p id="sottotitolo">Un viaggio di 24 giorni di Meraviglia</p>
+    </header>
+
+    <!-- Avvisi -->
+    <p id="avviso" class="messaggio-stato" role="status" hidden></p>
+
+    <!-- Creazione -->
+    <main id="vista-crea" class="scheda" hidden>
+        <h2>Crea il tuo calendario</h2>
+        <p>Riempi le 24 caselle con foto, messaggi, musica e video, poi regala il link: ogni giorno se ne aprirà una.</p>
+        <form id="form-crea">
+            <label for="nuovo-titolo">Per chi è?</label>
+            <input id="nuovo-titolo" maxlength="80" placeholder="Es. Il calendario di Anna">
+            <label for="nuovo-codice">Codice di invito</label>
+            <input id="nuovo-codice" autocomplete="off" required>
+            <button class="bottone" type="submit">Crea il calendario</button>
+        </form>
+        <div id="miei-calendari" hidden>
+            <h3>I tuoi calendari su questo dispositivo</h3>
+            <ul id="lista-calendari"></ul>
+        </div>
+    </main>
+
+    <!-- Pannello di chi crea -->
+    <section id="pannello-modifica" class="scheda" hidden>
+        <div id="avviso-nuovo" class="avviso-importante" hidden>
+            <strong>Salva il link di questa pagina.</strong> È l'unico modo per tornare a modificare il calendario.
+        </div>
+        <label for="titolo-modifica">Titolo</label>
+        <input id="titolo-modifica" maxlength="80">
+        <label for="link-condivisione">Link da regalare</label>
+        <div class="input-group">
+            <input id="link-condivisione" readonly>
+            <button class="bottone" id="btnCopia" type="button">Copia</button>
+            <a class="bottone" id="linkWhatsApp" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="bottone-chiusura" id="linkAnteprima" target="_blank" rel="noopener">Come lo vede chi lo riceve</a>
+        </div>
+        <button class="bottone" id="btnImporta" type="button" hidden>Recupera i contenuti salvati in questo browser</button>
+        <p id="stato-riempimento" class="upload-info"></p>
+    </section>
+
     <!-- Griglia Calendario -->
-    <div class="calendario-grid-container">
-        <!-- Giorni 1-6 -->
-        <div class="pulsante" onclick="gestisciClickCasella(1)">
-            <span class="numero-giorno">1</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(2)">
-            <span class="numero-giorno">2</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(3)">
-            <span class="numero-giorno">3</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(4)">
-            <span class="numero-giorno">4</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(5)">
-            <span class="numero-giorno">5</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(6)">
-            <span class="numero-giorno">6</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
+    <main id="griglia" class="calendario-grid-container" hidden></main>
 
-        <!-- Giorni 7-12 -->
-        <div class="pulsante" onclick="gestisciClickCasella(7)">
-            <span class="numero-giorno">7</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(8)">
-            <span class="numero-giorno">8</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(9)">
-            <span class="numero-giorno">9</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(10)">
-            <span class="numero-giorno">10</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(11)">
-            <span class="numero-giorno">11</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(12)">
-            <span class="numero-giorno">12</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-
-        <!-- Giorni 13-18 -->
-        <div class="pulsante" onclick="gestisciClickCasella(13)">
-            <span class="numero-giorno">13</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(14)">
-            <span class="numero-giorno">14</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(15)">
-            <span class="numero-giorno">15</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(16)">
-            <span class="numero-giorno">16</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(17)">
-            <span class="numero-giorno">17</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(18)">
-            <span class="numero-giorno">18</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-
-        <!-- Giorni 19-24 -->
-        <div class="pulsante" onclick="gestisciClickCasella(19)">
-            <span class="numero-giorno">19</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(20)">
-            <span class="numero-giorno">20</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(21)">
-            <span class="numero-giorno">21</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(22)">
-            <span class="numero-giorno">22</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(23)">
-            <span class="numero-giorno">23</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-        <div class="pulsante" onclick="gestisciClickCasella(24)">
-            <span class="numero-giorno">24</span>
-            <span class="data-giorno">dicembre</span>
-        </div>
-    </div>
-
-    <!-- Modal Overlay -->
+    <!-- Finestra del giorno -->
     <div class="modal-overlay" id="modal">
-        <div class="modal-content">
-            <!-- MODALITÀ AMMINISTRAZIONE -->
-            <div id="modal-amministrazione">
-                <!-- Navigazione Giorni -->
-                <div class="navigazione-giorni">
-                    <button class="btn-navigazione" onclick="cambiaGiorno(-1)">← Precedente</button>
-                    <div class="giorno-corrente">
-                        <span class="data-giorno" id="modal-data-giorno">1 dicembre</span>
-                        <span class="numero-giorno" id="modal-numero-giorno">1</span>
-                    </div>
-                    <button class="btn-navigazione" onclick="cambiaGiorno(1)">Successivo →</button>
-                </div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-titolo">
+            <h2 id="modal-titolo"></h2>
+            <div id="modal-corpo"></div>
 
-                <!-- Gestione Spazio -->
-                <div class="gestione-spazio">
-                    <div id="spazio-display" class="spazio-info">
-                        Spazio: 0.0MB / 100MB
-                    </div>
-                    <div class="controlli-spazio">
-                        <button onclick="controllaSpazio()" class="bottone-piccolo">Controlla</button>
-                        <button onclick="pulisciTutto()" class="bottone-piccolo elimina">Pulisci Tutto</button>
-                    </div>
-                </div>
-
-                <!-- Anteprima Contenuto -->
-                <div class="anteprima-contenuto">
-                    <div id="anteprima-tipo" class="anteprima-tipo">
-                        <h4>Contenuto Attuale</h4>
-                        <div id="anteprima-contenuto-attuale" class="nessun-contenuto">
-                            Nessun contenuto salvato per questo giorno
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Selezione Tipo Contenuto -->
-                <div class="selezione-tipo">
-                    <h4>Scegli il tipo di contenuto:</h4>
-                    <div class="grid-tipo-contenuto">
-                        <button class="btn-tipo" onclick="mostraEditorFoto()">
-                            <span class="icona">🖼️</span>
-                            <span>Foto</span>
-                        </button>
-                        <button class="btn-tipo" onclick="mostraEditorMessaggio()">
-                            <span class="icona">💬</span>
-                            <span>Messaggio</span>
-                        </button>
-                        <button class="btn-tipo" onclick="mostraEditorAudio()">
-                            <span class="icona">🎵</span>
-                            <span>Audio</span>
-                        </button>
-                        <button class="btn-tipo" onclick="mostraEditorVideo()">
-                            <span class="icona">🎬</span>
-                            <span>Video</span>
-                        </button>
-                        <button class="btn-tipo" onclick="mostraEditorYouTube()">
-                            <span class="icona">📺</span>
-                            <span>YouTube</span>
-                        </button>
-                        <button class="btn-tipo" onclick="mostraEditorMessaggioVocale()">
-                            <span class="icona">🎤</span>
-                            <span>Messaggio Vocale</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Editor Dinamico - FOTO -->
-                <div class="editor-dinamico" id="editor-foto" style="display: none;">
-                    <h4>🎨 Carica Immagine</h4>
-                    
-                    <div class="upload-advanced">
-                        <!-- Upload Drag & Drop -->
-                        <div class="upload-area" id="dropArea">
-                            <div class="upload-icon">📁</div>
-                            <p><strong>Trascina un'immagine qui</strong></p>
-                            <p>oppure</p>
-                            <button class="bottone" onclick="document.getElementById('fileInput').click()">
-                                Scegli dal computer
-                            </button>
-                            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif,.webp,.bmp" style="display: none">
-                            <p class="upload-info">
-                                Formati supportati: JPG, PNG, GIF, WEBP, BMP<br>
-                                Dimensione massima: 10MB
-                            </p>
-                        </div>
-
-                        <!-- Opzioni Avanzate -->
-                        <div class="opzioni-avanzate">
-                            <h5>⚙️ Opzioni Compressione</h5>
-                            <div class="opzioni-grid">
-                                <div class="opzione">
-                                    <label>Qualità:</label>
-                                    <input type="range" id="qualitaSlider" min="0.3" max="1" step="0.1" value="0.8">
-                                    <span id="qualitaValue">80%</span>
-                                </div>
-                                <div class="opzione">
-                                    <label>Dimensione massima:</label>
-                                    <select id="dimensioneSelect">
-                                        <option value="800">Piccola (800px)</option>
-                                        <option value="1200" selected>Media (1200px)</option>
-                                        <option value="1600">Grande (1600px)</option>
-                                        <option value="originale">Originale</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Anteprima Compressione -->
-                        <div class="anteprima-compressione" id="anteprimaCompressione" style="display: none;">
-                            <h5>👁️ Anteprima</h5>
-                            <div class="comparison-container">
-                                <div class="comparison-item">
-                                    <p><strong>Originale</strong></p>
-                                    <div id="anteprimaOriginale"></div>
-                                    <p id="dimensioneOriginale"></p>
-                                </div>
-                                <div class="comparison-item">
-                                    <p><strong>Compressa</strong></p>
-                                    <div id="anteprimaCompressa"></div>
-                                    <p id="dimensioneCompressa"></p>
-                                </div>
-                            </div>
-                            <div class="risparmio-spazio" id="risparmioSpazio"></div>
-                        </div>
-
-                        <!-- Alternative -->
-                        <div class="link-alternativo">
-                            <p>Oppure usa un'immagine online:</p>
-                            <div class="input-group">
-                                <input type="url" id="urlImmagine" placeholder="https://example.com/immagine.jpg">
-                                <button class="bottone" onclick="caricaDaURL()">Carica da URL</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Editor Dinamico - MESSAGGIO -->
-                <div class="editor-dinamico" id="editor-messaggio" style="display: none;">
-                    <h4>💬 Scrivi il tuo messaggio</h4>
-                    <textarea id="testo-messaggio" placeholder="Scrivi qui il tuo messaggio speciale..." rows="6" style="width: 100%; padding: 10px; border: 2px solid #ced4da; border-radius: 8px; font-family: Arial, sans-serif; resize: vertical;"></textarea>
-                </div>
-
-                <!-- Editor Dinamico - AUDIO -->
-                <div class="editor-dinamico" id="editor-audio" style="display: none;">
-                    <h4>🎵 Carica Audio</h4>
-                    <div class="upload-area">
-                        <input type="file" id="fileAudio" accept=".mp3,.wav,.ogg,.m4a" style="display: none">
-                        <button class="bottone" onclick="document.getElementById('fileAudio').click()">
-                            Scegli file audio
-                        </button>
-                        <p class="upload-info">
-                            Formati supportati: MP3, WAV, OGG, M4A<br>
-                            Dimensione massima: 20MB
-                        </p>
-                    </div>
-                    <div class="link-alternativo">
-                        <p>Oppure incolla URL audio:</p>
-                        <div class="input-group">
-                            <input type="url" id="urlAudio" placeholder="https://example.com/audio.mp3">
-                            <button class="bottone" onclick="salvaAudioDaURL()">Carica da URL</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Editor Dinamico - VIDEO -->
-                <div class="editor-dinamico" id="editor-video" style="display: none;">
-                    <h4>🎬 Carica Video</h4>
-                    <div class="upload-area">
-                        <input type="file" id="fileVideo" accept=".mp4,.webm,.mov,.avi" style="display: none">
-                        <button class="bottone" onclick="document.getElementById('fileVideo').click()">
-                            Scegli file video
-                        </button>
-                        <p class="upload-info">
-                            Formati supportati: MP4, WEBM, MOV, AVI<br>
-                            Dimensione massima: 30MB
-                        </p>
-                    </div>
-                    <div class="link-alternativo">
-                        <p>Oppure incolla URL video:</p>
-                        <div class="input-group">
-                            <input type="url" id="urlVideo" placeholder="https://example.com/video.mp4">
-                            <button class="bottone" onclick="salvaVideoDaURL()">Carica da URL</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Editor Dinamico - YOUTUBE -->
-                <div class="editor-dinamico" id="editor-youtube" style="display: none;">
-                    <h4>📺 Inserisci Video YouTube</h4>
-                    <div class="input-group" style="flex-direction: column; gap: 10px;">
-                        <input type="url" id="urlYouTube" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 10px; border: 2px solid #ced4da; border-radius: 5px;">
-                        <button class="bottone" onclick="salvaYouTube()">Salva Video YouTube</button>
-                    </div>
-                    <p class="upload-info" style="margin-top: 10px;">
-                        Incolla l'URL completo del video YouTube
-                    </p>
-                </div>
-
-                <!-- Editor Dinamico - MESSAGGIO VOCALE -->
-                <div class="editor-dinamico" id="editor-messaggio-vocale" style="display: none;">
-                    <h4>🎤 Registra Messaggio Vocale</h4>
-                    <div class="upload-area">
-                        <button class="bottone" id="btnRegistra" onclick="iniziaRegistrazione()">
-                            🎤 Inizia Registrazione
-                        </button>
-                        <div id="controlliRegistrazione" style="display: none; text-align: center; margin-top: 15px;">
-                            <p id="timerRegistrazione">00:00</p>
-                            <button class="bottone-elimina" onclick="fermaRegistrazione()">⏹️ Ferma</button>
-                        </div>
-                        <p class="upload-info">
-                            Clicca per iniziare a registrare il tuo messaggio vocale
-                        </p>
-                    </div>
-                    <div class="link-alternativo">
-                        <p>Oppure carica file audio esistente:</p>
-                        <input type="file" id="fileVocale" accept=".mp3,.wav,.ogg,.m4a" style="display: none">
-                        <button class="bottone" onclick="document.getElementById('fileVocale').click()">
-                            Carica file audio
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Azioni -->
-                <div class="azioni">
-                    <button class="bottone" onclick="salvaContenutoAttuale()">Salva</button>
-                    <button class="bottone-elimina" onclick="eliminaContenuto()">Elimina</button>
-                    <button class="bottone-chiusura" onclick="chiudiModal()">Chiudi</button>
-                </div>
-
-                <!-- Debug Info -->
-                <div class="debug-info">
-                    <span>Giorno: <span id="debug-giorno">1</span></span>
-                    <span>Tipo: <span id="debug-tipo">-</span></span>
-                </div>
+            <!-- Editor, solo per chi crea -->
+            <div id="editor" hidden>
+                <h4>Scegli il tipo di contenuto:</h4>
+                <div class="grid-tipo-contenuto" id="tipi"></div>
+                <div class="editor-dinamico" id="editor-campi" hidden></div>
             </div>
 
-            <!-- MODALITÀ VISUALIZZAZIONE -->
-            <div id="modal-visualizzazione" style="display: none;">
-                <button class="btn-admin" onclick="tornaAdAdmin()" title="Torna alla modalità amministrazione">⚙️</button>
-                <div class="visualizzazione-contenuto">
-                    <h2 id="visualizzazione-titolo">1 dicembre</h2>
-                    <div id="visualizzazione-contenuto">
-                        <!-- Qui apparirà solo il messaggio/contenuto -->
-                    </div>
-                    <button class="bottone-chiusura" onclick="chiudiModal()">Chiudi</button>
-                </div>
+            <div class="azioni">
+                <button class="bottone" id="btnSalva" type="button" hidden>Salva</button>
+                <button class="bottone-elimina" id="btnElimina" type="button" hidden>Elimina</button>
+                <button class="bottone-chiusura" id="btnChiudi" type="button">Chiudi</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

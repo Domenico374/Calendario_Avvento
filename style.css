@@ -88,6 +88,7 @@ body::before {
     border: 3px solid #FFD700;
     border-radius: 15px;
     padding: 20px 10px;
+    font-family: inherit;
     font-size: 1.1em;
     font-weight: bold;
     cursor: pointer;
@@ -228,79 +229,6 @@ body::before {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Gestione Spazio */
-.gestione-spazio {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    padding: 20px;
-    border-radius: 15px;
-    margin: 20px 0;
-    border: 3px solid #dee2e6;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.spazio-info {
-    text-align: center;
-    font-size: 1.2em;
-    margin-bottom: 15px;
-    font-weight: bold;
-    color: #495057;
-}
-
-.controlli-spazio {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
-
-.bottone-piccolo {
-    padding: 10px 20px;
-    font-size: 0.95em;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-}
-
-.bottone-piccolo:not(.elimina) {
-    background: linear-gradient(145deg, #28a745, #20c997);
-    color: white;
-}
-
-.bottone-piccolo:not(.elimina):hover {
-    background: linear-gradient(145deg, #218838, #1e7e34);
-    transform: translateY(-2px);
-}
-
-.bottone-piccolo.elimina {
-    background: linear-gradient(145deg, #dc3545, #c82333);
-    color: white;
-}
-
-.bottone-piccolo.elimina:hover {
-    background: linear-gradient(145deg, #c82333, #bd2130);
-    transform: translateY(-2px);
-}
-
-/* Barra Progresso Spazio */
-.barra-progresso {
-    width: 100%;
-    height: 12px;
-    background: #e9ecef;
-    border-radius: 6px;
-    margin: 15px 0;
-    overflow: hidden;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.barra-riempimento {
-    height: 100%;
-    background: linear-gradient(90deg, #28a745, #20c997, #17a2b8);
-    transition: width 0.5s ease;
-    border-radius: 6px;
-}
-
 /* Anteprima Contenuto */
 .anteprima-contenuto {
     margin-bottom: 25px;
@@ -408,153 +336,6 @@ body::before {
 
 .icona {
     font-size: 2em;
-}
-
-/* Upload Avanzato */
-.upload-advanced {
-    max-width: 100%;
-}
-
-.upload-area {
-    border: 3px dashed #007bff;
-    border-radius: 15px;
-    padding: 40px 20px;
-    text-align: center;
-    background: #f8f9ff;
-    transition: all 0.3s ease;
-    margin-bottom: 20px;
-}
-
-.upload-area.dragover {
-    border-color: #28a745;
-    background: #f0fff4;
-    transform: scale(1.02);
-    box-shadow: 0 8px 25px rgba(40,167,69,0.2);
-}
-
-.upload-icon {
-    font-size: 3em;
-    margin-bottom: 15px;
-}
-
-.upload-info {
-    font-size: 0.9em;
-    color: #6c757d;
-    margin-top: 15px;
-    line-height: 1.4;
-}
-
-/* Opzioni Avanzate */
-.opzioni-avanzate {
-    background: linear-gradient(135deg, #ffffff, #f8f9fa);
-    padding: 25px;
-    border-radius: 12px;
-    border: 3px solid #e9ecef;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.opzioni-avanzate h5 {
-    margin-top: 0;
-    color: #495057;
-    font-size: 1.2em;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.opzioni-grid {
-    display: grid;
-    gap: 20px;
-}
-
-.opzione {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.opzione label {
-    min-width: 150px;
-    font-weight: bold;
-    color: #495057;
-}
-
-.opzione input[type="range"] {
-    flex: 1;
-    min-width: 200px;
-    height: 8px;
-    border-radius: 4px;
-    background: #e9ecef;
-    outline: none;
-}
-
-.opzione select {
-    padding: 10px 15px;
-    border: 2px solid #ced4da;
-    border-radius: 8px;
-    font-size: 1em;
-    background: white;
-    flex: 1;
-    min-width: 200px;
-}
-
-/* Anteprima Compressione */
-.anteprima-compressione {
-    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-    padding: 25px;
-    border-radius: 15px;
-    border: 3px solid #ffd166;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.anteprima-compressione h5 {
-    margin-top: 0;
-    color: #856404;
-    text-align: center;
-    font-size: 1.2em;
-    margin-bottom: 20px;
-}
-
-.comparison-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
-    margin: 20px 0;
-}
-
-.comparison-item {
-    text-align: center;
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.comparison-item img {
-    max-width: 100%;
-    max-height: 200px;
-    border-radius: 8px;
-    border: 2px solid #dee2e6;
-    margin-bottom: 10px;
-}
-
-.comparison-item p {
-    margin: 5px 0;
-    font-weight: bold;
-    color: #495057;
-}
-
-.risparmio-spazio {
-    text-align: center;
-    font-weight: bold;
-    padding: 15px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #d4edda, #c3e6cb);
-    color: #155724;
-    border: 2px solid #c3e6cb;
-    font-size: 1.1em;
 }
 
 /* Input Group */
@@ -708,32 +489,6 @@ textarea:focus {
     max-width: 100%;
 }
 
-/* Pulsante Admin */
-.btn-admin {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(108, 117, 125, 0.9);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-admin:hover {
-    background: #495057;
-    transform: scale(1.1);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
 /* Azioni */
 .azioni {
     display: flex;
@@ -786,19 +541,6 @@ textarea:focus {
     background: linear-gradient(145deg, #5a6268, #495057);
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(108,117,125,0.3);
-}
-
-/* Debug Info */
-.debug-info {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 2px solid #dee2e6;
-    font-size: 0.9em;
-    color: #6c757d;
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 10px;
 }
 
 /* Animazioni */
@@ -937,4 +679,140 @@ textarea:focus {
 
 .modal-content::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #B22222, #8B0000);
+}
+
+/* Controllo Audio */
+#btnAudio {
+    background: rgba(255,255,255,0.95);
+    border: 2px solid #FFD700;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.95em;
+    font-weight: bold;
+    color: #8B0000;
+    cursor: pointer;
+}
+
+#btnAudio.attivo {
+    background: #FFD700;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* Schede: creazione e pannello di chi crea */
+.scheda {
+    width: 95%;
+    max-width: 700px;
+    margin-top: 30px;
+    padding: 25px 30px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,248,225,0.95) 100%);
+    border-radius: 20px;
+    border: 3px solid #FFD700;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.scheda h2 {
+    margin-top: 0;
+    color: #B22222;
+}
+
+.scheda label {
+    display: block;
+    margin: 15px 0 6px;
+    font-weight: bold;
+}
+
+.scheda input:not([type="file"]),
+.editor-dinamico input[type="url"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 3px solid #ced4da;
+    border-radius: 8px;
+    font-size: 1em;
+}
+
+.scheda .input-group input {
+    flex-basis: 100%;
+}
+
+.scheda form .bottone {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.scheda a.bottone,
+.scheda a.bottone-chiusura {
+    text-decoration: none;
+    text-align: center;
+}
+
+#btnImporta {
+    margin-top: 15px;
+}
+
+.avviso-importante {
+    padding: 15px;
+    border-radius: 10px;
+    background: #fff3cd;
+    border: 2px solid #ffd166;
+    color: #664d03;
+}
+
+.bottone:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Caselle chiuse */
+.pulsante.chiusa {
+    background: linear-gradient(145deg, #eceff1, #cfd8dc);
+    border-color: #b0bec5;
+}
+
+.pulsante.chiusa .numero-giorno {
+    color: #78909c;
+}
+
+.pulsante:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #1565c0;
+    outline-offset: 2px;
+}
+
+/* Finestra del giorno */
+#modal-titolo {
+    text-align: center;
+    color: #B22222;
+    font-family: 'Brush Script MT', cursive;
+    font-size: 2.6em;
+    margin: 0 0 20px;
+}
+
+#modal-corpo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.contenuto-messaggio {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.contenuto-video iframe {
+    width: 560px;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+}
+
+.contenuto-video video {
+    max-height: 60vh;
+}
+
+.contenuto-audio p {
+    text-align: center;
 }

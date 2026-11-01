@@ -1,0 +1,14 @@
+{
+  "name": "calendario-avvento",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.0.0"
+  }
+}
