@@ -560,6 +560,12 @@ function preparaPannello() {
 
 function mostraCreazione() {
     $('vista-crea').hidden = false;
+    // Chi arriva dal link di invito non deve digitare nessun codice
+    const invito = parametri.get('invito');
+    if (invito) {
+        $('nuovo-codice').value = invito;
+        $('campo-codice').hidden = true;
+    }
     const salvati = leggiMemoria('miei_calendari', []);
     $('miei-calendari').hidden = salvati.length === 0;
     $('lista-calendari').replaceChildren(...salvati.map(voce => crea('li', {},
@@ -578,6 +584,7 @@ function mostraCreazione() {
             location.href = `/?c=${id}&k=${chiave}&nuovo=1`;
         } catch (errore) {
             mostraMessaggio(errore.message, 'errore');
+            $('campo-codice').hidden = false;
             pulsante.disabled = false;
         }
     });

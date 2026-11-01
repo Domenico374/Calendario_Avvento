@@ -34,8 +34,10 @@
         <form id="form-crea">
             <label for="nuovo-titolo">Per chi è?</label>
             <input id="nuovo-titolo" maxlength="80" placeholder="Es. Il calendario di Anna">
-            <label for="nuovo-codice">Codice di invito</label>
-            <input id="nuovo-codice" autocomplete="off" required>
+            <div id="campo-codice">
+                <label for="nuovo-codice">Codice di invito</label>
+                <input id="nuovo-codice" autocomplete="off" required>
+            </div>
             <button class="bottone" type="submit">Crea il calendario</button>
         </form>
         <div id="miei-calendari" hidden>

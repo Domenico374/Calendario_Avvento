@@ -6,7 +6,8 @@ Ognuno crea il proprio calendario, lo riempie con foto, messaggi, audio, video e
 
 ## Come funziona
 
-- `/` crea un nuovo calendario con il codice di invito.
+- `/?invito=CODICE` è il link da dare a chi crea un calendario: il codice è già inserito.
+- `/` chiede di digitare il codice di invito.
 - `/?c=ID&k=CHIAVE` è il link segreto di modifica. Non esiste un modo per recuperarlo se si perde.
 - `/?c=ID` è il link da regalare. I giorni chiusi non escono dal server.
 
