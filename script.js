@@ -1,3 +1,5 @@
+import { creaVillaggio } from './villaggio.js';
+
 // Configurazione
 const CONFIG = {
     giorni: 24,
@@ -11,6 +13,7 @@ const TIPI = {
     audio: { icona: '🎵', nome: 'Audio' },
     video: { icona: '🎬', nome: 'Video' },
     youtube: { icona: '📺', nome: 'YouTube' },
+    link: { icona: '🔗', nome: 'Link' },
     vocale: { icona: '🎤', nome: 'Vocale' }
 };
 
@@ -21,8 +24,8 @@ const CHIAVE = parametri.get('k');
 let calendario = null;
 let giornoCorrente = null;
 let raccogliContenuto = null; // Lo imposta l'editor del tipo scelto
-let urlDaRimuovere = [];
 let salvataggioInCorso = false;
+let villaggio = null;
 
 // ========== FUNZIONI DI SUPPORTO ==========
 
@@ -161,6 +164,13 @@ function creaContenuto(giorno, dati) {
                 title: `Video del ${giorno} dicembre`,
                 allowFullscreen: true
             }));
+        case 'link':
+            return crea('div', { className: 'contenuto-link' },
+                crea('a', {
+                    className: 'link-video', href: dati.url, target: '_blank', rel: 'noopener noreferrer',
+                    textContent: `▶ ${dati.testo || 'Guarda il video'}`
+                }),
+                crea('p', { className: 'upload-info', textContent: new URL(dati.url).hostname.replace(/^www\./, '') }));
     }
     return crea('p');
 }
@@ -179,14 +189,15 @@ function chiudiModal() {
     $('avviso').hidden = true;
     $('modal').classList.remove('mostra');
     fermaRegistrazione();
+    villaggio?.chiudiPorte();
     giornoCorrente = null;
     raccogliContenuto = null;
 }
 
 // ========== VISTA DI CHI RICEVE IL LINK ==========
 
-function apriGiorno(giorno) {
-    suonoAperturaCasella();
+function apriGiorno(giorno, { suono = true } = {}) {
+    if (suono) suonoAperturaCasella();
     const dati = calendario.giorni[giorno];
     $('editor').hidden = true;
     $('btnSalva').hidden = true;
@@ -195,6 +206,28 @@ function apriGiorno(giorno) {
         ? creaContenuto(giorno, dati)
         : crea('p', { className: 'nessun-contenuto', textContent: 'Oggi la sorpresa è solo un sorriso 🎄' }));
     apriFinestra(`${giorno} dicembre`);
+}
+
+// Sul telefono il villaggio sarebbe troppo piccolo: lì resta la griglia
+function usaVillaggio() {
+    return !calendario.modifica && matchMedia('(min-width: 900px)').matches;
+}
+
+function disegnaVillaggio() {
+    // Le case già aperte restano illuminate anche tornando sul sito
+    const chiaveViste = `viste_${ID}`;
+    const viste = new Set(leggiMemoria(chiaveViste, []));
+    $('villaggio').hidden = false;
+    villaggio = creaVillaggio($('villaggio'), {
+        aperti: calendario.aperti,
+        viste,
+        onTocco: suonoAperturaCasella,
+        onApri: giorno => {
+            scriviMemoria(chiaveViste, [...viste]);
+            apriGiorno(giorno, { suono: false });
+        },
+        onChiusa: giorno => mostraMessaggio(`Pazienza! Questa casa si apre il ${giorno} dicembre.`)
+    });
 }
 
 function testoAttesa() {
@@ -263,6 +296,7 @@ function scegliTipo(tipo) {
         video: () => editorFile(campi, 'video', 'video/mp4,video/webm,video/quicktime', `MP4 o WEBM fino a ${CONFIG.limitiMB.video} MB. Per i video lunghi usa YouTube.`),
         messaggio: () => editorMessaggio(campi),
         youtube: () => editorYouTube(campi),
+        link: () => editorLink(campi),
         vocale: () => editorVocale(campi)
     })[tipo]();
 }
@@ -304,6 +338,47 @@ function editorYouTube(campi) {
         pronto(video ? async () => ({ tipo: 'youtube', video }) : null);
     });
     campi.append(crea('h4', { textContent: '📺 Video YouTube' }), url, nota);
+}
+
+// Un link a qualsiasi video o pagina: Instagram, TikTok, Vimeo, Google Drive...
+function editorLink(campi) {
+    const url = crea('input', { type: 'url', id: 'url-link', placeholder: 'https://...' });
+    const testo = crea('input', { type: 'text', id: 'testo-link', maxLength: 80, placeholder: 'Guarda il video' });
+    const nota = crea('p', { className: 'upload-info', textContent: 'Incolla il link del video. Chi apre il regalo vedrà un pulsante per guardarlo.' });
+    const attuale = calendario.giorni[giornoCorrente];
+    if (attuale?.tipo === 'link') {
+        url.value = attuale.url;
+        testo.value = attuale.testo ?? '';
+    }
+
+    const aggiorna = () => {
+        const indirizzo = url.value.trim();
+        let valido = false;
+        try {
+            valido = ['https:', 'http:'].includes(new URL(indirizzo).protocol);
+        } catch {
+            valido = false;
+        }
+        const video = valido ? estraiIdYouTube(indirizzo) : null;
+        nota.textContent = !indirizzo
+            ? 'Incolla il link del video. Chi apre il regalo vedrà un pulsante per guardarlo.'
+            : !valido ? 'Questo non sembra un link: deve iniziare con https://'
+                : video ? 'È un video YouTube: si vedrà direttamente dentro la casella.'
+                    : 'Perfetto: chi apre il regalo vedrà un pulsante per aprirlo.';
+        // I video YouTube si guardano direttamente nella casella
+        pronto(!valido ? null : video
+            ? async () => ({ tipo: 'youtube', video })
+            : async () => ({ tipo: 'link', url: indirizzo, testo: testo.value.trim() }));
+    };
+    url.addEventListener('input', aggiorna);
+    testo.addEventListener('input', aggiorna);
+    aggiorna();
+    campi.append(
+        crea('h4', { textContent: '🔗 Link a un video' }),
+        crea('label', { htmlFor: 'url-link', textContent: 'Link' }), url,
+        crea('label', { htmlFor: 'testo-link', textContent: 'Testo del pulsante (facoltativo)' }), testo,
+        nota);
+    url.focus();
 }
 
 // === MESSAGGIO VOCALE ===
@@ -407,7 +482,9 @@ async function caricaFile(tipo, file, estensione) {
 
 // === SALVATAGGIO ===
 
-async function salvaCalendario() {
+// Si mandano solo le caselle cambiate (null = svuota): così una pagina aperta
+// da un po' non può cancellare quello che è stato salvato nel frattempo
+async function salvaCalendario(modifiche = {}) {
     const dati = await chiamaApi('/api/calendario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -416,11 +493,9 @@ async function salvaCalendario() {
             id: ID,
             chiave: CHIAVE,
             titolo: $('titolo-modifica').value,
-            giorni: calendario.giorni,
-            rimossi: urlDaRimuovere
+            modifiche
         })
     });
-    urlDaRimuovere = [];
     calendario = { ...dati, modifica: true };
     $('titolo').textContent = calendario.titolo;
     disegnaGriglia();
@@ -433,20 +508,14 @@ async function salvaGiorno() {
     const giorno = giornoCorrente;
     pulsante.disabled = true;
     pulsante.textContent = 'Salvataggio...';
-    const precedente = calendario.giorni[giorno];
 
     try {
         fermaRegistrazione();
-        calendario.giorni[giorno] = await raccogliContenuto();
-        if (precedente?.url) urlDaRimuovere.push(precedente.url);
-        await salvaCalendario();
+        await salvaCalendario({ [giorno]: await raccogliContenuto() });
         chiudiModal();
         mostraMessaggio(`${giorno} dicembre salvato!`, 'successo');
     } catch (errore) {
         console.error(errore);
-        if (precedente) calendario.giorni[giorno] = precedente;
-        else delete calendario.giorni[giorno];
-        urlDaRimuovere = [];
         mostraMessaggio(errore.message || 'Salvataggio non riuscito. Riprova.', 'errore');
         pulsante.disabled = false;
     } finally {
@@ -458,17 +527,12 @@ async function salvaGiorno() {
 async function eliminaContenuto() {
     const giorno = giornoCorrente;
     if (!confirm(`Vuoi eliminare il contenuto del ${giorno} dicembre?`)) return;
-    const precedente = calendario.giorni[giorno];
-    delete calendario.giorni[giorno];
-    if (precedente?.url) urlDaRimuovere.push(precedente.url);
 
     try {
-        await salvaCalendario();
+        await salvaCalendario({ [giorno]: null });
         chiudiModal();
         mostraMessaggio(`Contenuto del ${giorno} dicembre eliminato.`, 'successo');
     } catch (errore) {
-        calendario.giorni[giorno] = precedente;
-        urlDaRimuovere = [];
         mostraMessaggio(errore.message, 'errore');
     }
 }
@@ -503,21 +567,19 @@ async function convertiVecchio(dati) {
 
 async function importaVecchi() {
     const vecchi = Object.entries(contenutiVecchi());
-    let recuperati = 0;
+    const modifiche = {};
     for (const [giorno, dati] of vecchi) {
         if (calendario.giorni[giorno]) continue;
         mostraMessaggio(`Recupero il ${giorno} dicembre...`);
         try {
             const contenuto = await convertiVecchio(dati);
-            if (contenuto) {
-                calendario.giorni[giorno] = contenuto;
-                recuperati++;
-            }
+            if (contenuto) modifiche[giorno] = contenuto;
         } catch (errore) {
             console.error(`Recupero giorno ${giorno}:`, errore);
         }
     }
-    await salvaCalendario();
+    const recuperati = Object.keys(modifiche).length;
+    await salvaCalendario(modifiche);
     $('btnImporta').hidden = true;
     mostraMessaggio(`Contenuti recuperati: ${recuperati} su ${vecchi.length}.`, recuperati ? 'successo' : 'info');
 }
@@ -559,14 +621,19 @@ function preparaPannello() {
 }
 
 function mostraCreazione() {
+    const invito = parametri.get('invito');
+    const salvati = leggiMemoria('miei_calendari', []);
+    // Chi apre il sito senza invito e senza calendari suoi vede la demo del villaggio
+    if (!invito && salvati.length === 0) {
+        location.replace('/demo.html');
+        return;
+    }
     $('vista-crea').hidden = false;
     // Chi arriva dal link di invito non deve digitare nessun codice
-    const invito = parametri.get('invito');
     if (invito) {
         $('nuovo-codice').value = invito;
         $('campo-codice').hidden = true;
     }
-    const salvati = leggiMemoria('miei_calendari', []);
     $('miei-calendari').hidden = salvati.length === 0;
     $('lista-calendari').replaceChildren(...salvati.map(voce => crea('li', {},
         crea('a', { href: `/?c=${encodeURIComponent(voce.id)}&k=${encodeURIComponent(voce.chiave)}`, textContent: voce.titolo }))));
@@ -628,7 +695,8 @@ async function avvia() {
     $('titolo').textContent = calendario.titolo;
     if (calendario.modifica) preparaPannello();
     else $('sottotitolo').textContent = testoAttesa();
-    disegnaGriglia();
+    if (usaVillaggio()) disegnaVillaggio();
+    else disegnaGriglia();
 }
 
 avvia();

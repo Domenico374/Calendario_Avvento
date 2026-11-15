@@ -1,0 +1,223 @@
+<title>Villaggio dell'Avvento</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Nunito:wght@400;600;800&display=swap">
+<style>
+    /* Notte d'inverno: un solo aspetto scuro, la scena è il centro della pagina */
+    :root {
+        --notte: #0a0f2c;
+        --notte-chiara: #151d4a;
+        --neve: #eef3ff;
+        --neve-tenue: #b9c4e6;
+        --oro: #ffd36b;
+        --rosso: #c0392b;
+        --carta: #fffaf0;
+        --inchiostro: #2a2433;
+        --font-titolo: 'Mountains of Christmas', 'Brush Script MT', cursive;
+        --font-testo: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+        color-scheme: dark;
+    }
+
+    body {
+        background: radial-gradient(ellipse at 50% 0%, var(--notte-chiara), var(--notte) 70%) fixed, var(--notte);
+        color: var(--neve);
+        font-family: var(--font-testo);
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 18px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .intestazione {
+        text-align: center;
+        max-width: 62ch;
+        display: grid;
+        gap: 6px;
+    }
+
+    .etichetta {
+        justify-self: center;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--notte);
+        background: var(--oro);
+        border-radius: 999px;
+        padding: 3px 12px;
+    }
+
+    h1 {
+        margin: 0;
+        font-family: var(--font-titolo);
+        font-size: clamp(2.2rem, 6vw, 3.6rem);
+        line-height: 1.05;
+        color: var(--oro);
+        text-shadow: 0 0 22px rgba(255, 211, 107, 0.45);
+        text-wrap: balance;
+    }
+
+    .intestazione p {
+        margin: 0;
+        color: var(--neve-tenue);
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    /* Messaggi brevi e finestra del giorno */
+    .avviso {
+        min-height: 1.6em;
+        margin: 0;
+        font-weight: 800;
+        color: var(--oro);
+        text-align: center;
+        transition: opacity 0.3s;
+    }
+
+    .comandi {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 10px 16px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        max-width: 100%;
+    }
+
+    .comandi label {
+        font-weight: 600;
+    }
+
+    .comandi input[type="range"] {
+        width: min(260px, 60vw);
+        accent-color: var(--oro);
+    }
+
+    .comandi output {
+        font-weight: 800;
+        min-width: 8ch;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .comandi button,
+    .finestra-giorno button {
+        font: inherit;
+        font-weight: 800;
+        border: 2px solid var(--oro);
+        border-radius: 999px;
+        background: transparent;
+        color: var(--oro);
+        padding: 6px 16px;
+        cursor: pointer;
+    }
+
+    .comandi button:focus-visible,
+    .finestra-giorno button:focus-visible {
+        outline: 3px solid var(--neve);
+        outline-offset: 2px;
+    }
+
+    .velo {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(3, 6, 20, 0.72);
+        backdrop-filter: blur(4px);
+        z-index: 20;
+    }
+
+    .finestra-giorno {
+        width: min(520px, 100%);
+        background: var(--carta);
+        color: var(--inchiostro);
+        border: 4px solid var(--oro);
+        border-radius: 20px;
+        padding: 26px 24px;
+        text-align: center;
+        display: grid;
+        gap: 14px;
+        justify-items: center;
+        animation: entra 0.35s ease-out;
+    }
+
+    .finestra-giorno h2 {
+        margin: 0;
+        font-family: var(--font-titolo);
+        font-size: 2.6rem;
+        color: var(--rosso);
+    }
+
+    .finestra-giorno p {
+        margin: 0;
+        font-size: 1.15rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .regalo-demo {
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+    }
+
+    .regalo-demo img {
+        max-width: 100%;
+        max-height: 46vh;
+        border-radius: 14px;
+        border: 4px solid var(--oro);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .link-video {
+        display: inline-block;
+        padding: 14px 28px;
+        border-radius: 999px;
+        background: var(--rosso);
+        color: #fff;
+        font-size: 1.15rem;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 8px 24px rgba(192, 57, 43, 0.4);
+    }
+
+    .link-video:focus-visible {
+        outline: 3px solid var(--inchiostro);
+        outline-offset: 3px;
+    }
+
+    .finestra-giorno .nota-link {
+        font-size: 0.95rem;
+        font-style: normal;
+        opacity: 0.75;
+    }
+
+    .finestra-giorno button {
+        color: var(--inchiostro);
+        border-color: var(--inchiostro);
+    }
+
+    @keyframes entra {
+        from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    }
+
+    .nota {
+        margin: 0;
+        max-width: 62ch;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--neve-tenue);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .finestra-giorno { animation: none; }
+    }
+</style>

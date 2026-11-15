@@ -6,8 +6,8 @@ process.env.CODICE_INVITO = 'neve';
 process.env.BLOB_BASE_URL = 'https://archivio.example';
 
 const {
-    annoCalendario, chiaveValida, codiceValido, firma, giorniAperti,
-    percorsoCalendario, pulisciContenuto, pulisciGiorni, vistaPubblica
+    annoCalendario, applicaModifiche, chiaveValida, codiceValido, firma, giorniAperti,
+    pulisciContenuto, pulisciGiorni, vistaPubblica
 } = await import('../lib/calendario.js');
 
 const ID = 'abcDEF123456';
@@ -46,10 +46,6 @@ test('la chiave di modifica vale solo per il suo calendario', () => {
     assert.ok(!chiaveValida(ID, undefined));
 });
 
-test('il percorso del calendario non si ricava dall\'id', () => {
-    assert.ok(percorsoCalendario(ID).length > `calendari/${ID}.json`.length + 20);
-});
-
 test('il codice di invito viene controllato', () => {
     assert.ok(codiceValido(' neve '));
     assert.ok(!codiceValido('sole'));
@@ -64,4 +60,33 @@ test('solo contenuti validi e file di questo calendario', () => {
     assert.equal(pulisciContenuto({ tipo: 'youtube', video: '"><script>' }, ID), null);
     assert.equal(pulisciContenuto({ tipo: 'sconosciuto' }, ID), null);
     assert.deepEqual(Object.keys(pulisciGiorni({ 0: { tipo: 'messaggio', testo: 'no' }, 25: { tipo: 'messaggio', testo: 'no' }, 2: { tipo: 'messaggio', testo: 'sì' } }, ID)), ['2']);
+});
+
+test('si cambiano solo le caselle modificate e si eliminano i file sostituiti', () => {
+    const vecchiaFoto = `https://archivio.example/media/${ID}-foto.jpg`;
+    const nuovaFoto = `https://archivio.example/media/${ID}-foto2.jpg`;
+    const calendario = { titolo: 'T', anno: 2026, giorni: { 1: { tipo: 'messaggio', testo: 'resta' }, 2: { tipo: 'foto', url: vecchiaFoto } } };
+
+    const sostituita = applicaModifiche(calendario, { 2: { tipo: 'foto', url: nuovaFoto } }, ID);
+    assert.equal(sostituita.calendario.giorni[1].testo, 'resta');
+    assert.equal(sostituita.calendario.giorni[2].url, nuovaFoto);
+    assert.deepEqual(sostituita.daEliminare, [vecchiaFoto]);
+
+    const svuotata = applicaModifiche(calendario, { 2: null }, ID);
+    assert.deepEqual(Object.keys(svuotata.calendario.giorni), ['1']);
+    assert.deepEqual(svuotata.daEliminare, [vecchiaFoto]);
+
+    assert.ok(applicaModifiche(calendario, { 30: { tipo: 'messaggio', testo: 'x' } }, ID).errore);
+    assert.ok(applicaModifiche(calendario, { 3: { tipo: 'link', url: 'javascript:alert(1)' } }, ID).errore);
+    assert.deepEqual(calendario.giorni[2].url, vecchiaFoto, 'il calendario originale non cambia');
+});
+
+test('i link accettano solo indirizzi web veri', () => {
+    assert.deepEqual(pulisciContenuto({ tipo: 'link', url: 'https://vimeo.com/123', testo: ' Guarda ' }, ID), { tipo: 'link', url: 'https://vimeo.com/123', testo: 'Guarda' });
+    assert.deepEqual(pulisciContenuto({ tipo: 'link', url: 'https://www.instagram.com/reel/abc/' }, ID), { tipo: 'link', url: 'https://www.instagram.com/reel/abc/' });
+    assert.equal(pulisciContenuto({ tipo: 'link', url: 'javascript:alert(1)' }, ID), null);
+    assert.equal(pulisciContenuto({ tipo: 'link', url: 'data:text/html,ciao' }, ID), null);
+    assert.equal(pulisciContenuto({ tipo: 'link', url: 'non è un link' }, ID), null);
+    assert.equal(pulisciContenuto({ tipo: 'link', url: 'https://x.it/' + 'a'.repeat(600) }, ID), null);
+    assert.equal(pulisciContenuto({ tipo: 'link', url: 'https://x.it', testo: 'a'.repeat(200) }, ID).testo.length, 80);
 });

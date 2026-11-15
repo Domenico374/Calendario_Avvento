@@ -1,0 +1,25 @@
+<header class="intestazione">
+    <span class="etichetta">Demo</span>
+    <h1>Il Villaggio dell'Avvento</h1>
+    <p>Così vede il calendario chi lo riceve in regalo: ogni giorno di dicembre si accende una casa. Trascina il paese per esplorarlo e clicca la casa con la stellina.</p>
+</header>
+
+<main id="villaggio" class="scena" aria-describedby="spiegazione"></main>
+<p class="avviso" id="avviso" role="status"></p>
+
+<div class="comandi">
+    <label for="oggi">Fai finta che oggi sia il</label>
+    <input type="range" id="oggi" min="0" max="24" value="10">
+    <output id="oggi-testo" for="oggi">10 dicembre</output>
+    <button type="button" id="btnRichiudi">Richiudi le porte</button>
+</div>
+
+<p class="nota" id="spiegazione">I messaggi sono di esempio. Nel calendario vero ogni casa contiene quello che ha scelto chi lo ha preparato: un messaggio, una foto, una canzone, un video o un vocale.</p>
+
+<div class="velo" id="velo" hidden>
+    <div class="finestra-giorno" role="dialog" aria-modal="true" aria-labelledby="giorno-titolo">
+        <h2 id="giorno-titolo"></h2>
+        <div id="giorno-contenuto"></div>
+        <button type="button" id="btnChiudi">Chiudi</button>
+    </div>
+</div>
