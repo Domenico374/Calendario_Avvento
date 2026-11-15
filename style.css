@@ -1655,7 +1655,7 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
 }
 
 /* ---- Bambini e balletto si possono toccare ---- */
-.scena .palle-di-neve, .scena .albero { cursor: pointer; }
-.scena .palle-di-neve:focus-visible, .scena .albero:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+.scena .albero { cursor: pointer; }
+.scena .albero:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
 .scena .albero.suona .alone { animation: alone 1.2s ease-in-out infinite; }
 .scena .albero.suona .lucina { animation-duration: 0.6s; }
