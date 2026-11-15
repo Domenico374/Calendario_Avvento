@@ -52,6 +52,14 @@ test('il codice di invito viene controllato', () => {
     assert.ok(!codiceValido(undefined));
 });
 
+test('senza codice di invito impostato chiunque può creare', () => {
+    const salvato = process.env.CODICE_INVITO;
+    delete process.env.CODICE_INVITO;
+    assert.ok(codiceValido(undefined));
+    assert.ok(codiceValido('qualsiasi'));
+    process.env.CODICE_INVITO = salvato;
+});
+
 test('solo contenuti validi e file di questo calendario', () => {
     const file = `https://archivio.example/media/${ID}-foto.jpg`;
     assert.deepEqual(pulisciContenuto({ tipo: 'foto', url: file, extra: 1 }, ID), { tipo: 'foto', url: file });

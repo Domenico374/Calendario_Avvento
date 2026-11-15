@@ -18,8 +18,10 @@ const TIPI = {
 };
 
 const parametri = new URLSearchParams(location.search);
-const ID = parametri.get('c');
-const CHIAVE = parametri.get('k');
+// Cambiano quando il calendario viene creato dal villaggio
+let ID = parametri.get('c');
+let CHIAVE = parametri.get('k');
+let codiceInvito = null;
 
 let calendario = null;
 let giornoCorrente = null;
@@ -225,7 +227,7 @@ function disegnaVillaggio() {
             modifica: true,
             piene: giorniPieni(),
             onTocco: suonoAperturaCasella,
-            onApri: apriEditor,
+            onApri: giorno => (ID ? apriEditor(giorno) : chiediNome(giorno)),
             onChiusa: () => {}
         });
         aggiornaRiempimento();
@@ -617,10 +619,10 @@ async function importaVecchi() {
 
 // ========== PANNELLO E CREAZIONE ==========
 
-function preparaPannello() {
+function preparaPannello({ nuovo = parametri.has('nuovo') } = {}) {
     const linkPubblico = `${location.origin}/?c=${ID}`;
     $('pannello-modifica').hidden = false;
-    $('avviso-nuovo').hidden = !parametri.has('nuovo');
+    $('avviso-nuovo').hidden = !nuovo;
     $('titolo-modifica').value = calendario.titolo;
     $('link-condivisione').value = linkPubblico;
     $('linkAnteprima').href = linkPubblico;
@@ -654,17 +656,14 @@ function preparaPannello() {
 function mostraCreazione() {
     const invito = parametri.get('invito');
     const salvati = leggiMemoria('miei_calendari', []);
-    // Chi apre il sito senza invito e senza calendari suoi vede la demo del villaggio
-    if (!invito && salvati.length === 0) {
-        location.replace('/demo.html');
-        return;
-    }
+    // Sul PC si entra subito nel villaggio e il calendario si crea al primo clic su una casa
+    if (usaVillaggio()) return avviaVillaggioNuovo(invito, salvati);
     $('vista-crea').hidden = false;
     // Chi arriva dal link di invito non deve digitare nessun codice
-    if (invito) {
-        $('nuovo-codice').value = invito;
-        $('campo-codice').hidden = true;
-    }
+    // Il codice si chiede solo se il server lo richiede (vedi l'errore più sotto)
+    $('nuovo-codice').value = invito ?? '';
+    $('nuovo-codice').required = false;
+    $('campo-codice').hidden = true;
     $('miei-calendari').hidden = salvati.length === 0;
     $('lista-calendari').replaceChildren(...salvati.map(voce => crea('li', {},
         crea('a', { href: `/?c=${encodeURIComponent(voce.id)}&k=${encodeURIComponent(voce.chiave)}`, textContent: voce.titolo }))));
@@ -686,6 +685,74 @@ function mostraCreazione() {
             pulsante.disabled = false;
         }
     });
+}
+
+// === CREAZIONE DAL VILLAGGIO ===
+// Il calendario si crea al primo clic su una casa, dopo aver chiesto per chi è:
+// così chi apre l'invito solo per curiosità non lascia calendari vuoti
+
+function avviaVillaggioNuovo(invito, salvati) {
+    codiceInvito = invito;
+    // Chi ha già creato calendari su questo dispositivo li ritrova sopra il villaggio
+    if (salvati.length) {
+        $('vista-crea').hidden = false;
+        $('form-crea').hidden = true;
+        $('vista-crea').querySelector('h2').textContent = 'Crea un nuovo calendario dal villaggio qui sotto';
+        $('vista-crea').querySelector('p').hidden = true;
+        $('miei-calendari').hidden = false;
+        $('lista-calendari').replaceChildren(...salvati.map(voce => crea('li', {},
+            crea('a', { href: `/?c=${encodeURIComponent(voce.id)}&k=${encodeURIComponent(voce.chiave)}`, textContent: voce.titolo }))));
+    }
+    calendario = { titolo: "Il tuo calendario dell'Avvento", giorni: {}, modifica: true };
+    $('titolo').textContent = calendario.titolo;
+    $('sottotitolo').textContent = 'Clicca una casa per preparare la prima sorpresa';
+    disegnaVillaggio();
+}
+
+function chiediNome(giorno) {
+    giornoCorrente = giorno;
+    $('editor').hidden = true;
+    $('btnSalva').hidden = true;
+    $('btnElimina').hidden = true;
+    const nome = crea('input', { id: 'nome-calendario', maxLength: 80, placeholder: 'Es. Il calendario di Anna' });
+    const inizia = crea('button', { type: 'submit', className: 'bottone', textContent: 'Inizia' });
+    const modulo = crea('form', { className: 'chiedi-nome' },
+        crea('label', { htmlFor: 'nome-calendario', textContent: 'Per chi è questo calendario?' }), nome, inizia);
+    modulo.addEventListener('submit', async evento => {
+        evento.preventDefault();
+        inizia.disabled = true;
+        inizia.textContent = 'Creo il calendario...';
+        try {
+            await creaDalVillaggio(nome.value);
+            apriEditor(giorno);
+        } catch (errore) {
+            mostraMessaggio(errore.message, 'errore');
+            inizia.disabled = false;
+            inizia.textContent = 'Inizia';
+        }
+    });
+    $('modal-corpo').replaceChildren(modulo);
+    apriFinestra('Il tuo calendario');
+    nome.focus();
+}
+
+async function creaDalVillaggio(titolo) {
+    const { id, chiave } = await chiamaApi('/api/calendario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ azione: 'crea', titolo, codice: codiceInvito })
+    });
+    ID = id;
+    CHIAVE = chiave;
+    // L'indirizzo diventa il link di modifica, da salvare
+    history.replaceState(null, '', `/?c=${id}&k=${chiave}`);
+    calendario = { ...(await chiamaApi(`/api/calendario?id=${encodeURIComponent(id)}&chiave=${encodeURIComponent(chiave)}`)), modifica: true };
+    document.title = calendario.titolo;
+    $('titolo').textContent = calendario.titolo;
+    $('sottotitolo').textContent = 'Un viaggio di 24 giorni di Meraviglia';
+    $('vista-crea').hidden = true;
+    preparaPannello({ nuovo: true });
+    aggiornaRiempimento();
 }
 
 // ========== AVVIO ==========

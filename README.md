@@ -8,13 +8,13 @@ Il sito è il progetto Vercel **villaggio-avvento**: https://villaggio-avvento.v
 
 ## Come funziona
 
-- `/?invito=CODICE` è il link da dare a chi crea un calendario: il codice è già inserito.
-- `/` porta alla demo, a meno che sul dispositivo ci sia già un calendario creato.
+- `/` apre il villaggio vuoto: al primo clic su una casa si sceglie per chi è il calendario e il calendario viene creato. Dal telefono c'è un modulo.
 - `/demo.html` è la demo del villaggio, con regali di esempio.
+- Il codice di invito è facoltativo: si chiede solo se `CODICE_INVITO` è impostato su Vercel, e in quel caso il link è `/?invito=CODICE`.
 - `/?c=ID&k=CHIAVE` è il link segreto di modifica. Non esiste un modo per recuperarlo se si perde.
 - `/?c=ID` è il link da regalare. I giorni chiusi non escono dal server.
 
-Su schermi larghi almeno 900 px chi riceve il calendario vede il villaggio (`villaggio.js`), altrimenti la griglia di caselle. Chi crea il calendario usa sempre la griglia.
+Su schermi larghi almeno 900 px si usa il villaggio (`villaggio.js`): chi riceve il calendario apre una casa al giorno, chi lo prepara clicca le case per mettere le sorprese. Sui telefoni c'è la griglia di caselle.
 
 ## Dove stanno i dati
 
@@ -30,7 +30,7 @@ Foto 3 MB dopo la compressione, audio e messaggi vocali 10 MB, video 30 MB. Il p
 - `KV_REST_API_URL`, `KV_REST_API_TOKEN`: database Redis, aggiunte dall'integrazione Upstash
 - `BLOB_READ_WRITE_TOKEN`: accesso all'archivio dei file
 - `BLOB_BASE_URL`: indirizzo pubblico dell'archivio
-- `CODICE_INVITO`: codice per creare un calendario
+- `CODICE_INVITO` (facoltativa): se c'è, serve per creare un calendario
 - `SEGRETO`: firma i link di modifica. Se cambia, i link già creati non funzionano più.
 
 ## Demo
