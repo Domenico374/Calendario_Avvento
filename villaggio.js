@@ -916,8 +916,10 @@ function danzaBallerine(albero, dietro, davanti) {
         if (albero.isConnected) era = true;
         else if (era) return;
         // Quando suona lo Schiaccianoci il balletto si anima
-        tempo += ((adesso - ultimo) / 1000) * (albero.classList.contains('suona') ? 2 : 1);
+        const passato = (adesso - ultimo) / 1000;
         ultimo = adesso;
+        if (nonSiVede(albero)) return requestAnimationFrame(passo);
+        tempo += Math.min(passato, 0.1) * (albero.classList.contains('suona') ? 2 : 1);
         disponi(tempo);
         requestAnimationFrame(passo);
     };
@@ -1232,6 +1234,12 @@ function cantaMerryChristmas(alla_fine) {
 
 // ========== LA VITA NEL VILLAGGIO ==========
 
+// Una parte del paese non si vede se è fuori dallo schermo o se si è dentro una casa:
+// allora le sue animazioni si fermano, così il villaggio resta leggero anche sui computer vecchi
+function nonSiVede(nodo) {
+    return nodo.classList.contains('fuori') || Boolean(nodo.closest('.scena.dentro'));
+}
+
 // Muove una figura disegnata di profilo: verso 1 guarda a sinistra, -1 a destra
 function giraFigura(nodo, x, y, scala, verso) {
     nodo.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(scala * verso).toFixed(3)} ${scala.toFixed(3)})`);
@@ -1245,7 +1253,7 @@ function anima(nodo, passo) {
     const giro = adesso => {
         if (nodo.isConnected) era = true;
         else if (era) return;
-        passo((adesso - inizio) / 1000);
+        if (!nonSiVede(nodo)) passo((adesso - inizio) / 1000);
         requestAnimationFrame(giro);
     };
     requestAnimationFrame(giro);
@@ -1493,6 +1501,7 @@ function avviaNeve(canvas) {
     const ferma = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function disegna(tempo) {
+        if (canvas.closest('.scena.dentro')) return requestAnimationFrame(disegna);
         const { width, height } = canvas.getBoundingClientRect();
         if (canvas.width !== Math.round(width)) { canvas.width = width; canvas.height = height; }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -3195,7 +3204,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const neve = document.createElement('canvas');
     const indietro = Object.assign(document.createElement('button'), { type: 'button', className: 'freccia freccia-sinistra', textContent: '‹', ariaLabel: 'Vai a sinistra' });
     const avanti = Object.assign(document.createElement('button'), { type: 'button', className: 'freccia freccia-destra', textContent: '›', ariaLabel: 'Vai a destra' });
-    const suggerimento = Object.assign(document.createElement('p'), { className: 'suggerimento', textContent: modifica ? '↔ Trascina il villaggio e clicca una casa per preparare la sorpresa' : '↔ Trascina per esplorare il villaggio' });
+    const suggerimento = Object.assign(document.createElement('p'), { className: 'suggerimento', textContent: modifica ? `↔ Trascina il villaggio e ${matchMedia('(pointer: coarse)').matches ? 'tocca' : 'clicca'} una casa per preparare la sorpresa` : '↔ Trascina per esplorare il villaggio' });
     const interno = creaInterno({
         onScarta: giorno => {
             viste.add(giorno);
@@ -3225,6 +3234,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
     // ---- Spostamento ----
     let larghezzaVista = VISTA_H * 16 / 9;
+    // Sul telefono in verticale si guarda un po' meno cielo, così si vedono più case
+    let vistaY = VISTA_Y, vistaH = VISTA_H;
     let posizione = 0;
     let animazione = null;
 
@@ -3232,8 +3243,25 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         return Math.min(Math.max(valore, 0), Math.max(0, MONDO - larghezzaVista));
     }
 
+    // Le parti del paese con le loro posizioni: quelle lontane dalla vista mettono in pausa le animazioni
+    let pezzi = null, ultimaVerifica = null;
+    function segnaFuori() {
+        if (ultimaVerifica !== null && Math.abs(posizione - ultimaVerifica) < 80) return;
+        ultimaVerifica = posizione;
+        // Il trenino si sposta da solo: resta sempre animato
+        pezzi ??= [...mondo.children].filter(n => n.tagName === 'g' && !n.classList.contains('trenino')).map(nodo => {
+            const { x, width } = nodo.getBBox();
+            const t = nodo.transform.baseVal.consolidate();
+            const sx = t ? t.matrix.a : 1, tx = t ? t.matrix.e : 0;
+            return { nodo, x1: tx + x * sx, x2: tx + (x + width) * sx };
+        });
+        const da = posizione - 250, a = posizione + larghezzaVista + 250;
+        for (const { nodo, x1, x2 } of pezzi) nodo.classList.toggle('fuori', x2 < da || x1 > a);
+    }
+
     function applica() {
         strati.forEach(({ g, fattore }) => g.setAttribute('transform', `translate(${(-posizione * fattore).toFixed(1)} 0)`));
+        segnaFuori();
         indietro.disabled = posizione <= 0;
         avanti.disabled = posizione >= MONDO - larghezzaVista - 1;
     }
@@ -3263,8 +3291,11 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     function adattaVista() {
         const { width, height } = svg.getBoundingClientRect();
         if (!width || !height) return;
-        larghezzaVista = Math.min(MONDO, (VISTA_H * width) / height);
-        svg.setAttribute('viewBox', `0 ${VISTA_Y} ${larghezzaVista} ${VISTA_H}`);
+        const stretta = width / height < 1.3;
+        vistaY = stretta ? 400 : VISTA_Y;
+        vistaH = stretta ? 500 : VISTA_H;
+        larghezzaVista = Math.min(MONDO, (vistaH * width) / height);
+        svg.setAttribute('viewBox', `0 ${vistaY} ${larghezzaVista} ${vistaH}`);
         posizione = limita(posizione);
         applica();
     }
@@ -3358,8 +3389,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     }
 
     function avvicinaAlPunto(x, y, larghezza, durata) {
-        const partenza = [0, VISTA_Y, larghezzaVista, VISTA_H];
-        const altezza = larghezza * VISTA_H / larghezzaVista;
+        const partenza = [0, vistaY, larghezzaVista, vistaH];
+        const altezza = larghezza * vistaH / larghezzaVista;
         const arrivo = [x - posizione - larghezza / 2, y - altezza / 2, larghezza, altezza];
         return new Promise(fatto => {
             if (movimentoRidotto) return fatto();
@@ -3379,6 +3410,19 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
     let inApertura = false;
     let giornoInCasa = null;
+    let timerDentro = null;
+
+    // Quando la stanza ha finito di comparire, il villaggio dietro smette di muoversi e di disegnarsi
+    function entraDentro(stanza, ...argomenti) {
+        stanza.mostra(...argomenti);
+        clearTimeout(timerDentro);
+        timerDentro = setTimeout(() => contenitore.classList.add('dentro'), 700);
+    }
+
+    function torna() {
+        clearTimeout(timerDentro);
+        contenitore.classList.remove('dentro');
+    }
 
     function apriCasa(casa) {
         const giorno = Number(casa.dataset.giorno);
@@ -3405,7 +3449,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         setTimeout(async () => {
             await avvicinaA(casa, 800);
             giornoInCasa = giorno;
-            interno.mostra(giorno);
+            entraDentro(interno, giorno);
             inApertura = false;
         }, 650);
     }
@@ -3418,7 +3462,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         stazione.classList.remove('invita');
         await avvicinaA(stazione, 800);
-        sala.mostra();
+        entraDentro(sala);
         inApertura = false;
     }
 
@@ -3430,17 +3474,19 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         const { cx, cy, larghezza, tipo } = banco.dataset;
         await avvicinaAlPunto(Number(cx), Number(cy), Number(larghezza), 800);
-        bancone.mostra(tipo);
+        entraDentro(bancone, tipo);
         inApertura = false;
     }
 
     function esciDalBancone() {
+        torna();
         bancone.nascondi();
         adattaVista();
     }
 
     // "Sì, partiamo!": si torna al villaggio, davanti alla casa di oggi (o alla prima)
     function parti() {
+        torna();
         sala.nascondi();
         adattaVista();
         const casa = mondo.querySelector(`.casa[data-giorno="${Math.max(1, Math.min(aperti, 24))}"]`);
@@ -3448,6 +3494,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     }
 
     function esciDallaCasa() {
+        torna();
         interno.nascondi();
         adattaVista();
         mondo.querySelectorAll('.si-apre').forEach(casa => casa.classList.remove('si-apre'));

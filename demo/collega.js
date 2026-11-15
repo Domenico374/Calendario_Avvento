@@ -99,7 +99,7 @@ const villaggio = creaVillaggio(document.getElementById('villaggio'), {
         velo.hidden = false;
         document.getElementById('btnChiudi').focus();
     },
-    onChiusa: giorno => avviso(`Pazienza! Questa casa si apre il ${giorno} dicembre.`)
+    onChiusa: giorno => avviso(`Pazienza! Questa casa si apre il ${giorno === 1 ? '1°' : giorno} dicembre.`)
 });
 
 function chiudi() {

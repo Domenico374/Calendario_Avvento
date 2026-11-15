@@ -224,10 +224,13 @@ function apriGiorno(giorno, { suono = true } = {}) {
     apriFinestra(`${giorno} dicembre`);
 }
 
-// Sul telefono il villaggio sarebbe troppo piccolo: lì resta la griglia
+// Il villaggio si usa ovunque, anche sul telefono (si scorre col dito).
+// La griglia resta solo per gli schermi minuscoli
 function usaVillaggio() {
-    return matchMedia('(min-width: 900px)').matches;
+    return matchMedia('(min-width: 320px)').matches;
 }
+
+const nomeGiorno = giorno => (Number(giorno) === 1 ? '1°' : giorno);
 
 const giorniPieni = () => new Set(Object.keys(calendario.giorni).map(Number));
 
@@ -260,7 +263,7 @@ function disegnaVillaggio() {
             scriviMemoria(chiaveViste, [...viste]);
             apriGiorno(giorno, { suono: false });
         },
-        onChiusa: giorno => mostraMessaggio(`Pazienza! Questa casa si apre il ${giorno} dicembre.`)
+        onChiusa: giorno => mostraMessaggio(`Pazienza! Questa casa si apre il ${nomeGiorno(giorno)} dicembre.`)
     });
 }
 
@@ -286,7 +289,7 @@ function disegnaGriglia() {
         pulsante.classList.toggle('chiusa', chiusa);
         pulsante.addEventListener('click', () => {
             if (modifica) apriEditor(giorno);
-            else if (chiusa) mostraMessaggio(`Pazienza! Questa casella si apre il ${giorno} dicembre.`);
+            else if (chiusa) mostraMessaggio(`Pazienza! Questa casella si apre il ${nomeGiorno(giorno)} dicembre.`);
             else apriGiorno(giorno);
         });
         griglia.append(pulsante);
