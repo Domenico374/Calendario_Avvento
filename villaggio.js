@@ -750,13 +750,16 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
 
 function disegnaAlbero(mondo, x, y, scala) {
     // L'albero della piazza è sempre acceso: il 24 è la casa di Babbo Natale, qui accanto
-    const albero = el('g', { class: 'albero aperta', transform: `translate(${x} ${y}) scale(${scala})` }, mondo);
+    const albero = el('g', {
+        class: 'albero aperta', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
+        'aria-label': 'Il balletto intorno all\'albero: clicca per sentire la musica dello Schiaccianoci'
+    }, mondo);
     el('ellipse', { class: 'alone', cx: 0, cy: -140, rx: 170, ry: 200, fill: 'url(#alone)' }, albero);
     // Il laghetto ghiacciato dove danzano le ballerine
     el('ellipse', { cx: 0, cy: 0, rx: 128, ry: 34, fill: '#cfe0f5', stroke: '#a9c1e4', 'stroke-width': 3 }, albero);
     el('ellipse', { cx: -20, cy: -4, rx: 84, ry: 16, fill: '#eef5ff', opacity: 0.8 }, albero);
     el('path', { d: 'M-70 8 q 30 -6 60 2 M20 12 q 30 -8 56 -2', stroke: '#ffffff', 'stroke-width': 2, fill: 'none', opacity: 0.9 }, albero);
-    const dietro = el('g', { class: 'ballerine', 'pointer-events': 'none' }, albero);
+    const dietro = el('g', { class: 'ballerine' }, albero);
     const corpo = el('g', { class: 'corpo' }, albero);
     el('rect', { x: -14, y: -30, width: 28, height: 32, fill: '#5d4037' }, corpo);
     [[0, 170, 90], [-60, 140, 80], [-115, 105, 70], [-165, 70, 60]].forEach(([dy, larghezza, altezza]) => {
@@ -770,7 +773,7 @@ function disegnaAlbero(mondo, x, y, scala) {
         el('circle', { class: 'lucina', cx: (caso() * 2 - 1) * meta, cy: yy, r: 5 }, corpo);
     }
     el('path', { class: 'puntale', d: 'M0 -280 l9 18 20 3 -15 13 4 20 -18 -10 -18 10 4 -20 -15 -13 20 -3 Z' }, corpo);
-    const davanti = el('g', { class: 'ballerine', 'pointer-events': 'none' }, albero);
+    const davanti = el('g', { class: 'ballerine' }, albero);
     danzaBallerine(albero, dietro, davanti);
     return albero;
 }
@@ -908,11 +911,14 @@ function danzaBallerine(albero, dietro, davanti) {
     disponi(0);
     if (ferma) return;
     let era = false;
-    const inizio = performance.now();
+    let ultimo = performance.now(), tempo = 0;
     const passo = adesso => {
         if (albero.isConnected) era = true;
         else if (era) return;
-        disponi((adesso - inizio) / 1000);
+        // Quando suona lo Schiaccianoci il balletto si anima
+        tempo += ((adesso - ultimo) / 1000) * (albero.classList.contains('suona') ? 2 : 1);
+        ultimo = adesso;
+        disponi(tempo);
         requestAnimationFrame(passo);
     };
     requestAnimationFrame(passo);
@@ -1077,6 +1083,85 @@ const BASSI_MERRY = [
     ['G2', 3], ['D3', 3], ['E3', 3], ['D3', 3], ['G2', 3], ['B2', 3], ['C3', 1.5], ['D3', 1.5], ['G2', 3]
 ];
 
+// "Danza della Fata Confetto" dallo Schiaccianoci di Čajkovskij, suonata come una celesta col pizzicato.
+// Nota e durata in battiti (null = pausa)
+const FATA_CONFETTO = [
+    ['G5', 0.5], ['E5', 0.5], ['G5', 0.5], ['F#5', 0.5], ['D#5', 0.5], ['E5', 0.5], ['D5', 0.5], ['D5', 0.5],
+    ['C#5', 0.5], ['C#5', 0.5], ['C5', 0.5], ['C5', 0.5], ['B4', 1], [null, 1],
+    ['G5', 0.5], ['E5', 0.5], ['G5', 0.5], ['F#5', 0.5], ['D#5', 0.5], ['E5', 0.5], ['D5', 0.5], ['D5', 0.5],
+    ['C#5', 0.5], ['C#5', 0.5], ['C5', 0.5], ['C5', 0.5], ['B4', 1], [null, 1],
+    ['B4', 0.5], ['G4', 0.5], ['B4', 0.5], ['A#4', 0.5], ['F#4', 0.5], ['G4', 0.5], ['F4', 0.5], ['F4', 0.5],
+    ['E4', 0.5], ['E4', 0.5], ['D#4', 0.5], ['D#4', 0.5], ['E4', 2]
+];
+
+function suonaSchiaccianoci(alla_fine) {
+    const Contesto = window.AudioContext || window.webkitAudioContext;
+    if (!Contesto) {
+        setTimeout(alla_fine, 3000);
+        return () => {};
+    }
+    const contesto = new Contesto();
+    const uscita = contesto.createGain();
+    uscita.gain.value = 0.9;
+    uscita.connect(contesto.destination);
+    const BATTITO = 0.46;
+    // La celesta: un suono di campanella dolce, con gli armonici
+    const celesta = (nota, t, durata) => {
+        const g = contesto.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.16, t + 0.006);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.6, durata * 1.6));
+        g.connect(uscita);
+        [[1, 1], [2, 0.32], [4, 0.1], [6.8, 0.04]].forEach(([multiplo, peso]) => {
+            const o = contesto.createOscillator();
+            const p = contesto.createGain();
+            o.type = 'sine';
+            o.frequency.value = frequenza(nota) * multiplo;
+            p.gain.value = peso;
+            o.connect(p).connect(g);
+            o.start(t);
+            o.stop(t + Math.max(0.7, durata * 1.7));
+        });
+    };
+    // Il pizzicato degli archi: corto e morbido
+    const pizzicato = (nota, t) => {
+        const o = contesto.createOscillator();
+        const g = contesto.createGain();
+        o.type = 'triangle';
+        o.frequency.value = frequenza(nota);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.2, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+        o.connect(g).connect(uscita);
+        o.start(t);
+        o.stop(t + 0.3);
+    };
+    const partenza = contesto.currentTime + 0.1;
+    // Quattro colpi di pizzicato per cominciare, poi la melodia (due volte)
+    const INTRO = 4;
+    let t = partenza + INTRO * BATTITO;
+    for (let giro = 0; giro < 2; giro++) {
+        for (const [nota, battiti] of FATA_CONFETTO) {
+            if (nota) celesta(nota, t, battiti * BATTITO);
+            t += battiti * BATTITO;
+        }
+        t += BATTITO;
+    }
+    for (let tb = partenza, i = 0; tb < t - BATTITO; tb += BATTITO, i++) pizzicato(i % 2 ? 'B2' : 'E3', tb);
+    const fine = (t - partenza + 0.8) * 1000;
+    let finito = false;
+    const ferma = () => {
+        if (finito) return;
+        finito = true;
+        clearTimeout(timer);
+        uscita.gain.setTargetAtTime(0.0001, contesto.currentTime, 0.15);
+        setTimeout(() => contesto.close(), 600);
+        alla_fine();
+    };
+    const timer = setTimeout(ferma, fine);
+    return ferma;
+}
+
 function frequenza(nota) {
     const passi = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 }[nota[0]] + (nota[1] === '#' ? 1 : 0);
     return 440 * Math.pow(2, (passi + (Number(nota.slice(-1)) - 4) * 12) / 12);
@@ -1233,75 +1318,235 @@ function disegnaPattinatori(mondo, cx, cy) {
 }
 
 // ---- I bambini che giocano a palle di neve ----
+// Disegnati di profilo verso destra: giaccone imbottito, berretto col pompon, sciarpa, moffole e stivaletti col pelo
 function disegnaBambino(genitore, x, verso, c) {
-    const b = el('g', { transform: `translate(${x} 0) scale(${verso} 1)` }, genitore);
-    el('ellipse', { cx: 0, cy: 1, rx: 11, ry: 2.5, fill: 'rgba(60,90,140,0.28)' }, b);
-    // Stivaletti e pantaloni da neve
-    el('path', { d: 'M-6 -11 h5 v9 h-6 Z M1 -11 h5 v9 h-5 Z', fill: c.pantaloni }, b);
-    el('path', { d: 'M-8 -3 h7 v3 h-8 Z M1 -3 h7 q1 3 0 3 h-7 Z', fill: '#3a2a22' }, b);
-    // Giaccone imbottito
-    el('path', { d: 'M-9 -10 Q-11 -24 -7 -31 L7 -31 Q11 -24 9 -10 Q0 -7 -9 -10 Z', fill: c.giacca }, b);
-    el('path', { d: 'M-9 -20 Q0 -17 9 -20 M-8 -14 Q0 -11 8 -14', stroke: scurisci(c.giacca, 0.25), 'stroke-width': 1, fill: 'none' }, b);
-    el('path', { d: 'M0 -30 V-9', stroke: scurisci(c.giacca, 0.35), 'stroke-width': 0.9 }, b);
-    // Il braccio che lancia (si alza e si abbassa) e l'altro col guanto
-    const lancio = el('g', { class: 'braccio-lancio' }, b);
-    el('path', { d: 'M5 -28 Q12 -36 9 -44', stroke: c.giacca, 'stroke-width': 4.2, fill: 'none', 'stroke-linecap': 'round' }, lancio);
-    el('circle', { cx: 9, cy: -45, r: 2.6, fill: c.guanti }, lancio);
-    el('path', { d: 'M-6 -28 Q-12 -22 -10 -16', stroke: c.giacca, 'stroke-width': 4.2, fill: 'none', 'stroke-linecap': 'round' }, b);
-    el('circle', { cx: -10, cy: -15, r: 2.6, fill: c.guanti }, b);
-    // Sciarpa e testa con il berretto
-    el('rect', { x: -6.5, y: -33.5, width: 13, height: 4, rx: 2, fill: c.sciarpa }, b);
-    el('path', { d: 'M-5 -31 l-4 7 l3 1 l3 -7 Z', fill: c.sciarpa }, b);
-    el('circle', { cx: 0, cy: -40, r: 7, fill: c.pelle }, b);
-    el('circle', { cx: 3, cy: -41, r: 0.9, fill: '#2a1d14' }, b);
-    el('circle', { cx: -2.5, cy: -41, r: 0.9, fill: '#2a1d14' }, b);
-    el('path', { d: 'M-1.5 -37.5 q 2 2 4 0', stroke: '#7a3a2a', 'stroke-width': 0.9, fill: 'none' }, b);
-    el('circle', { cx: 4.5, cy: -38.5, r: 1.4, fill: '#e8848a', opacity: 0.65 }, b);
-    el('circle', { cx: -4, cy: -38.5, r: 1.4, fill: '#e8848a', opacity: 0.65 }, b);
-    el('path', { d: 'M-7.5 -42 Q-8 -51 0 -51 Q8 -51 7.5 -42 Z', fill: c.cappello }, b);
-    el('rect', { x: -8, y: -43.5, width: 16, height: 3.2, rx: 1.5, fill: '#fbfdff' }, b);
-    el('path', { d: 'M0 -51 q 5 -3 7 2', stroke: c.cappello, 'stroke-width': 2.4, fill: 'none', 'stroke-linecap': 'round' }, b);
-    el('circle', { cx: 7.5, cy: -48, r: 2.4, fill: '#fbfdff' }, b);
-    return lancio;
+    const fuori = el('g', { transform: `translate(${x} 0) scale(${verso} 1)` }, genitore);
+    el('ellipse', { cx: 0, cy: 1, rx: 13, ry: 2.8, fill: 'rgba(60,90,140,0.3)' }, fuori);
+    const corpo = el('g', {}, fuori);
+    const scuro = scurisci(c.giacca, 0.28);
+    // Braccio dietro (in equilibrio) disegnato prima del corpo
+    el('path', { d: 'M-4 -39 Q-12 -33 -14 -26', stroke: scuro, 'stroke-width': 6.5, fill: 'none', 'stroke-linecap': 'round' }, corpo);
+    el('ellipse', { cx: -14.5, cy: -25, rx: 3.4, ry: 3.8, fill: scurisci(c.guanti, 0.15) }, corpo);
+    // Pantaloni da neve e stivaletti con il bordo di pelo
+    el('path', { d: 'M-8 -20 Q-10 -12 -9 -5 L-2 -5 Q-2 -12 -1 -19 Z', fill: scurisci(c.pantaloni, 0.15) }, corpo);
+    el('path', { d: 'M1 -19 Q2 -12 3 -5 L10 -5 Q10 -13 8 -20 Z', fill: c.pantaloni }, corpo);
+    el('path', { d: 'M3 -12 q 3 1 6 0', stroke: scurisci(c.pantaloni, 0.3), 'stroke-width': 0.8, fill: 'none' }, corpo);
+    el('path', { d: 'M-11 -5 h10 v5 h-12 q-1 -3 2 -5 Z', fill: '#4a3426' }, corpo);
+    el('path', { d: 'M2 -5 h9 q4 1 3 5 h-12 Z', fill: '#5a3e2c' }, corpo);
+    el('ellipse', { cx: -5.5, cy: -5.5, rx: 5.6, ry: 1.9, fill: '#efe6d6' }, corpo);
+    el('ellipse', { cx: 6.5, cy: -5.5, rx: 5.6, ry: 1.9, fill: '#efe6d6' }, corpo);
+    // Giaccone imbottito a sbuffi, con la zip e un riflesso di luce
+    el('path', { d: 'M-12 -18 Q-15 -31 -9 -41 Q0 -45 9 -41 Q15 -31 12 -18 Q0 -14 -12 -18 Z', fill: c.giacca }, corpo);
+    [-24, -30, -36].forEach(y => el('path', { d: `M-12 ${y} Q0 ${y + 3} 12 ${y}`, stroke: scuro, 'stroke-width': 1, fill: 'none', opacity: 0.7 }, corpo));
+    el('path', { d: 'M-10 -38 Q-12 -30 -10 -21', stroke: '#ffffff', 'stroke-width': 2.4, fill: 'none', opacity: 0.25, 'stroke-linecap': 'round' }, corpo);
+    el('path', { d: 'M3 -42 L4 -17', stroke: scuro, 'stroke-width': 1 }, corpo);
+    el('path', { d: 'M-12 -19 Q0 -15 12 -19 L12 -16 Q0 -12 -12 -16 Z', fill: scuro }, corpo);
+    // Cappuccio abbassato e sciarpa con le frange che svolazza
+    el('path', { d: 'M-10 -40 Q-14 -47 -6 -47 Q0 -43 5 -46 Q10 -46 9 -41 Z', fill: scuro }, corpo);
+    el('rect', { x: -8, y: -45, width: 16, height: 5.5, rx: 2.6, fill: c.sciarpa }, corpo);
+    el('path', { class: 'sciarpa-vento', d: 'M-7 -43 q -6 2 -10 7 l 3 2 q 3 -4 8 -6 Z', fill: c.sciarpa }, corpo);
+    el('path', { d: 'M-17 -36 l-1.5 2 M-15.5 -35 l-1 2.2', stroke: c.sciarpa, 'stroke-width': 1 }, corpo);
+    el('path', { d: 'M-5 -44 v4 M-1 -44 v4 M3 -44 v4', stroke: scurisci(c.sciarpa, 0.2), 'stroke-width': 0.8 }, corpo);
+    // Testa: viso di tre quarti che ride, guance rosse e il fiato nel freddo
+    const testa = el('g', {}, corpo);
+    el('ellipse', { cx: -5.5, cy: -52, rx: 2.2, ry: 3, fill: scurisci(c.pelle, 0.08) }, testa);
+    el('circle', { cx: 1, cy: -53, r: 9.6, fill: c.pelle }, testa);
+    el('path', { d: 'M9.5 -53 q 2.6 1 1.6 3.4 q -1 0.8 -2.2 0.2', fill: scurisci(c.pelle, 0.05) }, testa);
+    el('path', { d: 'M1.8 -56.5 q 1.6 -1.2 3.2 0 M7 -56.6 q 1.4 -1 2.6 0.2', stroke: scurisci(c.capelli, 0.1), 'stroke-width': 0.9, fill: 'none' }, testa);
+    el('path', { d: 'M2 -54 q 1.5 -1.6 3 0 M7.2 -54 q 1.2 -1.4 2.4 0', stroke: '#2a1d14', 'stroke-width': 1.1, fill: 'none', 'stroke-linecap': 'round' }, testa);
+    el('path', { d: 'M3 -48.6 Q6.5 -45 10 -48.8 Q6.5 -47.6 3 -48.6 Z', fill: '#7a2a2f', stroke: '#7a2a2f', 'stroke-width': 0.8, 'stroke-linejoin': 'round' }, testa);
+    el('path', { d: 'M4.2 -48.4 q 2.3 0.6 4.6 0', stroke: '#fff', 'stroke-width': 0.9, fill: 'none' }, testa);
+    el('circle', { cx: 0.5, cy: -50, r: 2.3, fill: '#e8848a', opacity: 0.55 }, testa);
+    el('circle', { cx: 9.4, cy: -50.6, r: 1.4, fill: '#e8848a', opacity: 0.5 }, testa);
+    // Ciuffo di capelli sotto il berretto
+    el('path', { d: 'M-8 -54 q 1 -6 6 -6 q -1 3 1 5 q 1 -4 5 -4 q -1 3 1 4 q 2 -3 4 -2 L 9 -60 Q 0 -64 -9 -57 Z', fill: c.capelli }, testa);
+    // Berretto di lana a coste con il pompon
+    el('path', { d: 'M-10 -57 Q-11 -68 1 -68 Q13 -68 12 -57 Z', fill: c.cappello }, testa);
+    [-6, -2, 2, 6].forEach(cx => el('path', { d: `M${cx} -59 Q${cx + 0.6} -64 ${cx + 1} -67`, stroke: scurisci(c.cappello, 0.2), 'stroke-width': 0.8, fill: 'none' }, testa));
+    el('rect', { x: -11, y: -60, width: 23.5, height: 5, rx: 2.4, fill: scurisci(c.cappello, 0.12) }, testa);
+    el('path', { d: 'M-9 -57.5 h21', stroke: '#fbfdff', 'stroke-width': 1.2, 'stroke-dasharray': '1.2 1.6', opacity: 0.6 }, testa);
+    [[1, -70, 3.8], [-1.6, -71.5, 1.6], [3.4, -72, 1.5], [3.8, -68.6, 1.4]].forEach(([cx, cy, r]) => el('circle', { cx, cy, r, fill: '#fbfdff' }, testa));
+    const fiato = el('g', { class: 'fiato', opacity: 0 }, testa);
+    [[14, -48, 2], [17, -49.5, 2.6], [20.5, -51, 3]].forEach(([cx, cy, r]) => el('circle', { cx, cy, r, fill: '#ffffff', opacity: 0.7 }, fiato));
+    // Braccio che lancia: ruota attorno alla spalla
+    const braccio = el('g', {}, corpo);
+    el('path', { d: 'M4 -39 Q9 -33 11 -27', stroke: c.giacca, 'stroke-width': 6.5, fill: 'none', 'stroke-linecap': 'round' }, braccio);
+    el('path', { d: 'M8.6 -30 q 2 0.4 3.6 -0.6', stroke: scuro, 'stroke-width': 1, fill: 'none' }, braccio);
+    el('ellipse', { cx: 11.5, cy: -25, rx: 3.6, ry: 4, fill: c.guanti }, braccio);
+    el('ellipse', { cx: 14, cy: -26.5, rx: 1.3, ry: 2, fill: c.guanti }, braccio);
+    return { corpo, braccio, fiato, testa };
 }
 
 function disegnaPalleDiNeve(mondo, x, y, scala) {
-    const gioco = el('g', { class: 'palle-di-neve', transform: `translate(${x} ${y}) scale(${scala})`, 'pointer-events': 'none' }, mondo);
-    // Il fortino di neve di uno dei due, con le palle pronte
+    const gioco = el('g', {
+        class: 'palle-di-neve', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
+        'aria-label': 'I bambini che giocano a palle di neve: clicca per giocare con loro'
+    }, mondo);
     const DIST = 46;
-    el('ellipse', { cx: 0, cy: 2, rx: 70, ry: 7, fill: '#eef3fb' }, gioco);
-    const braccioA = disegnaBambino(gioco, -DIST, 1, { giacca: '#e67e22', pantaloni: '#34495e', cappello: '#2e86de', sciarpa: '#c0392b', guanti: '#c0392b', pelle: '#f2d2bd' });
-    const braccioB = disegnaBambino(gioco, DIST, -1, { giacca: '#16a085', pantaloni: '#5b3a6b', cappello: '#e84393', sciarpa: '#f4d03f', guanti: '#f4d03f', pelle: '#c48a66' });
-    [[20, 0], [32, 0], [44, 0], [26, -7], [38, -7]].forEach(([bx, by]) => el('ellipse', { cx: bx, cy: by - 4, rx: 7, ry: 5, fill: '#fbfdff', stroke: '#cfdaee', 'stroke-width': 1 }, gioco));
-    [[-30, -1], [-24, -2], [-27, -6]].forEach(([bx, by]) => el('circle', { cx: bx, cy: by, r: 2.6, fill: '#fbfdff', stroke: '#cfdaee', 'stroke-width': 0.8 }, gioco));
-    const palla = el('circle', { cx: 0, cy: 0, r: 3, fill: '#ffffff', stroke: '#cfdaee', 'stroke-width': 0.8 }, gioco);
+    el('ellipse', { cx: 0, cy: 2, rx: 78, ry: 8, fill: '#eef3fb' }, gioco);
+    // Impronte nella neve
+    [[-30, 4], [-18, 6], [-6, 3], [10, 6], [24, 3]].forEach(([fx, fy]) => el('ellipse', { cx: fx, cy: fy, rx: 2.6, ry: 1.2, fill: '#cfdaee' }, gioco));
+    const a = disegnaBambino(gioco, -DIST, 1, { giacca: '#e67e22', pantaloni: '#34495e', cappello: '#2e86de', sciarpa: '#c0392b', guanti: '#c0392b', pelle: '#f2d2bd', capelli: '#8a5a2b' });
+    // Il fortino di neve con le palle pronte, davanti al secondo bambino
+    const b = disegnaBambino(gioco, DIST, -1, { giacca: '#16a085', pantaloni: '#5b3a6b', cappello: '#e84393', sciarpa: '#f4d03f', guanti: '#f4d03f', pelle: '#c48a66', capelli: '#2b1d14' });
+    [[20, 0], [31, 0], [42, 0], [25.5, -7], [36.5, -7], [31, -13]].forEach(([bx, by]) => el('ellipse', { cx: bx, cy: by - 4, rx: 6.4, ry: 4.6, fill: '#fbfdff', stroke: '#cfdaee', 'stroke-width': 1 }, gioco));
+    [[-30, -1], [-24, -2], [-27, -5.5]].forEach(([bx, by]) => el('circle', { cx: bx, cy: by, r: 2.6, fill: '#fbfdff', stroke: '#cfdaee', 'stroke-width': 0.8 }, gioco));
+    const palla = el('circle', { cx: 0, cy: 0, r: 3.2, fill: '#ffffff', stroke: '#cfdaee', 'stroke-width': 0.8, opacity: 0 }, gioco);
     const sbuffo = el('g', { opacity: 0 }, gioco);
-    [[-4, -2], [3, -4], [0, 3], [5, 2], [-3, 4]].forEach(([dx, dy]) => el('circle', { cx: dx, cy: dy, r: 1.8, fill: '#ffffff' }, sbuffo));
+    [[-4, -2, 2], [3, -4, 2.4], [0, 3, 1.8], [5, 2, 2], [-3, 4, 1.6], [7, -1, 1.4], [-6, 1, 1.4]].forEach(([dx, dy, r]) => el('circle', { cx: dx, cy: dy, r, fill: '#ffffff' }, sbuffo));
 
-    // Si lanciano la palla a turno: parte dalla mano, fa un arco e si sbriciola dall'altra parte
-    const DURATA = 2.4, VOLO = 0.9;
+    // Un lancio: si prende la rincorsa all'indietro, si lancia, la palla vola e colpisce l'altro, che ride
+    const bambini = [a, b];
+    let tempo = 0, ultimo = 0, turnoPrima = -1, colpito = false;
     anima(gioco, t => {
-        const turno = Math.floor(t / DURATA);
-        const f = (t % DURATA) / DURATA * (DURATA / VOLO);
+        const vivace = gioco.classList.contains('vivace');
+        tempo += (t - ultimo) * (vivace ? 1.9 : 1);
+        ultimo = t;
+        const DURATA = 2.8;
+        const turno = Math.floor(tempo / DURATA);
+        const f = (tempo % DURATA) / DURATA;
         const daA = turno % 2 === 0;
-        const [x0, x1] = daA ? [-DIST + 9, DIST - 12] : [DIST - 9, -DIST + 12];
-        const lanciatore = daA ? braccioA : braccioB;
-        const altro = daA ? braccioB : braccioA;
-        lanciatore.setAttribute('transform', f < 1 ? `rotate(${(-40 * Math.max(0, 1 - f * 3)).toFixed(1)} 5 -28)` : 'rotate(0 5 -28)');
-        altro.setAttribute('transform', 'rotate(0 5 -28)');
-        if (f < 1) {
-            palla.setAttribute('opacity', 1);
-            palla.setAttribute('cx', (x0 + (x1 - x0) * f).toFixed(1));
-            palla.setAttribute('cy', (-45 - Math.sin(f * Math.PI) * 30 + f * 18).toFixed(1));
-            sbuffo.setAttribute('opacity', 0);
-        } else {
-            palla.setAttribute('opacity', 0);
-            const g = Math.min(1, (f - 1) * 2);
-            sbuffo.setAttribute('opacity', (1 - g).toFixed(2));
-            sbuffo.setAttribute('transform', `translate(${x1} -27) scale(${(1 + g * 1.5).toFixed(2)})`);
+        const lancia = daA ? a : b, riceve = daA ? b : a;
+        if (turno !== turnoPrima) {
+            turnoPrima = turno;
+            colpito = false;
+            gioco.dispatchEvent(new CustomEvent('lancio'));
         }
+        // Chi lancia: si piega a prendere la neve, carica il braccio e lo slancia in avanti
+        let angolo = 0, piega = 0, abbassa = 0;
+        if (f < 0.12) abbassa = Math.sin(f / 0.12 * Math.PI) * 6;
+        else if (f < 0.32) { const k = (f - 0.12) / 0.2; angolo = -150 * k; piega = -8 * k; }
+        else if (f < 0.4) { const k = (f - 0.32) / 0.08; angolo = -150 + 190 * k; piega = -8 + 20 * k; }
+        else if (f < 0.6) { const k = (f - 0.4) / 0.2; angolo = 40 * (1 - k); piega = 12 * (1 - k); }
+        lancia.braccio.setAttribute('transform', `rotate(${angolo.toFixed(1)} 4 -39)`);
+        lancia.corpo.setAttribute('transform', `translate(0 ${abbassa.toFixed(1)}) rotate(${piega.toFixed(1)} 0 0)`);
+        // La palla: dalla mano alzata fino al giaccone dell'altro
+        const verso = daA ? 1 : -1;
+        const x0 = -DIST * verso + 10 * verso, y0 = -64, x1 = DIST * verso - 6 * verso, y1 = -34;
+        if (f >= 0.38 && f < 0.7) {
+            const k = (f - 0.38) / 0.32;
+            palla.setAttribute('opacity', 1);
+            palla.setAttribute('cx', (x0 + (x1 - x0) * k).toFixed(1));
+            palla.setAttribute('cy', (y0 + (y1 - y0) * k - Math.sin(k * Math.PI) * 26).toFixed(1));
+        } else palla.setAttribute('opacity', 0);
+        // Il colpo: sbuffo di neve, l'altro sobbalza all'indietro e ride
+        let scossa = 0;
+        if (f >= 0.7) {
+            if (!colpito) {
+                colpito = true;
+                gioco.dispatchEvent(new CustomEvent('colpo', { detail: { ride: daA ? 1 : 0 } }));
+            }
+            const k = Math.min(1, (f - 0.7) / 0.18);
+            sbuffo.setAttribute('opacity', (1 - k).toFixed(2));
+            sbuffo.setAttribute('transform', `translate(${x1} ${y1}) scale(${(1 + k * 1.6).toFixed(2)})`);
+            scossa = Math.sin(k * Math.PI * 3) * (1 - k) * 12;
+        } else sbuffo.setAttribute('opacity', 0);
+        riceve.corpo.setAttribute('transform', `rotate(${(-scossa).toFixed(1)} 0 0)`);
+        riceve.braccio.setAttribute('transform', `rotate(${(scossa * 3).toFixed(1)} 4 -39)`);
+        // Ridono entrambi: il fiato si vede nell'aria fredda
+        bambini.forEach((bimbo, i) => {
+            const respiro = (Math.sin(t * 2.2 + i * 2) + 1) / 2;
+            bimbo.fiato.setAttribute('opacity', (respiro * 0.8).toFixed(2));
+            bimbo.testa.setAttribute('transform', bimbo === riceve && f >= 0.7 ? `rotate(${(-scossa * 0.6).toFixed(1)} 1 -53)` : '');
+        });
     });
     return gioco;
+}
+
+// ---- I suoni del villaggio: risate dei bambini, palle di neve ----
+let audioVillaggio = null;
+function contestoVillaggio() {
+    const Contesto = window.AudioContext || window.webkitAudioContext;
+    if (!Contesto) return null;
+    audioVillaggio ??= new Contesto();
+    if (audioVillaggio.state === 'suspended') audioVillaggio.resume();
+    return audioVillaggio;
+}
+
+function rumoreBianco(contesto, durata) {
+    const buffer = contesto.createBuffer(1, Math.ceil(contesto.sampleRate * durata), contesto.sampleRate);
+    const dati = buffer.getChannelData(0);
+    for (let i = 0; i < dati.length; i++) dati[i] = Math.random() * 2 - 1;
+    const sorgente = contesto.createBufferSource();
+    sorgente.buffer = buffer;
+    return sorgente;
+}
+
+// Il fruscio della palla che vola
+function suonaSoffio(contesto) {
+    const t = contesto.currentTime;
+    const rumore = rumoreBianco(contesto, 0.4);
+    const filtro = contesto.createBiquadFilter();
+    filtro.type = 'bandpass';
+    filtro.Q.value = 1.2;
+    filtro.frequency.setValueAtTime(500, t);
+    filtro.frequency.exponentialRampToValueAtTime(2200, t + 0.3);
+    const g = contesto.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.12);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    rumore.connect(filtro).connect(g).connect(contesto.destination);
+    rumore.start(t);
+}
+
+// Il tonfo morbido della neve
+function suonaTonfo(contesto) {
+    const t = contesto.currentTime;
+    const rumore = rumoreBianco(contesto, 0.3);
+    const filtro = contesto.createBiquadFilter();
+    filtro.type = 'lowpass';
+    filtro.frequency.value = 900;
+    const g = contesto.createGain();
+    g.gain.setValueAtTime(0.5, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    rumore.connect(filtro).connect(g).connect(contesto.destination);
+    rumore.start(t);
+}
+
+// La risata di un bambino: tanti "ah" acuti e veloci, con il respiro fra uno e l'altro
+function suonaRisata(contesto, tono) {
+    const inizio = contesto.currentTime + 0.12;
+    const uscita = contesto.createGain();
+    uscita.gain.value = 0.55;
+    uscita.connect(contesto.destination);
+    const formanti = [[850, 5, 1], [1350, 7, 0.7], [2700, 9, 0.3]].map(([frequenza, q, peso]) => {
+        const filtro = contesto.createBiquadFilter();
+        filtro.type = 'bandpass';
+        filtro.frequency.value = frequenza;
+        filtro.Q.value = q;
+        const g = contesto.createGain();
+        g.gain.value = peso * 3;
+        filtro.connect(g).connect(uscita);
+        return filtro;
+    });
+    const quante = 5 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < quante; i++) {
+        const t = inizio + i * (0.14 + Math.random() * 0.03);
+        const f = tono * (1.1 - i * 0.04) * (1 + (Math.random() - 0.5) * 0.06);
+        const o = contesto.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(f * 1.12, t);
+        o.frequency.exponentialRampToValueAtTime(f * 0.86, t + 0.11);
+        const g = contesto.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.22 * (1 - i * 0.07), t + 0.018);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+        o.connect(g);
+        formanti.forEach(filtro => g.connect(filtro));
+        o.start(t);
+        o.stop(t + 0.14);
+        // Il respiro "h" prima di ogni "ah"
+        const fiato = rumoreBianco(contesto, 0.06);
+        const alto = contesto.createBiquadFilter();
+        alto.type = 'highpass';
+        alto.frequency.value = 1800;
+        const gf = contesto.createGain();
+        gf.gain.setValueAtTime(0.0001, t - 0.03);
+        gf.gain.exponentialRampToValueAtTime(0.05, t - 0.01);
+        gf.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+        fiato.connect(alto).connect(gf).connect(uscita);
+        fiato.start(t - 0.03);
+    }
 }
 
 // ---- Il mercatino di Natale ----
@@ -3542,6 +3787,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (coro) return cantaIlCoro(coro);
         const banco = evento.target.closest('.bancarella');
         if (banco) return entraNellaBancarella(banco);
+        const palle = evento.target.closest('.palle-di-neve');
+        if (palle) return giocaConIBambini(palle);
+        const albero = evento.target.closest('.albero');
+        if (albero) return ballaLoSchiaccianoci(albero);
         const casa = evento.target.closest('.casa');
         if (casa) apriCasa(casa);
     });
@@ -3551,6 +3800,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     let fermaCoro = null;
     function cantaIlCoro(coro) {
         if (fermaCoro) return fermaCoro();
+        fermaBalletto?.();
         coro.classList.add('canta');
         contenitore.dispatchEvent(new CustomEvent('coro', { detail: { canta: true } }));
         fermaCoro = cantaMerryChristmas(() => {
@@ -3558,6 +3808,40 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             coro.classList.remove('canta');
             contenitore.dispatchEvent(new CustomEvent('coro', { detail: { canta: false } }));
         });
+    }
+
+    // Cliccato, il balletto danza sulla "Danza della Fata Confetto"; un altro clic la ferma
+    let fermaBalletto = null;
+    function ballaLoSchiaccianoci(albero) {
+        if (fermaBalletto) return fermaBalletto();
+        fermaCoro?.();
+        albero.classList.add('suona');
+        contenitore.dispatchEvent(new CustomEvent('coro', { detail: { canta: true } }));
+        fermaBalletto = suonaSchiaccianoci(() => {
+            fermaBalletto = null;
+            albero.classList.remove('suona');
+            contenitore.dispatchEvent(new CustomEvent('coro', { detail: { canta: false } }));
+        });
+    }
+
+    // Cliccati, i bambini giocano più forte e si sentono le risate e le palle di neve
+    let finePartita = null;
+    function giocaConIBambini(gioco) {
+        const audio = contestoVillaggio();
+        if (!gioco.dataset.suoni && audio) {
+            gioco.dataset.suoni = '1';
+            gioco.addEventListener('lancio', () => { if (gioco.classList.contains('vivace')) suonaSoffio(audio); });
+            gioco.addEventListener('colpo', evento => {
+                if (!gioco.classList.contains('vivace')) return;
+                suonaTonfo(audio);
+                suonaRisata(audio, evento.detail.ride ? 560 : 470);
+                if (Math.random() < 0.6) setTimeout(() => suonaRisata(audio, evento.detail.ride ? 470 : 560), 380);
+            });
+        }
+        if (audio) suonaRisata(audio, 520);
+        gioco.classList.add('vivace');
+        clearTimeout(finePartita);
+        finePartita = setTimeout(() => gioco.classList.remove('vivace'), 14000);
     }
 
     // Cliccata, la renna fa un saltello con il tintinnio delle campanelle
@@ -3573,9 +3857,13 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         const stazione = evento.target.closest('.stazione');
         const coro = evento.target.closest('.coro');
         const banco = evento.target.closest('.bancarella');
-        if ((casa || stazione || coro || banco) && (evento.key === 'Enter' || evento.key === ' ')) {
+        const palle = evento.target.closest('.palle-di-neve');
+        const albero = evento.target.closest('.albero');
+        if ((casa || stazione || coro || banco || palle || albero) && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
-            if (banco) entraNellaBancarella(banco);
+            if (palle) giocaConIBambini(palle);
+            else if (albero) ballaLoSchiaccianoci(albero);
+            else if (banco) entraNellaBancarella(banco);
             else if (coro) cantaIlCoro(coro);
             else if (stazione) entraInStazione(stazione);
             else apriCasa(casa);
