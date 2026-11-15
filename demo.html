@@ -2169,6 +2169,32 @@ function creaSala({ onParti }) {
     el('stop', { offset: '55%', 'stop-color': '#000', 'stop-opacity': 0 }, ombra);
     el('stop', { offset: '100%', 'stop-color': '#000', 'stop-opacity': 0.6 }, ombra);
 
+    // Piccoli disegni natalizi usati in tutta la sala
+    const COLORI_LUCI = ['#ff5a4f', '#ffd36b', '#6fd3ff', '#7dff9a', '#ff9de2'];
+    const stella = (cx, cy, r) => 'M' + Array.from({ length: 10 }, (_, i) => {
+        const a = (i / 10) * Math.PI * 2 - Math.PI / 2, rr = i % 2 ? r * 0.45 : r;
+        return `${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)}`;
+    }).join(' L') + ' Z';
+    const lucina = (x, y, i, r = 5) => el('circle', { class: 'pallina', cx: x, cy: y, r, fill: COLORI_LUCI[i % COLORI_LUCI.length], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.37) % 2).toFixed(2)}s` }, svg);
+    const fiocco = (x, y, s = 1) => {
+        const g = el('g', { transform: `translate(${x} ${y}) scale(${s})` }, svg);
+        el('path', { d: 'M0 0 L-12 30 L-4 28 L-1 36 Z M0 0 L12 30 L4 28 L1 36 Z', fill: '#a3161f' }, g);
+        el('path', { d: 'M0 0 C -30 -24 -40 6 0 0 Z M0 0 C 30 -24 40 6 0 0 Z', fill: '#d62c2c', stroke: '#a3161f', 'stroke-width': 2 }, g);
+        el('circle', { cx: 0, cy: 0, r: 6, fill: '#c0392b' }, g);
+    };
+    const corona = (cx, cy, r) => {
+        el('circle', { cx, cy, r, fill: 'none', stroke: '#1f5c34', 'stroke-width': r * 0.5 }, svg);
+        for (let i = 0; i < 18; i++) {
+            const a = (i / 18) * Math.PI * 2, rr = r + (i % 2 ? 5 : -5);
+            el('ellipse', { cx: cx + Math.cos(a) * rr, cy: cy + Math.sin(a) * rr, rx: r * 0.22, ry: r * 0.1, transform: `rotate(${(a * 180 / Math.PI + 60).toFixed(0)} ${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)})`, fill: i % 3 ? '#2e7d4a' : '#3f9a5c' }, svg);
+        }
+        for (let i = 0; i < 7; i++) {
+            const a = (i / 7) * Math.PI * 2 + 0.3;
+            el('circle', { cx: cx + Math.cos(a) * r, cy: cy + Math.sin(a) * r, r: Math.max(2.5, r * 0.09), fill: '#e0262f' }, svg);
+        }
+        fiocco(cx, cy + r, r / 40);
+    };
+
     // Stanza in prospettiva, come il salotto, con i colori di una stazione d'altri tempi
     const FONDO = { x1: 220, x2: 1380, y1: 70, y2: 560 };
     const fuga = (x, y, k = 5) => [800 + (x - 800) * k, 330 + (y - 330) * k];
@@ -2179,6 +2205,12 @@ function creaSala({ onParti }) {
         poligono([[bx, 440], [bx, FONDO.y2], fuga(bx, FONDO.y2), fuga(bx, 440)], { fill: '#5d3a22' });
     });
     el('rect', { x: FONDO.x1, y: FONDO.y1, width: FONDO.x2 - FONDO.x1, height: FONDO.y2 - FONDO.y1, fill: '#2f5d50' }, svg);
+    // Carta da parati con stelline dorate
+    for (let riga = 0, y = 104; y < 420; riga++, y += 62) {
+        for (let x = FONDO.x1 + 30 + (riga % 2) * 35; x < FONDO.x2 - 20; x += 70) {
+            el('path', { d: stella(x, y, 7), fill: '#e8c766', opacity: 0.22 }, svg);
+        }
+    }
     el('rect', { x: FONDO.x1, y: 440, width: FONDO.x2 - FONDO.x1, height: 120, fill: '#5d3a22' }, svg);
     el('rect', { x: FONDO.x1, y: 434, width: FONDO.x2 - FONDO.x1, height: 8, fill: '#8a5a3c' }, svg);
     // Pavimento a piastrelle
@@ -2191,13 +2223,34 @@ function creaSala({ onParti }) {
         const k = (y - 330) / (FONDO.y2 - 330);
         el('path', { d: `M${fuga(FONDO.x1, FONDO.y2, k)[0].toFixed(1)} ${y} H${fuga(FONDO.x2, FONDO.y2, k)[0].toFixed(1)}`, stroke: '#b8a989', 'stroke-width': 2 }, svg);
     });
+    // Tappeto rosso che porta verso il cartellone
+    const tappeto = (a, b, attributi) => poligono([[a, FONDO.y2], [b, FONDO.y2], fuga(b, FONDO.y2, 3), fuga(a, FONDO.y2, 3)], attributi);
+    tappeto(736, 864, { fill: '#c9a227' });
+    tappeto(742, 858, { fill: '#a3242c' });
+    tappeto(752, 848, { fill: 'none', stroke: '#e8c766', 'stroke-width': 2, 'stroke-dasharray': '10 8' });
 
-    // Lampade appese al soffitto
+    // Ghirlanda con le lucine lungo il soffitto
+    let ghirlanda = `M${FONDO.x1} 74`;
+    for (let x = FONDO.x1; x < FONDO.x2; x += 116) ghirlanda += ' q 58 30 116 0';
+    el('path', { d: ghirlanda, fill: 'none', stroke: '#1f5c34', 'stroke-width': 14, 'stroke-linecap': 'round' }, svg);
+    el('path', { d: ghirlanda, fill: 'none', stroke: '#2e7d4a', 'stroke-width': 6, 'stroke-dasharray': '3 7', 'stroke-linecap': 'round' }, svg);
+    for (let i = 0, x = FONDO.x1 + 58; x < FONDO.x2; i++, x += 58) {
+        lucina(x, i % 2 ? 76 : 90, i);
+    }
+
+    // Lampade appese al soffitto, con un fiocco rosso sul filo
     [520, 800, 1080].forEach(x => {
         el('path', { d: `M${x} 62 V128`, stroke: '#1a1a1a', 'stroke-width': 3 }, svg);
         el('circle', { class: 'luce-calda', cx: x, cy: 160, r: 90, fill: 'url(#alone)', opacity: 0.55 }, svg);
         el('path', { d: `M${x - 26} 150 q 26 -28 52 0 Z`, fill: '#2c2f45' }, svg);
         el('ellipse', { cx: x, cy: 152, rx: 12, ry: 6, fill: '#fff3b0', filter: 'url(#bagliore)' }, svg);
+        if (x !== 800) fiocco(x, 108, 0.7);
+    });
+
+    // Stelle di carta appese al soffitto
+    [[380, 128], [660, 112], [940, 112], [1220, 124]].forEach(([x, y], i) => {
+        el('path', { d: `M${x} 62 V${y - 14}`, stroke: '#d8cdb5', 'stroke-width': 1.5 }, svg);
+        el('path', { d: stella(x, y, 16), fill: i % 2 ? '#f4d03f' : '#fdf6dc', stroke: '#c9a227', 'stroke-width': 1.5, filter: 'url(#bagliore)' }, svg);
     });
 
     // Biglietteria
@@ -2210,8 +2263,21 @@ function creaSala({ onParti }) {
     el('path', { d: 'M341 260 V400', stroke: '#4a2c1c', 'stroke-width': 4 }, svg);
     el('rect', { x: 248, y: 400, width: 186, height: 16, fill: '#8a5a3c' }, svg);
     el('rect', { x: 296, y: 380, width: 30, height: 20, fill: '#fbf6ea' }, svg);
+    // Festone con le lucine sulla biglietteria, una corona e due calze appese al bancone
+    el('path', { d: 'M226 228 q 38 24 77 0 q 38 24 77 0 q 38 24 76 0', fill: 'none', stroke: '#1f5c34', 'stroke-width': 10, 'stroke-linecap': 'round' }, svg);
+    [245, 283, 322, 360, 398, 437].forEach((x, i) => lucina(x, i % 2 ? 240 : 232, i + 3, 4));
+    corona(341, 486, 32);
+    [[266, '#c0392b'], [404, '#2e7d4a']].forEach(([x, colore]) => {
+        el('path', { d: `M${x} 422 v34 q 0 14 14 14 h12 q 10 0 10 -9 q 0 -8 -10 -9 h-6 v-30 Z`, fill: colore }, svg);
+        el('rect', { x: x - 3, y: 414, width: 26, height: 12, rx: 4, fill: '#fbf6ea' }, svg);
+    });
 
-    // Orologio della stazione
+    // Orologio della stazione, con la sua coroncina
+    el('circle', { cx: 800, cy: 112, r: 44, fill: 'none', stroke: '#1f5c34', 'stroke-width': 14 }, svg);
+    for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2;
+        el('circle', { cx: 800 + Math.cos(a) * 46, cy: 112 + Math.sin(a) * 46, r: 4, fill: i % 2 ? '#e0262f' : '#3f9a5c' }, svg);
+    }
     el('circle', { cx: 800, cy: 112, r: 36, fill: '#fdf6dc', stroke: '#2c2f45', 'stroke-width': 6 }, svg);
     for (let ora = 0; ora < 12; ora++) {
         const a = (ora / 12) * Math.PI * 2;
@@ -2224,6 +2290,12 @@ function creaSala({ onParti }) {
     el('rect', { x: 502, y: 176, width: 596, height: 334, rx: 6, fill: '#1f3d33' }, svg);
     el('path', { d: 'M488 170 q 78 40 156 0 q 78 40 156 0 q 78 40 156 0 q 78 40 156 0', fill: 'none', stroke: '#2e6b3f', 'stroke-width': 14, 'stroke-linecap': 'round' }, svg);
     for (let i = 0; i < 9; i++) el('circle', { class: 'pallina', cx: 505 + i * 74, cy: 178 + (i % 2) * 10, r: 6, fill: ['#e74c3c', '#f4d03f', '#5dade2'][i % 3], style: `animation-delay:${(i * 0.2).toFixed(1)}s` }, svg);
+    fiocco(800, 170, 1.1);
+    // Agrifoglio negli angoli bassi del cartellone
+    [[506, 508, 1], [1094, 508, -1]].forEach(([x, y, verso]) => {
+        el('path', { d: `M${x} ${y} q ${14 * verso} -22 ${36 * verso} -18 q ${-6 * verso} 18 ${-36 * verso} 18 Z M${x} ${y} q ${26 * verso} 4 ${30 * verso} 26 q ${-22 * verso} -2 ${-30 * verso} -26 Z`, fill: '#2e7d4a', stroke: '#1f5c34', 'stroke-width': 2 }, svg);
+        [[0, 0], [7 * verso, -5], [7 * verso, 5]].forEach(([dx, dy]) => el('circle', { cx: x + dx, cy: y + dy, r: 5, fill: '#e0262f' }, svg));
+    });
     el('text', { x: 800, y: 244, 'text-anchor': 'middle', 'font-size': 42, 'font-style': 'italic', 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffd36b' }, svg).textContent = 'Benvenuti nel nostro villaggio!';
     BENVENUTO.forEach((riga, i) => {
         el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, svg).textContent = riga;
@@ -2242,6 +2314,18 @@ function creaSala({ onParti }) {
     [1200, 1214, 1232, 1280, 1298].forEach(x => el('rect', { x, y: 368, width: 10, height: 10, fill: '#ffd36b' }, fuori));
     for (let i = 0; i < 16; i++) el('circle', { class: 'fiocco-finestra', cx: 1186 + caso() * 190, cy: 160, r: 1.5 + caso() * 2, fill: '#fff', style: `animation-delay:-${(caso() * 6).toFixed(2)}s;animation-duration:${(4 + caso() * 3).toFixed(1)}s` }, fuori);
     el('path', { d: 'M1278 160 V450 M1182 320 H1374', stroke: '#efe6d2', 'stroke-width': 8 }, svg);
+    // Festone con le lucine intorno all'arco, una corona sul vetro e due candele sul davanzale
+    el('path', { d: 'M1174 450 V250 q 0 -92 104 -92 q 104 0 104 92 V450', fill: 'none', stroke: '#1f5c34', 'stroke-width': 12, 'stroke-linecap': 'round' }, svg);
+    [[1174, 430], [1174, 380], [1174, 330], [1174, 280], [1180, 210], [1232, 164], [1278, 158], [1324, 164], [1376, 210], [1382, 280], [1382, 330], [1382, 380], [1382, 430]]
+        .forEach(([x, y], i) => lucina(x, y, i + 1, 5));
+    corona(1278, 256, 28);
+    el('rect', { x: 1162, y: 446, width: 232, height: 12, rx: 3, fill: '#d8cdb5' }, svg);
+    [1196, 1360].forEach(x => {
+        el('circle', { class: 'luce-calda', cx: x, cy: 412, r: 40, fill: 'url(#alone)', opacity: 0.6 }, svg);
+        el('rect', { x: x - 7, y: 418, width: 14, height: 28, rx: 2, fill: '#c0392b' }, svg);
+        el('path', { d: `M${x} 404 q 6 8 0 14 q -6 -6 0 -14 Z`, fill: '#ffd36b', filter: 'url(#bagliore)' }, svg);
+        el('path', { d: `M${x - 14} 446 q 6 -10 14 -6 q 8 -4 14 6`, fill: '#2e7d4a' }, svg);
+    });
 
     // Stufa accesa nell'angolo, con il tubo
     el('path', { d: 'M1500 640 V80', stroke: '#2c2c2c', 'stroke-width': 18 }, svg);
@@ -2249,17 +2333,64 @@ function creaSala({ onParti }) {
     el('rect', { x: 1446, y: 620, width: 100, height: 120, rx: 30, fill: '#2c2c2c' }, svg);
     el('rect', { x: 1470, y: 664, width: 52, height: 34, rx: 8, fill: '#ff8c32', filter: 'url(#bagliore)' }, svg);
     el('path', { d: 'M1452 740 v18 M1540 740 v18', stroke: '#1a1a1a', 'stroke-width': 8 }, svg);
+    // Un bastoncino di zucchero appoggiato alla stufa
+    el('path', { d: 'M1424 744 V668 q 0 -20 -18 -20 q -18 0 -18 18', fill: 'none', stroke: '#fff', 'stroke-width': 11, 'stroke-linecap': 'round' }, svg);
+    el('path', { d: 'M1424 744 V668 q 0 -20 -18 -20 q -18 0 -18 18', fill: 'none', stroke: '#d62c2c', 'stroke-width': 11, 'stroke-dasharray': '7 9' }, svg);
 
-    // Panche di legno, una valigia e un sacco di regali
+    // Il grande albero di Natale nell'angolo, con i regali sotto
+    let semeAlbero = 11;
+    const casoAlbero = () => (semeAlbero = (semeAlbero * 16807) % 2147483647) / 2147483647;
+    const albero = el('g', { transform: 'translate(132 826) scale(1.2) translate(0 -826)' }, svg);
+    el('circle', { class: 'luce-calda', cx: 0, cy: 600, r: 260, fill: 'url(#alone)', opacity: 0.45 }, albero);
+    el('ellipse', { cx: 0, cy: 826, rx: 140, ry: 16, fill: 'rgba(0,0,0,0.3)' }, albero);
+    el('rect', { x: -16, y: 780, width: 32, height: 44, fill: '#5b3a24' }, albero);
+    const PIANI = [[800, 132, 190], [710, 106, 165], [622, 82, 145], [540, 58, 125]];
+    PIANI.forEach(([y, w, h]) => {
+        el('path', { d: `M${-w} ${y} q ${w} 24 ${w * 2} 0 L0 ${y - h} Z`, fill: '#1f6b3a' }, albero);
+        el('path', { d: `M0 ${y + 12} q ${w * 0.6} -2 ${w} -12 L0 ${y - h} Z`, fill: '#175a30' }, albero);
+    });
+    // Fili dorati
+    [[770, 112], [684, 92], [598, 70], [520, 48]].forEach(([y, w]) => {
+        el('path', { d: `M${-w} ${y - 40} q ${w} 50 ${w * 2} 10`, fill: 'none', stroke: '#f4d03f', 'stroke-width': 3, opacity: 0.9 }, albero);
+    });
+    // Palline e lucine sparse sui rami
+    for (let i = 0; i < 46; i++) {
+        const [y0, w, h] = PIANI[i % PIANI.length];
+        const t = 0.2 + casoAlbero() * 0.75;
+        const y = y0 - h + h * t, mezza = w * t * 0.92;
+        const x = (casoAlbero() * 2 - 1) * mezza;
+        if (i % 2) {
+            el('circle', { cx: x, cy: y, r: 7, fill: ['#e0262f', '#f4d03f', '#3f7fd6', '#e8e8f0', '#c0392b'][i % 5] }, albero);
+            el('circle', { cx: x - 2, cy: y - 2, r: 2.2, fill: '#fff', opacity: 0.8 }, albero);
+        } else {
+            el('circle', { class: 'pallina', cx: x, cy: y, r: 4, fill: COLORI_LUCI[i % COLORI_LUCI.length], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.29) % 2).toFixed(2)}s` }, albero);
+        }
+    }
+    el('path', { d: stella(0, 410, 28), fill: '#ffd36b', stroke: '#e0a800', 'stroke-width': 2, filter: 'url(#bagliore)' }, albero);
+    // Pacchi regalo sotto l'albero
+    [[-128, 778, 54, 44, '#c0392b', '#f4d03f'], [-76, 790, 44, 34, '#2e6fb5', '#fdf6dc'], [28, 772, 60, 50, '#2e7d4a', '#e0262f'], [84, 796, 38, 28, '#f4d03f', '#c0392b']]
+        .forEach(([x, y, w, h, colore, nastro]) => {
+            el('rect', { x, y, width: w, height: h, rx: 3, fill: colore }, albero);
+            el('rect', { x: x + w / 2 - 4, y, width: 8, height: h, fill: nastro }, albero);
+            el('rect', { x, y: y + h / 2 - 4, width: w, height: 8, fill: nastro }, albero);
+            el('path', { d: `M${x + w / 2} ${y} q -14 -14 -16 -2 q 2 6 16 2 q 14 4 16 -2 q -2 -12 -16 2 Z`, fill: nastro }, albero);
+        });
+
+    // Panche di legno con un fiocco rosso, una valigia e un sacco di regali
     const panca = x => {
         const p = el('g', { transform: `translate(${x} 800)` }, svg);
         el('ellipse', { cx: 0, cy: 6, rx: 150, ry: 12, fill: 'rgba(0,0,0,0.25)' }, p);
         el('path', { d: 'M-120 0 v-60 M120 0 v-60 M-110 -60 v-70 M110 -60 v-70', stroke: '#2c2c2c', 'stroke-width': 8 }, p);
         [-64, -50].forEach(y => el('rect', { x: -136, y, width: 272, height: 12, rx: 4, fill: '#8a5a3c' }, p));
         [-130, -112, -94].forEach(y => el('rect', { x: -126, y, width: 252, height: 12, rx: 4, fill: '#a0663a' }, p));
+        // Rametto di pino lungo lo schienale
+        el('path', { d: 'M-120 -132 q 60 14 120 0 q 60 14 120 0', fill: 'none', stroke: '#1f5c34', 'stroke-width': 9, 'stroke-linecap': 'round' }, p);
+        [-90, -30, 30, 90].forEach((dx, i) => el('circle', { cx: dx, cy: -126, r: 4, fill: i % 2 ? '#f4d03f' : '#e0262f' }, p));
     };
     panca(420);
     panca(1180);
+    fiocco(300, 668, 0.8);
+    fiocco(1060, 668, 0.8);
     el('rect', { x: 560, y: 740, width: 80, height: 58, rx: 8, fill: '#7a4b2e' }, svg);
     el('path', { d: 'M580 740 v-12 h40 v12 M560 760 h80', stroke: '#4a2c1c', 'stroke-width': 4, fill: 'none' }, svg);
     el('path', { d: 'M1000 800 q -36 0 -30 -50 q 6 -30 30 -36 q 24 6 30 36 q 6 50 -30 50 Z', fill: '#a0663a' }, svg);
