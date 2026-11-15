@@ -56,6 +56,21 @@ function disegnaDefinizioni(svg) {
     el('stop', { offset: '0%', 'stop-color': '#060a24' }, cielo);
     el('stop', { offset: '55%', 'stop-color': '#1d2b6b' }, cielo);
     el('stop', { offset: '100%', 'stop-color': '#5b6fb8' }, cielo);
+    // Gli altri cieli: alba rosata, giorno azzurro, tramonto arancione
+    [
+        ['cielo-alba', '#34407e', '#c98aab', '#ffd2a6'],
+        ['cielo-giorno', '#3f7fd0', '#8dbcec', '#d9eafb'],
+        ['cielo-tramonto', '#262a66', '#a8578a', '#ffa860']
+    ].forEach(([id, alto, medio, basso]) => {
+        const g = el('linearGradient', { id, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+        el('stop', { offset: '0%', 'stop-color': alto }, g);
+        el('stop', { offset: '60%', 'stop-color': medio }, g);
+        el('stop', { offset: '100%', 'stop-color': basso }, g);
+    });
+    const sole = el('radialGradient', { id: 'alone-sole' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#fff3c0', 'stop-opacity': 0.9 }, sole);
+    el('stop', { offset: '40%', 'stop-color': '#ffd27a', 'stop-opacity': 0.45 }, sole);
+    el('stop', { offset: '100%', 'stop-color': '#ffd27a', 'stop-opacity': 0 }, sole);
     const terra = el('linearGradient', { id: 'terra', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
     el('stop', { offset: '0%', 'stop-color': '#dfe9fb' }, terra);
     el('stop', { offset: '100%', 'stop-color': '#b8c8e8' }, terra);
@@ -112,9 +127,20 @@ function disegnaDefinizioni(svg) {
 }
 
 function disegnaCielo(strato) {
-    el('rect', { x: -100, width: 3400, height: ALTEZZA, fill: 'url(#cielo)' }, strato);
+    el('rect', { class: 'volta', x: -100, width: 3400, height: ALTEZZA, fill: 'url(#cielo)' }, strato);
+    // Il sole: basso all'alba e al tramonto, alto di giorno (la posizione la decide il CSS)
+    const sole = el('g', { class: 'sole' }, strato);
+    el('circle', { cx: 0, cy: 0, r: 150, fill: 'url(#alone-sole)' }, sole);
+    el('circle', { class: 'disco-sole', cx: 0, cy: 0, r: 34, fill: '#fff1b8' }, sole);
+    // Nuvole morbide, visibili di giorno
+    const nuvole = el('g', { class: 'nuvole' }, strato);
+    [[260, 360, 1], [760, 330, 1.3], [1250, 380, 0.9], [1750, 345, 1.15], [2300, 370, 1]].forEach(([x, y, k]) => {
+        const n = el('g', { transform: `translate(${x} ${y}) scale(${k})` }, nuvole);
+        [[-50, 6, 34, 16], [-14, -6, 40, 22], [28, 2, 36, 18], [60, 10, 26, 12]].forEach(([cx, cy, rx, ry]) => el('ellipse', { cx, cy, rx, ry, fill: '#ffffff' }, n));
+        el('ellipse', { cx: 6, cy: 16, rx: 80, ry: 8, fill: '#dfe7f5' }, n);
+    });
     // L'animazione dell'aurora usa transform, quindi lo spostamento va sul gruppo
-    const aurore = el('g', { transform: 'translate(0 180)' }, strato);
+    const aurore = el('g', { class: 'aurore', transform: 'translate(0 180)' }, strato);
     el('path', { class: 'aurora', d: 'M-100 260 C 250 120, 500 300, 820 170 S 1350 120, 1700 230 S 2500 140, 3300 220 L3300 320 C 2600 260, 2000 330, 1700 290 S 300 240, -100 360 Z', fill: '#3ee6b0', filter: 'url(#sfoca)' }, aurore);
     el('path', { class: 'aurora', style: 'animation-delay:-4s', d: 'M-100 200 C 300 90, 700 240, 1000 120 S 1900 160, 3300 140 L3300 200 C 2400 230, 1600 250, 900 220 S 300 200, -100 280 Z', fill: '#7b6cff', filter: 'url(#sfoca)', opacity: 0.4 }, aurore);
     for (let i = 0; i < 160; i++) {
@@ -123,8 +149,9 @@ function disegnaCielo(strato) {
             fill: '#fff', style: `animation-delay:${(caso() * 3).toFixed(2)}s`
         }, strato);
     }
-    el('circle', { cx: 1500, cy: 370, r: 40, fill: '#fdf6d8', filter: 'url(#bagliore)' }, strato);
-    el('circle', { cx: 1516, cy: 360, r: 36, fill: '#1d2b6b', opacity: 0.25 }, strato);
+    const luna = el('g', { class: 'luna' }, strato);
+    el('circle', { cx: 1500, cy: 370, r: 40, fill: '#fdf6d8', filter: 'url(#bagliore)' }, luna);
+    el('circle', { cx: 1516, cy: 360, r: 36, fill: '#1d2b6b', opacity: 0.25 }, luna);
     disegnaSlitta(strato);
 }
 
@@ -2368,6 +2395,22 @@ function creaInterno({ onScarta, onEsci }) {
 // Disegna il villaggio nel contenitore e avvisa quando si apre una casa
 // Con modifica: true è il villaggio di chi prepara il calendario: tutte le case si aprono
 // e quelle con la sorpresa già pronta hanno le finestre accese
+// ========== GIORNO E NOTTE ==========
+// Il cielo segue l'ora vera in Italia: alba, giorno, tramonto e notte (con l'aurora)
+
+const MOMENTI = ['alba', 'giorno', 'tramonto', 'notte'];
+
+function momentoDiAdesso(adesso = new Date()) {
+    const parti = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(adesso);
+    const valore = tipo => Number(parti.find(p => p.type === tipo)?.value ?? 0);
+    const minuti = valore('hour') * 60 + valore('minute');
+    if (minuti < 6 * 60 + 45) return 'notte';
+    if (minuti < 8 * 60 + 30) return 'alba';
+    if (minuti < 15 * 60 + 45) return 'giorno';
+    if (minuti < 17 * 60 + 15) return 'tramonto';
+    return 'notte';
+}
+
 export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set() }) {
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
@@ -2399,7 +2442,20 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onEsci: () => esciDallaCasa()
     });
     const sala = creaSala({ onParti: () => parti() });
+    // Una velatura leggera colora tutto il paese con la luce del momento
+    el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
     contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo);
+
+    let momentoScelto = null;
+    function aggiornaMomento() {
+        const momento = momentoScelto ?? momentoDiAdesso();
+        MOMENTI.forEach(m => contenitore.classList.toggle(`momento-${m}`, m === momento));
+    }
+    aggiornaMomento();
+    const orologio = setInterval(() => {
+        if (!contenitore.isConnected) return clearInterval(orologio);
+        aggiornaMomento();
+    }, 5 * 60 * 1000);
     avviaNeve(neve);
     const movimentoRidotto = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -2798,6 +2854,11 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         segnaPiene(nuove) {
             piene = nuove;
             aggiornaStato();
+        },
+        // Per provare i diversi momenti della giornata (null = ora vera)
+        impostaMomento(momento) {
+            momentoScelto = MOMENTI.includes(momento) ? momento : null;
+            aggiornaMomento();
         },
         // Solo per le prove: sposta la vista in un punto del paese
         centraSu

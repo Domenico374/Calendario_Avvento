@@ -122,3 +122,7 @@ document.getElementById('btnRichiudi').addEventListener('click', () => {
     villaggio.impostaOggi(Number(cursore.value));
     avviso('Porte richiuse: puoi riaprirle tutte.');
 });
+
+document.querySelectorAll('[data-momento]').forEach(bottone => {
+    bottone.addEventListener('click', () => villaggio.impostaMomento(bottone.dataset.momento || null));
+});

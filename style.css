@@ -1539,3 +1539,27 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     .scena .slitta-corpo, .scena .zampe-volo, .scena .scia,
     .scena .aperta .luci-festa circle, .scena .lucina-cartello, .scena .scritta-festa { animation: none; }
 }
+
+/* ---- Giorno e notte: il cielo segue l'ora vera ---- */
+.scena .volta { transition: fill 1s; }
+.scena.momento-alba .volta { fill: url(#cielo-alba); }
+.scena.momento-giorno .volta { fill: url(#cielo-giorno); }
+.scena.momento-tramonto .volta { fill: url(#cielo-tramonto); }
+.scena .sole, .scena .nuvole { opacity: 0; transition: opacity 1.5s; }
+.scena .sole { transform: translate(380px, 545px); }
+.scena.momento-alba .sole { opacity: 1; transform: translate(380px, 545px); }
+.scena.momento-giorno .sole { opacity: 1; transform: translate(520px, 395px); }
+.scena.momento-tramonto .sole { opacity: 1; transform: translate(1000px, 548px); }
+.scena.momento-alba .disco-sole { fill: #ffd9a0; }
+.scena.momento-tramonto .disco-sole { fill: #ffb067; }
+.scena.momento-giorno .nuvole { opacity: 0.95; }
+.scena.momento-alba .nuvole, .scena.momento-tramonto .nuvole { opacity: 0.55; }
+.scena .aurore, .scena .luna { transition: opacity 1.5s; }
+.scena:is(.momento-alba, .momento-giorno, .momento-tramonto) .aurore,
+.scena:is(.momento-alba, .momento-giorno, .momento-tramonto) .luna { opacity: 0; }
+.scena.momento-giorno .stella { animation: none; opacity: 0; }
+.scena:is(.momento-alba, .momento-tramonto) .stella { animation: none; opacity: 0.3; }
+.scena .tinta { fill: transparent; transition: fill 1.5s, opacity 1.5s; }
+.scena.momento-alba .tinta { fill: #ff9f86; opacity: 0.1; }
+.scena.momento-tramonto .tinta { fill: #ff7a3c; opacity: 0.13; }
+.scena.momento-giorno .tinta { fill: #fff6dc; opacity: 0.08; }
