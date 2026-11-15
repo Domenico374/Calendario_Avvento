@@ -1062,7 +1062,9 @@ function creaInterno({ onScarta, onEsci }) {
 // ========== ESPLORAZIONE ==========
 
 // Disegna il villaggio nel contenitore e avvisa quando si apre una casa
-export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa }) {
+// Con modifica: true è il villaggio di chi prepara il calendario: tutte le case si aprono
+// e quelle con la sorpresa già pronta hanno le finestre accese
+export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set() }) {
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -1083,7 +1085,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const neve = document.createElement('canvas');
     const indietro = Object.assign(document.createElement('button'), { type: 'button', className: 'freccia freccia-sinistra', textContent: '‹', ariaLabel: 'Vai a sinistra' });
     const avanti = Object.assign(document.createElement('button'), { type: 'button', className: 'freccia freccia-destra', textContent: '›', ariaLabel: 'Vai a destra' });
-    const suggerimento = Object.assign(document.createElement('p'), { className: 'suggerimento', textContent: '↔ Trascina per esplorare il villaggio' });
+    const suggerimento = Object.assign(document.createElement('p'), { className: 'suggerimento', textContent: modifica ? '↔ Trascina il villaggio e clicca una casa per preparare la sorpresa' : '↔ Trascina per esplorare il villaggio' });
     const interno = creaInterno({
         onScarta: giorno => {
             viste.add(giorno);
@@ -1203,6 +1205,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     function aggiornaStato() {
         mondo.querySelectorAll('.casa').forEach(casa => {
             const giorno = Number(casa.dataset.giorno);
+            if (modifica) {
+                casa.classList.toggle('aperta', piene.has(giorno));
+                return;
+            }
             casa.classList.toggle('chiusa', giorno > aperti);
             casa.classList.toggle('aperta', viste.has(giorno) && giorno <= aperti);
             casa.classList.toggle('oggi', giorno === aperti && !viste.has(giorno));
@@ -1236,6 +1242,14 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
     function apriCasa(casa) {
         const giorno = Number(casa.dataset.giorno);
+        // Chi prepara il calendario apre la porta e passa subito alla sorpresa da preparare
+        if (modifica) {
+            seguiTreno = false;
+            onTocco();
+            casa.classList.add('si-apre');
+            setTimeout(() => onApri(giorno), 600);
+            return;
+        }
         if (giorno > aperti) return onChiusa(giorno);
         if (inApertura) return;
 
@@ -1318,12 +1332,12 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const pausa = ms => new Promise(fatto => setTimeout(fatto, ms));
 
     // Si parte dalla casa di oggi, oppure dalla piazza
-    const casaDiOggi = mondo.querySelector(`.casa[data-giorno="${aperti}"]`);
+    const casaDiOggi = modifica ? null : mondo.querySelector(`.casa[data-giorno="${aperti}"]`);
     const partenzaVista = casaDiOggi ? Number(casaDiOggi.dataset.x) : PIAZZA.x;
 
     // All'arrivo il treno attraversa il paese e la vista lo accompagna fino alla stazione
-    async function viaggiDelTreno() {
-        seguiTreno = true;
+    async function viaggiDelTreno(segui) {
+        seguiTreno = segui;
         await corsa(-350, STAZIONE.fermata, 11000, true);
         if (seguiTreno) {
             seguiTreno = false;
@@ -1340,13 +1354,22 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
     if (movimentoRidotto) {
         centraSu(partenzaVista, false);
+    } else if (modifica) {
+        // Chi prepara il calendario parte dalla piazza, senza il giro del treno
+        centraSu(partenzaVista, false);
+        viaggiDelTreno(false);
     } else {
         spostaA(0, false);
-        viaggiDelTreno();
+        viaggiDelTreno(true);
     }
 
     return {
         chiudiPorte: esciDallaCasa,
+        // Dopo un salvataggio si riaccendono le case con la sorpresa pronta
+        segnaPiene(nuove) {
+            piene = nuove;
+            aggiornaStato();
+        },
         // Solo per le prove: sposta la vista in un punto del paese
         centraSu
     };

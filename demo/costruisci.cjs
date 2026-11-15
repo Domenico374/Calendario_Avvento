@@ -5,29 +5,32 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+// Dopo un'operazione di Git gli "a capo" possono diventare CRLF: si leggono sempre come LF
+const leggi = file => fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+
 const scratch = __dirname;
 const progetto = path.join(__dirname, '..');
 const desktop = path.join(os.homedir(), 'OneDrive', 'Desktop');
 
-let js = fs.readFileSync(path.join(progetto, 'villaggio.js'), 'utf8');
-const firma = 'export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa }) {';
+let js = leggi(path.join(progetto, 'villaggio.js'));
+const firma = 'export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set() }) {';
 const fine = '        // Solo per le prove: sposta la vista in un punto del paese\n        centraSu\n';
 if (!js.includes(firma) || !js.includes(fine)) throw new Error('villaggio.js è cambiato: aggiorna lo script');
-js = js.replace(firma, 'function creaVillaggio(contenitore, opzioni) {\n    let { aperti } = opzioni;\n    const { viste, onTocco, onApri, onChiusa } = opzioni;');
+js = js.replace(firma, 'function creaVillaggio(contenitore, opzioni) {\n    let { aperti } = opzioni;\n    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set() } = opzioni;');
 js = js.replace(fine, '        centraSu,\n        // Nella demo il giorno si cambia con il cursore\n        impostaOggi(giorno) {\n            aperti = giorno;\n            aggiornaStato();\n            const casa = mondo.querySelector(`.casa[data-giorno="${giorno}"]`);\n            centraSu(casa ? Number(casa.dataset.x) : PIAZZA.x);\n        }\n');
 
-let css = fs.readFileSync(path.join(progetto, 'style.css'), 'utf8');
+let css = leggi(path.join(progetto, 'style.css'));
 css = css.slice(css.indexOf('/* Villaggio: la vista'));
 const misure = /width: 96vw;\n    max-width: 1800px;\n    height: max\(460px, calc\(100vh - 310px\)\);\n    margin: 20px auto 30px;/;
 if (!misure.test(css)) throw new Error('style.css è cambiato: aggiorna lo script');
 css = css.replace(misure, 'width: 100%;\n    max-width: 1600px;\n    height: clamp(360px, 64vh, 760px);');
 css += '\n@media (max-width: 600px) {\n    .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }\n    .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }\n}\n';
 
-const testa = fs.readFileSync(path.join(scratch, 'testa.html'), 'utf8').replace('</style>', css + '\n</style>');
-const corpo = fs.readFileSync(path.join(scratch, 'corpo.html'), 'utf8');
+const testa = leggi(path.join(scratch, 'testa.html')).replace('</style>', css + '\n</style>');
+const corpo = leggi(path.join(scratch, 'corpo.html'));
 // La foto di esempio viaggia dentro la pagina, così funziona anche senza altri file
 const foto = 'data:image/jpeg;base64,' + fs.readFileSync(path.join(progetto, 'albero_natale.jpeg')).toString('base64');
-const collega = fs.readFileSync(path.join(scratch, 'collega.js'), 'utf8').replace('__FOTO_ESEMPIO__', foto);
+const collega = leggi(path.join(scratch, 'collega.js')).replace('__FOTO_ESEMPIO__', foto);
 const script = '\n<script>\n' + js + collega + '</script>\n';
 // Controlla solo la sintassi: new Function non esegue il codice
 new Function(js + collega);

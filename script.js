@@ -210,10 +210,27 @@ function apriGiorno(giorno, { suono = true } = {}) {
 
 // Sul telefono il villaggio sarebbe troppo piccolo: lì resta la griglia
 function usaVillaggio() {
-    return !calendario.modifica && matchMedia('(min-width: 900px)').matches;
+    return matchMedia('(min-width: 900px)').matches;
 }
 
+const giorniPieni = () => new Set(Object.keys(calendario.giorni).map(Number));
+
 function disegnaVillaggio() {
+    if (calendario.modifica) {
+        // Chi prepara il calendario clicca una casa e prepara la sua sorpresa
+        $('villaggio').hidden = false;
+        villaggio = creaVillaggio($('villaggio'), {
+            aperti: CONFIG.giorni,
+            viste: new Set(),
+            modifica: true,
+            piene: giorniPieni(),
+            onTocco: suonoAperturaCasella,
+            onApri: apriEditor,
+            onChiusa: () => {}
+        });
+        aggiornaRiempimento();
+        return;
+    }
     // Le case già aperte restano illuminate anche tornando sul sito
     const chiaveViste = `viste_${ID}`;
     const viste = new Set(leggiMemoria(chiaveViste, []));
@@ -258,9 +275,23 @@ function disegnaGriglia() {
         griglia.append(pulsante);
     }
 
-    if (modifica) {
-        const pieni = Object.keys(calendario.giorni).length;
-        $('stato-riempimento').textContent = `Caselle riempite: ${pieni} su ${CONFIG.giorni}. Chi riceve il link vede ogni casella solo dal suo giorno.`;
+    if (modifica) aggiornaRiempimento();
+}
+
+function aggiornaRiempimento() {
+    const pieni = Object.keys(calendario.giorni).length;
+    $('stato-riempimento').textContent = villaggio
+        ? `Sorprese pronte: ${pieni} su ${CONFIG.giorni}. Le case con le finestre accese sono già pronte. Chi riceve il link apre ogni casa solo dal suo giorno.`
+        : `Caselle riempite: ${pieni} su ${CONFIG.giorni}. Chi riceve il link vede ogni casella solo dal suo giorno.`;
+}
+
+// Dopo un salvataggio si aggiorna il villaggio o la griglia
+function aggiornaVista() {
+    if (villaggio) {
+        villaggio.segnaPiene(giorniPieni());
+        aggiornaRiempimento();
+    } else {
+        disegnaGriglia();
     }
 }
 
@@ -498,7 +529,7 @@ async function salvaCalendario(modifiche = {}) {
     });
     calendario = { ...dati, modifica: true };
     $('titolo').textContent = calendario.titolo;
-    disegnaGriglia();
+    aggiornaVista();
 }
 
 async function salvaGiorno() {
