@@ -773,6 +773,41 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     margin-top: 10px;
 }
 
+/* Albero del salotto: lucine che scintillano e stella che pulsa */
+.scena .lucina-albero {
+    animation: lucina-albero 1.3s ease-in-out infinite alternate;
+}
+
+@keyframes lucina-albero {
+    from { opacity: 0.35; }
+    to { opacity: 1; }
+}
+
+.scena .stella-albero > path {
+    transform-box: view-box;
+}
+
+.scena .stella-albero {
+    animation: stella-albero 3s ease-in-out infinite;
+}
+
+@keyframes stella-albero {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+}
+
+.scena .vapore-tazza {
+    animation: luce-calda 1.6s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scena .lucina-albero,
+    .scena .stella-albero,
+    .scena .vapore-tazza {
+        animation: none;
+    }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -1487,9 +1522,14 @@ function disegnaPaese(mondo) {
         .forEach(([x, y]) => elementi.push({ x, y, tipo: 'abete' }));
     elementi.push({ x: STAZIONE.x, y: STAZIONE.y, tipo: 'stazione' }, { x: 0, y: BINARI_Y, tipo: 'treno' });
 
-    // Le renne: tre passeggiano, una bruca. Quella col naso rosso sta vicino alla piazza
+    // Le renne: una piccola mandria vicino al laghetto con un cucciolo, altre in giro per il paese.
+    // Quella col naso rosso sta vicino alla piazza
     [
         { x: 960, y: 662, percorso: 260, durata: 30, ritardo: 4 },
+        { x: 560, y: 668, percorso: 120, durata: 24, ritardo: 6, collare: '#8e5ea2' },
+        { x: 735, y: 674, percorso: 0, piccola: true, collare: '#f4d03f' },
+        { x: 2250, y: 650, percorso: 60, durata: 18, ritardo: 9 },
+        { x: 3000, y: 842, percorso: 0, collare: '#c9a227' },
         { x: 1590, y: 806, percorso: 180, durata: 22, ritardo: 11, naso: '#e74c3c', collare: '#2e7d5b' },
         { x: 2205, y: 845, percorso: 0 },
         { x: 3180, y: 720, percorso: 220, durata: 28, ritardo: 17, collare: '#3a5ba0' }
@@ -1506,7 +1546,7 @@ function disegnaPaese(mondo) {
         else if (tipo === 'pupazzo') disegnaPupazzo(mondo, x, y, scala);
         else if (tipo === 'stazione') disegnaStazione(mondo, x, y, 0.62);
         else if (tipo === 'treno') disegnaTrenino(mondo);
-        else if (tipo === 'renna') disegnaRenna(mondo, x, y, scala * 0.82, elemento);
+        else if (tipo === 'renna') disegnaRenna(mondo, x, y, scala * (elemento.piccola ? 0.55 : 0.82), elemento);
         else disegnaAbete(mondo, x, y, scala * 1.4, '#24533f');
     }
 }
@@ -1536,6 +1576,215 @@ function avviaNeve(canvas) {
         requestAnimationFrame(disegna);
     }
     requestAnimationFrame(disegna);
+}
+
+// ========== IL DOLCE DEL GIORNO ==========
+// Sul tavolino del salotto c'è un dolce di Natale diverso per ogni giorno, con il suo nome
+
+const DOLCI = [
+    { nome: 'Biscotti a stella', tipo: 'stelle' },
+    { nome: 'Omini di pan di zenzero', tipo: 'omini' },
+    { nome: 'Bastoncini di zucchero', tipo: 'bastoncini' },
+    { nome: 'Mandarini e noci', tipo: 'mandarini' },
+    { nome: 'Cioccolata calda', tipo: 'tazza' },
+    { nome: 'Torrone', tipo: 'torrone' },
+    { nome: 'Ricciarelli', tipo: 'ovali', colore: '#f3e6cf' },
+    { nome: 'Struffoli', tipo: 'struffoli' },
+    { nome: 'Cavallucci', tipo: 'tondi', colore: '#d9b98c' },
+    { nome: 'Roccocò', tipo: 'anelli' },
+    { nome: 'Mostaccioli', tipo: 'rombi' },
+    { nome: 'Castagne', tipo: 'castagne' },
+    { nome: 'Croccante', tipo: 'croccante' },
+    { nome: 'Panforte', tipo: 'fetta', colore: '#6b3e1f' },
+    { nome: 'Cartellate', tipo: 'rosette' },
+    { nome: 'Susamielli', tipo: 'esse' },
+    { nome: 'Frutta martorana', tipo: 'frutta' },
+    { nome: 'Pignolata', tipo: 'pignolata' },
+    { nome: 'Zelten', tipo: 'pagnotta', colore: '#5a3420' },
+    { nome: 'Pandolce genovese', tipo: 'pagnotta', colore: '#c98a3c' },
+    { nome: 'Panpepato', tipo: 'fetta', colore: '#3e2412' },
+    { nome: 'Tronchetto di Natale', tipo: 'tronchetto' },
+    { nome: 'Pandoro', tipo: 'pandoro' },
+    { nome: 'Panettone', tipo: 'panettone' }
+];
+
+// Disegna il dolce con la base al punto (0, 0), sull'alzatina
+function disegnaDolce(g, { tipo, colore }) {
+    const zucchero = '#fbfdff';
+    const cerchio = (cx, cy, r, fill, extra = {}) => el('circle', { cx, cy, r, fill, ...extra }, g);
+    switch (tipo) {
+        case 'stelle':
+            [[-22, -10], [0, -22], [22, -10]].forEach(([x, y]) => {
+                el('path', { d: `M${x} ${y - 14} l4 9 10 1 -8 6 3 10 -9 -5 -9 5 3 -10 -8 -6 10 -1 Z`, fill: '#d9a25b', stroke: '#fbfdff', 'stroke-width': 1.5 }, g);
+            });
+            break;
+        case 'omini':
+            [-16, 16].forEach(x => {
+                el('path', { d: `M${x} -40 a7 7 0 1 1 0.1 0 Z M${x - 8} -32 h16 l8 6 -3 4 -5 -3 v8 l6 14 -5 3 -5 -12 -5 12 -5 -3 6 -14 v-8 l-5 3 -3 -4 Z`, fill: '#b5652f' }, g);
+                el('path', { d: `M${x - 3} -42 h1 M${x + 2} -42 h1 M${x - 3} -37 q3 2 6 0`, stroke: zucchero, 'stroke-width': 1.4, fill: 'none' }, g);
+                cerchio(x, -27, 1.6, '#e74c3c');
+                cerchio(x, -21, 1.6, '#2e7d5b');
+            });
+            break;
+        case 'bastoncini':
+            [[-8, -12], [10, 12]].forEach(([x, giro]) => {
+                const b = el('g', { transform: `translate(${x} 0) rotate(${giro})` }, g);
+                el('path', { d: 'M0 0 V-38 a9 9 0 0 1 18 0', fill: 'none', stroke: '#fbfdff', 'stroke-width': 7, 'stroke-linecap': 'round' }, b);
+                el('path', { d: 'M0 0 V-38 a9 9 0 0 1 18 0', fill: 'none', stroke: '#d63031', 'stroke-width': 7, 'stroke-dasharray': '5 6', 'stroke-linecap': 'butt' }, b);
+            });
+            break;
+        case 'mandarini':
+            [[-16, -12], [14, -12], [0, -28]].forEach(([x, y]) => {
+                cerchio(x, y, 13, '#f39c12');
+                el('path', { d: `M${x} ${y - 13} q 6 -6 12 -3 q -6 5 -12 3`, fill: '#2e7d5b' }, g);
+            });
+            [[-30, -6], [30, -6]].forEach(([x, y]) => el('ellipse', { cx: x, cy: y, rx: 8, ry: 7, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 1.5 }, g));
+            break;
+        case 'tazza':
+            el('path', { d: 'M-20 -44 h40 l-4 40 h-32 Z', fill: '#c0392b' }, g);
+            el('path', { d: 'M20 -36 q 14 0 12 14 q -2 10 -14 8', fill: 'none', stroke: '#c0392b', 'stroke-width': 5 }, g);
+            el('ellipse', { cx: 0, cy: -44, rx: 20, ry: 5, fill: '#5d3a22' }, g);
+            [[-8, -47], [4, -48], [10, -45]].forEach(([x, y]) => el('rect', { x: x - 4, y: y - 4, width: 8, height: 7, rx: 2, fill: '#fbfdff' }, g));
+            el('path', { class: 'vapore-tazza', d: 'M-6 -54 q -6 -8 0 -16 q 6 -8 0 -16 M6 -56 q -6 -8 0 -16', fill: 'none', stroke: '#fbfdff', 'stroke-width': 2.5, opacity: 0.7, 'stroke-linecap': 'round' }, g);
+            break;
+        case 'torrone':
+            [0, -14, -28].forEach((y, i) => {
+                el('rect', { x: -32 + i * 4, y: y - 13, width: 60, height: 13, rx: 2, fill: '#fbf6e8', stroke: '#e3cfa2', 'stroke-width': 1.5 }, g);
+                [-20, -6, 8, 20].forEach(x => el('ellipse', { cx: x + i * 4, cy: y - 6.5, rx: 3.5, ry: 2.2, fill: '#c98a3c' }, g));
+            });
+            break;
+        case 'ovali':
+            [[-18, -8], [16, -8], [0, -22]].forEach(([x, y]) => {
+                el('ellipse', { cx: x, cy: y, rx: 16, ry: 9, fill: colore, stroke: '#e3cfa2', 'stroke-width': 1 }, g);
+                el('path', { d: `M${x - 8} ${y - 2} l4 3 M${x} ${y - 4} l3 4 M${x + 6} ${y - 1} l3 2`, stroke: '#d8c3a0', 'stroke-width': 1.2 }, g);
+            });
+            break;
+        case 'struffoli':
+            for (let i = 0; i < 34; i++) {
+                const riga = Math.floor(Math.sqrt(i * 2));
+                const larghezza = 34 - riga * 6;
+                cerchio(((i * 7.3) % larghezza) - larghezza / 2 + 2, -6 - riga * 7, 5.2, '#e2a23b', { stroke: '#b8761c', 'stroke-width': 0.8 });
+            }
+            ['#e74c3c', '#2e7d5b', '#f4d03f', '#5dade2'].forEach((c, i) => [0, 1, 2].forEach(j => cerchio(-14 + i * 9 + j * 3, -12 - j * 9 - i * 2, 1.4, c)));
+            break;
+        case 'tondi':
+            [[-18, -8], [16, -8], [0, -22]].forEach(([x, y]) => {
+                el('ellipse', { cx: x, cy: y, rx: 15, ry: 10, fill: colore, stroke: '#b5965e', 'stroke-width': 1.2 }, g);
+                el('path', { d: `M${x - 7} ${y} q 7 -5 14 0`, stroke: '#b5965e', 'stroke-width': 1.2, fill: 'none' }, g);
+            });
+            break;
+        case 'anelli':
+            [[-16, -8], [16, -8], [0, -24]].forEach(([x, y]) => {
+                el('ellipse', { cx: x, cy: y, rx: 15, ry: 10, fill: 'none', stroke: '#8a4b2a', 'stroke-width': 8 }, g);
+                el('circle', { cx: x - 4, cy: y - 7, r: 1.8, fill: '#e3cfa2' }, g);
+            });
+            break;
+        case 'rombi':
+            [[-18, -8], [16, -8], [0, -24]].forEach(([x, y]) => {
+                el('path', { d: `M${x} ${y - 12} l14 12 -14 12 -14 -12 Z`, fill: '#3e2412', stroke: '#6b3e1f', 'stroke-width': 1.5 }, g);
+                el('path', { d: `M${x - 6} ${y - 4} l6 -4`, stroke: '#8a5a3c', 'stroke-width': 1.5 }, g);
+            });
+            break;
+        case 'castagne':
+            [[-16, -8], [14, -8], [-2, -22], [26, -20]].forEach(([x, y]) => {
+                el('path', { d: `M${x - 11} ${y + 6} q 0 -16 11 -18 q 11 2 11 18 Z`, fill: '#6b3e1f', stroke: '#3e2412', 'stroke-width': 1.2 }, g);
+                el('path', { d: `M${x - 9} ${y + 3} h18`, stroke: '#d8b48a', 'stroke-width': 2 }, g);
+            });
+            break;
+        case 'croccante':
+            [[-30, -4, 18], [-6, -8, -10], [18, -4, 14], [-14, -22, 6], [8, -24, -16]].forEach(([x, y, giro]) => {
+                el('path', { d: 'M0 0 l20 -4 4 12 -22 6 Z', fill: '#c98a3c', stroke: '#8a5a1c', 'stroke-width': 1.2, transform: `translate(${x} ${y}) rotate(${giro})` }, g);
+            });
+            break;
+        case 'fetta':
+            el('path', { d: 'M-34 -4 q 34 10 68 0 v-16 q -34 10 -68 0 Z', fill: colore }, g);
+            el('ellipse', { cx: 0, cy: -20, rx: 34, ry: 8, fill: '#fbfdff' }, g);
+            [-20, -6, 10, 22].forEach(x => el('ellipse', { cx: x, cy: -9, rx: 3, ry: 2, fill: '#e3cfa2' }, g));
+            break;
+        case 'rosette':
+            [[-16, -10], [16, -10], [0, -26]].forEach(([x, y]) => {
+                el('path', { d: `M${x} ${y} m-12 0 a12 12 0 1 0 24 0 a9 9 0 1 0 -18 0 a6 6 0 1 0 12 0`, fill: 'none', stroke: '#c98a3c', 'stroke-width': 5 }, g);
+                el('circle', { cx: x, cy: y, r: 13, fill: 'rgba(160,82,30,0.35)' }, g);
+            });
+            break;
+        case 'esse':
+            [[-14, -12], [14, -12], [0, -28]].forEach(([x, y]) => {
+                el('path', { d: `M${x + 9} ${y - 8} q -9 -8 -14 0 q -2 8 9 8 q 9 1 5 9 q -5 7 -14 0`, fill: 'none', stroke: '#c98a3c', 'stroke-width': 7, 'stroke-linecap': 'round' }, g);
+            });
+            break;
+        case 'frutta':
+            cerchio(-18, -10, 11, '#f39c12');
+            el('ellipse', { cx: 6, cy: -9, rx: 13, ry: 9, fill: '#c0392b' }, g);
+            el('path', { d: 'M22 -2 q 10 -20 -2 -26 q -10 8 2 26 Z', fill: '#f4d03f' }, g);
+            [[-4, -26], [4, -28], [-2, -32]].forEach(([x, y]) => cerchio(x, y, 5, '#8e5ea2'));
+            el('path', { d: 'M-18 -21 l3 -5 M6 -18 l2 -5', stroke: '#2e7d5b', 'stroke-width': 2 }, g);
+            break;
+        case 'pignolata':
+            for (let i = 0; i < 28; i++) {
+                const riga = Math.floor(Math.sqrt(i * 2));
+                const larghezza = 40 - riga * 7;
+                cerchio(((i * 6.1) % larghezza) - larghezza / 2 + 3, -6 - riga * 7, 5, i % 2 ? '#3e2412' : '#fbf6e8', { stroke: '#8a6d4c', 'stroke-width': 0.6 });
+            }
+            break;
+        case 'pagnotta':
+            el('path', { d: 'M-34 0 q 0 -34 34 -36 q 34 2 34 36 Z', fill: colore }, g);
+            [[-14, -18], [4, -24], [16, -12], [-4, -10], [22, -22]].forEach(([x, y]) => el('ellipse', { cx: x, cy: y, rx: 3, ry: 2, fill: tipo === 'pagnotta' && colore === '#5a3420' ? '#c98a3c' : '#5a3420' }, g));
+            el('path', { d: 'M-20 -28 q 20 -10 40 0', stroke: '#fbfdff', 'stroke-width': 2.5, fill: 'none', opacity: 0.6 }, g);
+            break;
+        case 'tronchetto':
+            el('rect', { x: -38, y: -28, width: 76, height: 26, rx: 13, fill: '#5d3a22' }, g);
+            el('ellipse', { cx: 38, cy: -15, rx: 9, ry: 13, fill: '#e8d2a8', stroke: '#5d3a22', 'stroke-width': 3 }, g);
+            el('path', { d: 'M38 -15 m-5 0 a5 5 0 1 0 10 0', fill: 'none', stroke: '#8a5a3c', 'stroke-width': 1.5 }, g);
+            el('path', { d: 'M-34 -22 q 20 4 40 -2 M-30 -12 q 24 4 52 -2', stroke: '#3e2412', 'stroke-width': 2, fill: 'none' }, g);
+            el('path', { d: 'M-30 -28 q 10 -6 20 0 q 10 -6 20 0 q 10 -6 20 0', fill: zucchero }, g);
+            el('path', { d: 'M-6 -34 l6 -8 6 8 Z', fill: '#2e7d5b' }, g);
+            cerchio(4, -34, 3, '#d63031');
+            break;
+        case 'pandoro':
+            el('path', { d: 'M-30 0 L-22 -16 L-30 -16 L-16 -34 L-22 -34 L-8 -54 L-12 -54 L0 -70 L12 -54 L8 -54 L22 -34 L16 -34 L30 -16 L22 -16 L30 0 Z', fill: '#f2c14e', stroke: '#d9a032', 'stroke-width': 1.5 }, g);
+            el('path', { d: 'M-12 -54 L0 -70 L12 -54 Z M-22 -34 L-16 -34 L-8 -44 L8 -44 L16 -34 L22 -34 L12 -46 L0 -50 L-12 -46 Z', fill: zucchero, opacity: 0.9 }, g);
+            break;
+        case 'panettone':
+            el('rect', { x: -28, y: -34, width: 56, height: 34, fill: '#c9a227' }, g);
+            el('path', { d: 'M-28 -34 v34 M-14 -34 v34 M0 -34 v34 M14 -34 v34 M28 -34 v34', stroke: '#8a6d1d', 'stroke-width': 1.5 }, g);
+            el('path', { d: 'M-32 -32 q 0 -34 32 -36 q 32 2 32 36 Z', fill: '#a8642a' }, g);
+            el('path', { d: 'M-24 -46 q 24 -14 48 0', stroke: '#c98a3c', 'stroke-width': 4, fill: 'none' }, g);
+            [[-14, -40], [6, -52], [16, -40], [-4, -46]].forEach(([x, y]) => el('ellipse', { cx: x, cy: y, rx: 2.5, ry: 2, fill: '#4a2c1c' }, g));
+            el('path', { d: 'M-12 -60 l2 -3 M2 -64 l2 -3 M14 -58 l2 -3', stroke: zucchero, 'stroke-width': 2.5, 'stroke-linecap': 'round' }, g);
+            break;
+    }
+}
+
+// Il tavolino tondo accanto alla poltrona, con l'alzatina e il cartellino del dolce
+function creaTavolino(genitore) {
+    const tavolino = el('g', { transform: 'translate(1150 872) scale(1.35)' }, genitore);
+    el('ellipse', { cx: 0, cy: 4, rx: 90, ry: 12, fill: 'rgba(0,0,0,0.3)' }, tavolino);
+    el('path', { d: 'M-6 -86 h12 l4 74 h-20 Z', fill: '#5d3a22' }, tavolino);
+    el('path', { d: 'M-40 0 q 40 -22 80 0', fill: 'none', stroke: '#4a2c1c', 'stroke-width': 9, 'stroke-linecap': 'round' }, tavolino);
+    el('ellipse', { cx: 0, cy: -90, rx: 92, ry: 20, fill: '#6d4630' }, tavolino);
+    el('ellipse', { cx: 0, cy: -95, rx: 92, ry: 20, fill: '#8a5a3c' }, tavolino);
+    el('ellipse', { cx: 0, cy: -96, rx: 78, ry: 15, fill: '#f7f1e3' }, tavolino);
+    el('path', { d: 'M-78 -96 q 78 26 156 0', fill: 'none', stroke: '#c0392b', 'stroke-width': 3, 'stroke-dasharray': '6 5' }, tavolino);
+    // Alzatina
+    el('path', { d: 'M-4 -100 h8 l4 -16 h-16 Z', fill: '#dfe6f5' }, tavolino);
+    el('ellipse', { cx: 0, cy: -101, rx: 14, ry: 4, fill: '#cfd8ec' }, tavolino);
+    el('ellipse', { cx: 0, cy: -118, rx: 52, ry: 10, fill: '#eef3ff', stroke: '#cfd8ec', 'stroke-width': 2 }, tavolino);
+    const dolce = el('g', { transform: 'translate(0 -120)' }, tavolino);
+    // Cartellino col nome, appoggiato davanti
+    const cartellino = el('g', { transform: 'translate(0 -66)' }, tavolino);
+    const fondo = el('rect', { y: -15, height: 26, rx: 6, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 2 }, cartellino);
+    const nome = el('text', { x: 0, y: 4, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#9b1d2a' }, cartellino);
+    return {
+        mostra(giorno) {
+            const scelto = DOLCI[(giorno - 1) % DOLCI.length];
+            dolce.replaceChildren();
+            disegnaDolce(dolce, scelto);
+            nome.textContent = scelto.nome;
+            const larghezza = scelto.nome.length * 8.4 + 22;
+            fondo.setAttribute('x', -larghezza / 2);
+            fondo.setAttribute('width', larghezza);
+        }
+    };
 }
 
 // ========== DENTRO LA CASA ==========
@@ -1738,6 +1987,8 @@ function creaInterno({ onScarta, onEsci }) {
     el('path', { d: 'M-37 -9 l 2 2 l 2 -2 Z', fill: '#e58a8a' }, respiro);
     el('path', { d: 'M-26 2 q 30 6 60 0', stroke: '#c9772d', 'stroke-width': 10, fill: 'none', 'stroke-linecap': 'round' }, respiro);
 
+    const tavolino = creaTavolino(svg);
+
     // Poltrona di velluto con la coperta a quadri
     const poltrona = el('g', { transform: 'translate(1430 840)' }, svg);
     el('ellipse', { cx: 0, cy: 6, rx: 150, ry: 18, fill: 'rgba(0,0,0,0.3)' }, poltrona);
@@ -1757,8 +2008,10 @@ function creaInterno({ onScarta, onEsci }) {
     el('path', { d: 'M-130 -24 v8 M-118 -22 v8 M-106 -22 v8 M-94 -24 v8 M-82 -26 v8', stroke: '#e8d9b8', 'stroke-width': 2 }, poltrona);
 
     // Albero di Natale nell'angolo con le lucine e i pacchetti
-    const albero = el('g', { transform: 'translate(340 770)' }, svg);
+    const albero = el('g', { transform: 'translate(300 800) scale(1.3)' }, svg);
     el('ellipse', { cx: 0, cy: 4, rx: 150, ry: 18, fill: 'rgba(0,0,0,0.3)' }, albero);
+    el('ellipse', { class: 'luce-calda', cx: 0, cy: -190, rx: 230, ry: 270, fill: 'url(#alone)', opacity: 0.55 }, albero);
+    el('ellipse', { class: 'luce-calda', cx: 0, cy: 6, rx: 210, ry: 34, fill: 'url(#alone)', opacity: 0.6 }, albero);
     el('rect', { x: -14, y: -40, width: 28, height: 40, fill: '#5d4037' }, albero);
     el('path', { d: 'M-46 0 l 6 -34 h80 l 6 34 Z', fill: '#a5402d' }, albero);
     el('rect', { x: -48, y: -40, width: 96, height: 8, rx: 3, fill: '#c9a227' }, albero);
@@ -1777,12 +2030,53 @@ function creaInterno({ onScarta, onEsci }) {
     ramo(-180, 170, 110, '#22704f');
     ramo(-246, 120, 100, '#257a56');
     ramo(-306, 76, 80, '#288260');
-    el('path', { d: 'M-110 -70 q 110 40 220 -14 M-88 -150 q 90 30 176 -12 M-62 -222 q 64 24 124 -10 M-40 -284 q 40 14 80 -6', stroke: '#e2b93b', 'stroke-width': 3, fill: 'none', opacity: 0.9 }, albero);
+    el('path', { d: 'M-110 -70 q 110 40 220 -14 M-100 -112 q 100 34 196 -10 M-88 -150 q 90 30 176 -12 M-74 -188 q 74 28 150 -8 M-62 -222 q 64 24 124 -10 M-40 -284 q 40 14 80 -6', stroke: '#e2b93b', 'stroke-width': 3.5, fill: 'none', opacity: 0.95 }, albero);
+    el('path', { d: 'M-104 -92 q 104 -30 208 6 M-80 -170 q 80 -24 160 4 M-52 -254 q 52 -16 104 4', stroke: '#d63031', 'stroke-width': 2.5, fill: 'none', 'stroke-dasharray': '1 5', 'stroke-linecap': 'round' }, albero);
     ['#e74c3c', '#f4d03f', '#5dade2', '#af7ac5', '#e74c3c', '#f4d03f', '#5dade2', '#e74c3c', '#f4d03f', '#af7ac5', '#5dade2', '#f4d03f', '#e74c3c', '#5dade2'].forEach((colore, i) => {
         const livello = i / 14;
         el('circle', { class: 'pallina', cx: Math.sin(i * 2.4) * (100 - livello * 80), cy: -50 - livello * 300, r: 6.5, fill: colore, style: `animation-delay:${(i * 0.25).toFixed(2)}s` }, albero);
     });
-    el('circle', { cx: 0, cy: -392, r: 30, fill: 'url(#alone)' }, albero);
+    // Tanti addobbi: palline col riflesso, campanelle, bastoncini di zucchero, stelline e fiocchi
+    const colori = ['#e74c3c', '#f4d03f', '#5dade2', '#af7ac5', '#2ecc71', '#ff8fb1', '#e2b93b', '#c0392b'];
+    for (let i = 0; i < 42; i++) {
+        const livello = (i + 0.5) / 42;
+        const y = -48 - livello * 300;
+        const mezzaLarghezza = 118 * (1 - livello * 0.88);
+        const x = (caso() * 2 - 1) * mezzaLarghezza * 0.82;
+        const colore = colori[i % colori.length];
+        const tipo = ['pallina', 'pallina', 'campanella', 'pallina', 'bastoncino', 'pallina', 'stellina', 'fiocco'][i % 8];
+        const g = el('g', { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` }, albero);
+        if (tipo === 'pallina') {
+            const r = 4.5 + caso() * 3.5;
+            el('path', { d: `M0 ${-r - 3} v3`, stroke: '#c9a227', 'stroke-width': 1.5 }, g);
+            el('circle', { cx: 0, cy: 0, r, fill: colore }, g);
+            el('circle', { cx: -r * 0.35, cy: -r * 0.35, r: r * 0.32, fill: '#fff', opacity: 0.7 }, g);
+        } else if (tipo === 'campanella') {
+            el('path', { d: 'M-6 4 q 0 -12 6 -12 q 6 0 6 12 Z', fill: '#e2b93b', stroke: '#a8801c', 'stroke-width': 1 }, g);
+            el('circle', { cx: 0, cy: 5, r: 2, fill: '#a8801c' }, g);
+        } else if (tipo === 'bastoncino') {
+            el('path', { d: 'M0 8 V-4 a4 4 0 0 1 8 0', fill: 'none', stroke: '#fbfdff', 'stroke-width': 3.5, 'stroke-linecap': 'round' }, g);
+            el('path', { d: 'M0 8 V-4 a4 4 0 0 1 8 0', fill: 'none', stroke: '#d63031', 'stroke-width': 3.5, 'stroke-dasharray': '2.5 3' }, g);
+        } else if (tipo === 'stellina') {
+            el('path', { d: 'M0 -7 l2 5 5 0.5 -4 3 1.5 5 -4.5 -3 -4.5 3 1.5 -5 -4 -3 5 -0.5 Z', fill: '#ffe066', filter: 'url(#bagliore)' }, g);
+        } else {
+            el('path', { d: 'M0 0 l-8 -5 v10 Z M0 0 l8 -5 v10 Z', fill: '#d63031' }, g);
+            el('circle', { cx: 0, cy: 0, r: 2.5, fill: '#a8231a' }, g);
+        }
+    }
+
+    // Fili di lucine lungo i festoni: si accendono a ritmi diversi
+    [[-110, -70, 0, -30, 110, -84], [-100, -112, -2, -78, 96, -122], [-88, -150, 0, -120, 88, -162], [-74, -188, 1, -160, 76, -196],
+        [-62, -222, 0, -198, 62, -232], [-40, -284, 0, -270, 40, -290]].forEach(([x0, y0, x1, y1, x2, y2], filo) => {
+        for (let t = 0.03; t < 1; t += 0.065) {
+            const x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * x1 + t * t * x2;
+            const y = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * y1 + t * t * y2;
+            el('circle', { class: 'lucina-albero', cx: x.toFixed(1), cy: y.toFixed(1), r: 3.4, fill: '#fff3b0', filter: 'url(#bagliore)', style: `animation-delay:${((t * 10 + filo * 3) * 0.17).toFixed(2)}s` }, albero);
+        }
+    });
+    const stella = el('g', { class: 'stella-albero', transform: 'translate(0 -396)' }, albero);
+    for (let i = 0; i < 8; i++) el('path', { d: 'M-3 0 L0 -46 L3 0 Z', fill: '#fff3b0', opacity: 0.55, transform: `rotate(${i * 45})` }, stella);
+    el('circle', { cx: 0, cy: -392, r: 44, fill: 'url(#alone)' }, albero);
     el('path', { d: 'M0 -414 l8 16 18 3 -13 12 3 18 -16 -9 -16 9 3 -18 -13 -12 18 -3 Z', fill: '#ffe066', filter: 'url(#bagliore)' }, albero);
     // Pacchetti sotto l'albero
     [[-110, -2, 60, 44, '#2e7d5b', '#f4d03f'], [70, -2, 70, 52, '#3a5ba0', '#e74c3c'], [-40, 4, 44, 30, '#f3efe6', '#c0392b']].forEach(([px, py, w, h, carta, nastro]) => {
@@ -1855,6 +2149,7 @@ function creaInterno({ onScarta, onEsci }) {
             cartaCoperchio.setAttribute('fill', scurisci(colore, 0.08));
             [nastroBase, nastroCoperchio, ...anelli].forEach(parte => parte.setAttribute('fill', nastro));
             data.textContent = `${giorno} dicembre`;
+            tavolino.mostra(giorno);
             giornoMostrato = giorno;
             scartato = false;
             nodo.classList.remove('scartato');
