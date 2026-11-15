@@ -732,6 +732,261 @@ function avviaNeve(canvas) {
     requestAnimationFrame(disegna);
 }
 
+// ========== IL DIPINTO DEL GIORNO ==========
+// Sopra il camino c'è un quadro diverso per ogni giorno, sempre a tema natalizio.
+// Ogni dipinto si disegna in uno spazio di 192 × 96
+
+const NOTTE = '#16245c';
+
+function cielo(g, colore = NOTTE, stelle = 14) {
+    el('rect', { width: 192, height: 96, fill: colore }, g);
+    for (let i = 0; i < stelle; i++) el('circle', { cx: 6 + ((i * 53) % 180), cy: 6 + ((i * 29) % 44), r: 0.9 + (i % 3) * 0.4, fill: '#fff', opacity: 0.85 }, g);
+}
+
+function neve(g, y = 72, colore = '#eef3ff') {
+    el('path', { d: `M0 ${y} q 48 -10 96 0 q 48 10 96 -2 V96 H0 Z`, fill: colore }, g);
+}
+
+function abete(g, x, y, s, colore = '#1f5e43') {
+    el('path', { d: `M${x} ${y - 30 * s} l${12 * s} ${16 * s} h${-5 * s} l${9 * s} ${12 * s} h${-32 * s} l${9 * s} ${-12 * s} h${-5 * s} Z`, fill: colore }, g);
+    el('rect', { x: x - 2 * s, y: y - 2 * s, width: 4 * s, height: 4 * s, fill: '#4a2c1c' }, g);
+}
+
+function stellaPunte(g, x, y, r, colore = '#ffe066') {
+    let d = '';
+    for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        const rr = i % 2 ? r * 0.45 : r;
+        d += `${i ? 'L' : 'M'}${(x + Math.cos(a) * rr).toFixed(1)} ${(y + Math.sin(a) * rr).toFixed(1)} `;
+    }
+    el('path', { d: d + 'Z', fill: colore }, g);
+}
+
+const QUADRI = [
+    { nome: 'Casetta nella neve', disegna(g) {
+        cielo(g); el('circle', { cx: 160, cy: 18, r: 9, fill: '#fdf6d8' }, g); neve(g, 70);
+        el('rect', { x: 70, y: 52, width: 44, height: 26, fill: '#9b1d2a' }, g);
+        el('path', { d: 'M64 54 L92 34 L120 54 Z', fill: '#eef3ff' }, g);
+        el('rect', { x: 78, y: 60, width: 9, height: 9, fill: '#ffd36b' }, g); el('rect', { x: 97, y: 60, width: 9, height: 9, fill: '#ffd36b' }, g);
+        abete(g, 30, 80, 1); abete(g, 158, 82, 0.9);
+    } },
+    { nome: 'Babbo Natale', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#f3e3c4' }, g);
+        el('path', { d: 'M66 40 Q 96 2 128 40 Z', fill: '#c0392b' }, g);
+        el('path', { d: 'M118 30 q 18 0 22 14', stroke: '#c0392b', 'stroke-width': 8, fill: 'none', 'stroke-linecap': 'round' }, g);
+        el('circle', { cx: 141, cy: 46, r: 6, fill: '#fbfdff' }, g);
+        el('rect', { x: 62, y: 38, width: 70, height: 10, rx: 5, fill: '#fbfdff' }, g);
+        el('circle', { cx: 97, cy: 58, r: 15, fill: '#f6c9a8' }, g);
+        el('path', { d: 'M76 60 q 21 46 42 0 q -4 10 -21 10 q -17 0 -21 -10 Z', fill: '#fbfdff' }, g);
+        el('circle', { cx: 91, cy: 55, r: 2, fill: '#3b2412' }, g); el('circle', { cx: 103, cy: 55, r: 2, fill: '#3b2412' }, g);
+        el('circle', { cx: 97, cy: 61, r: 3, fill: '#e58a8a' }, g);
+        el('path', { d: 'M86 66 q 11 -6 22 0', stroke: '#fbfdff', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, g);
+    } },
+    { nome: 'Renna col naso rosso', disegna(g) {
+        cielo(g, '#22357a'); el('circle', { cx: 30, cy: 22, r: 11, fill: '#fdf6d8' }, g);
+        el('path', { d: 'M78 96 q 2 -30 18 -40 q 16 10 18 40 Z', fill: '#8a5a3c' }, g);
+        el('ellipse', { cx: 96, cy: 52, rx: 16, ry: 18, fill: '#8a5a3c' }, g);
+        el('ellipse', { cx: 96, cy: 64, rx: 9, ry: 7, fill: '#c8a27a' }, g);
+        el('circle', { cx: 96, cy: 64, r: 5, fill: '#e74c3c', filter: 'url(#bagliore)' }, g);
+        el('circle', { cx: 89, cy: 48, r: 2, fill: '#1a1a1a' }, g); el('circle', { cx: 103, cy: 48, r: 2, fill: '#1a1a1a' }, g);
+        el('path', { d: 'M86 38 q -14 -14 -12 -30 M80 26 l -10 -4 M78 16 l -8 -8 M106 38 q 14 -14 12 -30 M112 26 l 10 -4 M114 16 l 8 -8', stroke: '#d8c3a0', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' }, g);
+    } },
+    { nome: 'Pupazzo di neve', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#9fb4dc' }, g); neve(g, 74);
+        el('circle', { cx: 96, cy: 72, r: 18, fill: '#fbfdff' }, g); el('circle', { cx: 96, cy: 46, r: 13, fill: '#fbfdff' }, g);
+        el('rect', { x: 86, y: 26, width: 20, height: 8, fill: '#222' }, g); el('rect', { x: 82, y: 33, width: 28, height: 4, fill: '#222' }, g);
+        el('path', { d: 'M96 47 l 10 2 -10 2 Z', fill: '#f39c12' }, g);
+        el('circle', { cx: 92, cy: 43, r: 1.5, fill: '#222' }, g); el('circle', { cx: 100, cy: 43, r: 1.5, fill: '#222' }, g);
+        el('path', { d: 'M84 57 q 12 5 24 0 l 4 14 -6 1 -4 -10', fill: '#c0392b' }, g);
+        for (let i = 0; i < 16; i++) el('circle', { cx: 8 + ((i * 41) % 178), cy: 6 + ((i * 23) % 60), r: 1.6, fill: '#fff' }, g);
+    } },
+    { nome: 'Albero di Natale', disegna(g) {
+        cielo(g); neve(g, 80);
+        el('path', { d: 'M96 12 L130 80 H62 Z', fill: '#1f6b4a' }, g);
+        el('path', { d: 'M74 58 q 22 8 44 -4 M80 42 q 16 6 32 -3 M86 28 q 10 4 20 -2', stroke: '#e2b93b', 'stroke-width': 2, fill: 'none' }, g);
+        [[86, 66, '#e74c3c'], [108, 70, '#5dade2'], [96, 50, '#f4d03f'], [104, 38, '#e74c3c'], [88, 36, '#af7ac5'], [118, 62, '#f4d03f']].forEach(([x, y, c]) => el('circle', { cx: x, cy: y, r: 3, fill: c }, g));
+        stellaPunte(g, 96, 12, 8);
+    } },
+    { nome: 'Stella cometa', disegna(g) {
+        cielo(g, '#0f1a45', 20);
+        el('path', { d: 'M150 22 L20 60 L150 28 Z', fill: '#ffe9a8', opacity: 0.55 }, g);
+        stellaPunte(g, 152, 24, 10);
+        el('path', { d: 'M0 80 q 50 -16 100 -4 q 50 10 92 -6 V96 H0 Z', fill: '#1d2b4a' }, g);
+        el('path', { d: 'M70 80 l 14 -12 14 12 Z', fill: '#2b2015' }, g);
+    } },
+    { nome: 'Angioletto', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#f6e9cf' }, g);
+        el('ellipse', { cx: 76, cy: 50, rx: 20, ry: 12, fill: '#fbfdff', stroke: '#e3d5b8', transform: 'rotate(-25 76 50)' }, g);
+        el('ellipse', { cx: 116, cy: 50, rx: 20, ry: 12, fill: '#fbfdff', stroke: '#e3d5b8', transform: 'rotate(25 116 50)' }, g);
+        el('path', { d: 'M96 40 L118 90 H74 Z', fill: '#fbfdff', stroke: '#e3d5b8' }, g);
+        el('circle', { cx: 96, cy: 34, r: 10, fill: '#f6c9a8' }, g);
+        el('path', { d: 'M86 32 q 10 -12 20 0', fill: '#f4d03f' }, g);
+        el('ellipse', { cx: 96, cy: 20, rx: 10, ry: 3, fill: 'none', stroke: '#e2b93b', 'stroke-width': 2.5 }, g);
+        stellaPunte(g, 40, 22, 5); stellaPunte(g, 156, 30, 4);
+    } },
+    { nome: 'Corona dell\'Avvento', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#5a1d27' }, g);
+        el('ellipse', { cx: 96, cy: 72, rx: 60, ry: 14, fill: 'none', stroke: '#2e6b3f', 'stroke-width': 12 }, g);
+        [[62, '#8e5ea2'], [84, '#8e5ea2'], [108, '#ff8fb1'], [130, '#8e5ea2']].forEach(([x, c]) => {
+            el('rect', { x: x - 5, y: 40, width: 10, height: 30, fill: c }, g);
+            el('circle', { cx: x, cy: 34, r: 7, fill: 'url(#alone)' }, g);
+            el('path', { d: `M${x} 30 q -4 6 0 10 q 4 -4 0 -10 Z`, fill: '#ffd36b' }, g);
+        });
+        [50, 74, 118, 142].forEach(x => el('circle', { cx: x, cy: 74, r: 3, fill: '#d63031' }, g));
+    } },
+    { nome: 'Slitta davanti alla luna', disegna(g) {
+        cielo(g, '#1b2a6b'); el('circle', { cx: 110, cy: 44, r: 30, fill: '#fdf6d8' }, g);
+        el('path', { d: 'M60 52 h28 q 6 0 6 -8 v-4 h-8 v4 h-20 Z M58 56 h40', fill: '#2b1d14', stroke: '#2b1d14', 'stroke-width': 2 }, g);
+        [104, 124, 144].forEach(x => el('path', { d: `M${x} 48 h12 l4 -6 2 2 -3 5 v6 h-2 v-4 h-10 v4 h-2 Z M${x + 15} 42 l2 -6 M${x + 17} 42 l4 -4`, fill: '#2b1d14', stroke: '#2b1d14', 'stroke-width': 1 }, g));
+        el('path', { d: 'M94 48 L104 50', stroke: '#2b1d14', 'stroke-width': 1 }, g);
+        el('path', { d: 'M0 86 q 96 -12 192 0 V96 H0 Z', fill: '#eef3ff' }, g);
+    } },
+    { nome: 'Campane', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#2e6b3f' }, g);
+        [[78, -12], [114, 12]].forEach(([x, giro]) => {
+            const b = el('g', { transform: `rotate(${giro} ${x} 40)` }, g);
+            el('path', { d: `M${x - 18} 70 q 0 -36 18 -40 q 18 4 18 40 Z`, fill: '#e2b93b', stroke: '#a8801c', 'stroke-width': 2 }, b);
+            el('circle', { cx: x, cy: 72, r: 5, fill: '#a8801c' }, b);
+        });
+        el('path', { d: 'M96 26 l -14 -10 v18 Z M96 26 l 14 -10 v18 Z', fill: '#d63031' }, g);
+        el('circle', { cx: 96, cy: 26, r: 4, fill: '#a8231a' }, g);
+    } },
+    { nome: 'Pacchi regalo', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#f3e3c4' }, g);
+        [[46, 50, 40, 40, '#c0392b', '#f4d03f'], [90, 38, 48, 52, '#2e7d5b', '#e74c3c'], [140, 58, 32, 32, '#3a5ba0', '#fbfdff'], [104, 18, 24, 20, '#8e5ea2', '#f4d03f']].forEach(([x, y, w, h, c, n]) => {
+            el('rect', { x, y, width: w, height: h, fill: c }, g);
+            el('rect', { x: x + w / 2 - 3, y, width: 6, height: h, fill: n }, g);
+            el('path', { d: `M${x + w / 2} ${y} q -8 -8 -11 -1 q 3 4 11 1 q 8 -8 11 -1 q -3 4 -11 1`, fill: n }, g);
+        });
+    } },
+    { nome: 'Cerbiatto nel bosco', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#c8d6ef' }, g); neve(g, 76);
+        abete(g, 22, 80, 1.3, '#2f5a5c'); abete(g, 52, 74, 0.9, '#3d6b6c'); abete(g, 160, 80, 1.4, '#2f5a5c'); abete(g, 136, 72, 0.8, '#3d6b6c');
+        el('path', { d: 'M80 64 q 14 -8 30 -2 l 6 -10 4 2 -4 12 v14 h-3 v-10 h-22 v10 h-3 v-12 Z', fill: '#a0663a' }, g);
+        el('path', { d: 'M116 52 l 4 -6 M118 50 l 4 -2', stroke: '#a0663a', 'stroke-width': 2 }, g);
+        [[88, 66], [96, 64], [104, 66]].forEach(([x, y]) => el('circle', { cx: x, cy: y, r: 1.4, fill: '#f6efe0' }, g));
+    } },
+    { nome: 'Chiesetta innevata', disegna(g) {
+        cielo(g); neve(g, 70);
+        el('rect', { x: 80, y: 50, width: 40, height: 30, fill: '#efe6d2' }, g);
+        el('path', { d: 'M76 52 L100 36 L124 52 Z', fill: '#9b1d2a' }, g);
+        el('rect', { x: 92, y: 18, width: 16, height: 34, fill: '#efe6d2' }, g);
+        el('path', { d: 'M90 20 L100 6 L110 20 Z', fill: '#9b1d2a' }, g);
+        el('path', { d: 'M100 4 v-4 M98 2 h4', stroke: '#e2b93b', 'stroke-width': 1.5 }, g);
+        el('path', { d: 'M96 80 v-12 q 4 -6 8 0 v12 Z', fill: '#ffd36b' }, g);
+        el('rect', { x: 97, y: 26, width: 6, height: 8, rx: 3, fill: '#ffd36b' }, g);
+    } },
+    { nome: 'Agrifoglio', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#f6efe0' }, g);
+        const foglia = (x, y, giro) => el('path', { d: 'M0 0 q 8 -8 6 -16 q 6 2 8 -6 q 4 6 10 2 q -2 8 6 12 q -8 2 -6 10 q -8 -4 -12 4 q -4 -6 -12 -6 Z', fill: '#2e6b3f', transform: `translate(${x} ${y}) rotate(${giro}) scale(1.6)` }, g);
+        foglia(70, 56, -30); foglia(122, 56, 210); foglia(96, 40, 90);
+        [[92, 52], [100, 52], [96, 59]].forEach(([x, y]) => el('circle', { cx: x, cy: y, r: 5, fill: '#d63031' }, g));
+    } },
+    { nome: 'Calza della Befana', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#2e6b3f' }, g);
+        el('path', { d: 'M82 14 h28 v44 q 0 12 -10 18 l -16 8 q -14 4 -18 -6 q -2 -8 8 -12 l 8 -4 Z', fill: '#c0392b' }, g);
+        el('rect', { x: 78, y: 10, width: 36, height: 12, rx: 3, fill: '#fbfdff' }, g);
+        el('path', { d: 'M106 10 V0 a6 6 0 0 1 12 0', fill: 'none', stroke: '#fbfdff', 'stroke-width': 4 }, g);
+        el('path', { d: 'M106 10 V0 a6 6 0 0 1 12 0', fill: 'none', stroke: '#d63031', 'stroke-width': 4, 'stroke-dasharray': '3 3' }, g);
+    } },
+    { nome: 'Casetta di pan di zenzero', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#f3e3c4' }, g);
+        el('rect', { x: 68, y: 44, width: 56, height: 40, fill: '#b5652f' }, g);
+        el('path', { d: 'M60 46 L96 16 L132 46 Z', fill: '#8a4b2a' }, g);
+        el('path', { d: 'M60 46 q 6 6 12 0 q 6 6 12 0 q 6 6 12 0 q 6 6 12 0 q 6 6 12 0 q 6 6 12 0', fill: 'none', stroke: '#fbfdff', 'stroke-width': 3 }, g);
+        el('path', { d: 'M88 84 v-16 q 8 -10 16 0 v16 Z', fill: '#6b3e1f', stroke: '#fbfdff', 'stroke-width': 2 }, g);
+        [[76, 54, '#e74c3c'], [116, 54, '#2ecc71'], [96, 30, '#f4d03f'], [80, 74, '#5dade2'], [112, 74, '#ff8fb1']].forEach(([x, y, c]) => el('circle', { cx: x, cy: y, r: 3.5, fill: c }, g));
+    } },
+    { nome: 'Pettirosso sul ramo', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#dbe6f7' }, g);
+        el('path', { d: 'M0 70 q 60 -10 192 -6', stroke: '#5d3a22', 'stroke-width': 6, fill: 'none' }, g);
+        el('path', { d: 'M10 66 q 50 -10 100 -6', stroke: '#fbfdff', 'stroke-width': 3, fill: 'none' }, g);
+        el('ellipse', { cx: 98, cy: 54, rx: 18, ry: 13, fill: '#7a5236' }, g);
+        el('ellipse', { cx: 92, cy: 58, rx: 10, ry: 8, fill: '#e2582a' }, g);
+        el('circle', { cx: 84, cy: 46, r: 9, fill: '#7a5236' }, g);
+        el('circle', { cx: 81, cy: 45, r: 1.6, fill: '#111' }, g);
+        el('path', { d: 'M75 47 l -6 1 6 2 Z', fill: '#3b2412' }, g);
+        el('path', { d: 'M114 52 l 12 -4 -4 8 Z', fill: '#5a3d29' }, g);
+    } },
+    { nome: 'Fiocco di neve', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#2a3f8f' }, g);
+        const f = el('g', { transform: 'translate(96 48)', stroke: '#fbfdff', 'stroke-width': 3, 'stroke-linecap': 'round', fill: 'none' }, g);
+        for (let i = 0; i < 6; i++) el('path', { d: 'M0 0 V-36 M0 -14 l-8 -8 M0 -14 l8 -8 M0 -26 l-6 -6 M0 -26 l6 -6', transform: `rotate(${i * 60})` }, f);
+    } },
+    { nome: 'Ghirlanda alla porta', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#efe6d2' }, g);
+        el('rect', { x: 64, y: 4, width: 64, height: 92, fill: '#2e6b3f' }, g);
+        el('path', { d: 'M70 10 h52 v80 h-52 Z M96 10 v80', fill: 'none', stroke: '#245637', 'stroke-width': 2 }, g);
+        el('circle', { cx: 96, cy: 44, r: 18, fill: 'none', stroke: '#1d5e3f', 'stroke-width': 10 }, g);
+        [[86, 34], [108, 40], [92, 58], [106, 54]].forEach(([x, y]) => el('circle', { cx: x, cy: y, r: 2.5, fill: '#d63031' }, g));
+        el('path', { d: 'M96 62 l -8 6 v-12 Z M96 62 l 8 6 v-12 Z', fill: '#c0392b' }, g);
+        el('circle', { cx: 116, cy: 60, r: 2.5, fill: '#e2b93b' }, g);
+    } },
+    { nome: 'Re Magi', disegna(g) {
+        cielo(g, '#1b1640', 16); stellaPunte(g, 160, 18, 8);
+        el('path', { d: 'M0 78 q 60 -20 120 -6 q 40 8 72 -6 V96 H0 Z', fill: '#c9a46a' }, g);
+        [36, 76, 116].forEach((x, i) => el('path', { d: `M${x} 70 q 4 -14 14 -12 q 4 -10 10 -2 l 6 -6 4 2 -6 8 v12 h-2 v-8 h-14 v8 h-2 Z M${x + 12} 58 l 2 -8 h4 l 2 8`, fill: '#2b2015', transform: `translate(0 ${-i * 4})` }, g));
+    } },
+    { nome: 'Villaggio di notte', disegna(g) {
+        cielo(g, '#101a4a', 22); el('circle', { cx: 28, cy: 18, r: 8, fill: '#fdf6d8' }, g);
+        el('path', { d: 'M0 96 V70 l 14 -10 14 10 V62 l 12 -10 12 10 v10 l 14 -12 14 12 V56 l 10 -14 10 14 v14 l 16 -12 16 12 V64 l 12 -10 12 10 V96 Z', fill: '#2a1d14' }, g);
+        [[10, 76], [36, 70], [64, 76], [98, 64], [130, 74], [158, 70], [176, 76]].forEach(([x, y]) => el('rect', { x, y, width: 5, height: 5, fill: '#ffd36b' }, g));
+        el('path', { d: 'M0 90 q 96 -6 192 0 V96 H0 Z', fill: '#eef3ff' }, g);
+    } },
+    { nome: 'Trenino nella neve', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#bcd0f0' }, g); neve(g, 74);
+        el('path', { d: 'M0 76 H192', stroke: '#7a6a5a', 'stroke-width': 2 }, g);
+        el('rect', { x: 110, y: 50, width: 40, height: 22, rx: 3, fill: '#c0392b' }, g);
+        el('rect', { x: 134, y: 38, width: 16, height: 14, fill: '#a93226' }, g);
+        el('rect', { x: 116, y: 40, width: 6, height: 10, fill: '#333' }, g);
+        el('rect', { x: 62, y: 54, width: 40, height: 18, rx: 3, fill: '#2e7d5b' }, g);
+        el('rect', { x: 14, y: 54, width: 40, height: 18, rx: 3, fill: '#3a5ba0' }, g);
+        [24, 44, 72, 92, 120, 140].forEach(x => el('circle', { cx: x, cy: 74, r: 4, fill: '#222' }, g));
+        [[119, 32, 5], [112, 22, 7], [102, 12, 9]].forEach(([x, y, r]) => el('circle', { cx: x, cy: y, r, fill: '#fbfdff', opacity: 0.9 }, g));
+    } },
+    { nome: 'Bastoncini di zucchero', disegna(g) {
+        el('rect', { width: 192, height: 96, fill: '#f6d5d9' }, g);
+        [[76, -18], [116, 18]].forEach(([x, giro]) => {
+            const b = el('g', { transform: `rotate(${giro} ${x} 50)` }, g);
+            el('path', { d: `M${x} 90 V30 a14 14 0 0 1 28 0`, fill: 'none', stroke: '#fbfdff', 'stroke-width': 10, 'stroke-linecap': 'round' }, b);
+            el('path', { d: `M${x} 90 V30 a14 14 0 0 1 28 0`, fill: 'none', stroke: '#d63031', 'stroke-width': 10, 'stroke-dasharray': '7 8' }, b);
+        });
+        el('path', { d: 'M96 56 l -12 -8 v16 Z M96 56 l 12 -8 v16 Z', fill: '#2e7d5b' }, g);
+    } },
+    { nome: 'Natività', disegna(g) {
+        cielo(g, '#0f1a45', 18);
+        el('path', { d: 'M150 14 L96 40', stroke: '#ffe9a8', 'stroke-width': 3, opacity: 0.6 }, g);
+        stellaPunte(g, 150, 14, 10);
+        el('path', { d: 'M0 84 q 96 -8 192 0 V96 H0 Z', fill: '#3b2a1a' }, g);
+        el('path', { d: 'M56 84 V54 L96 34 L136 54 V84 Z', fill: '#2b1d14' }, g);
+        el('path', { d: 'M64 84 V58 L96 42 L128 58 V84 Z', fill: '#ffcf6b', opacity: 0.85 }, g);
+        el('path', { d: 'M76 84 q 0 -18 8 -22 q 8 4 6 22 Z', fill: '#3a5ba0' }, g);
+        el('circle', { cx: 84, cy: 58, r: 5, fill: '#3a5ba0' }, g);
+        el('path', { d: 'M108 84 q 0 -20 8 -24 q 8 4 6 24 Z', fill: '#6b3e1f' }, g);
+        el('circle', { cx: 116, cy: 56, r: 5, fill: '#6b3e1f' }, g);
+        el('path', { d: 'M90 84 h14 l -3 -8 h-8 Z', fill: '#8a5a3c' }, g);
+        el('ellipse', { cx: 97, cy: 76, rx: 5, ry: 3, fill: '#fbfdff' }, g);
+    } }
+];
+
+// Il quadro con la cornice dorata: cambia dipinto ogni giorno
+function creaQuadro(genitore, defs) {
+    const ritaglio = el('clipPath', { id: 'tela-quadro' }, defs);
+    el('rect', { width: 192, height: 96 }, ritaglio);
+    el('rect', { x: 1070, y: 90, width: 220, height: 124, rx: 5, fill: '#c9a227' }, genitore);
+    el('rect', { x: 1076, y: 96, width: 208, height: 112, rx: 3, fill: 'none', stroke: '#a8801c', 'stroke-width': 2 }, genitore);
+    const tela = el('g', { transform: 'translate(1084 104)', 'clip-path': 'url(#tela-quadro)' }, genitore);
+    const titolo = el('title', {}, tela);
+    return {
+        mostra(giorno) {
+            const quadro = QUADRI[(giorno - 1) % QUADRI.length];
+            tela.replaceChildren(titolo);
+            quadro.disegna(tela);
+            titolo.textContent = quadro.nome;
+        }
+    };
+}
+
 // ========== IL DOLCE DEL GIORNO ==========
 // Sul tavolino del salotto c'è un dolce di Natale diverso per ogni giorno, con il suo nome
 
@@ -1067,12 +1322,8 @@ function creaInterno({ onScarta, onEsci }) {
     el('rect', { x: 672, y: 102, width: 256, height: 86, rx: 6, fill: '#fffaf0' }, svg);
     const data = el('text', { x: 800, y: 160, 'text-anchor': 'middle', 'font-size': 46, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#9b1d2a' }, svg);
 
-    // Quadro sopra il camino
-    el('rect', { x: 1092, y: 104, width: 176, height: 116, rx: 4, fill: '#c9a227' }, svg);
-    el('rect', { x: 1104, y: 116, width: 152, height: 92, fill: '#9fb4dc' }, svg);
-    el('path', { d: 'M1104 180 L1150 150 L1180 168 L1220 140 L1256 166 V208 H1104 Z', fill: '#eef3ff' }, svg);
-    el('path', { d: 'M1128 196 h20 v-14 l-10 -8 l-10 8 Z', fill: '#9b1d2a' }, svg);
-    el('rect', { x: 1135, y: 188, width: 5, height: 6, fill: '#ffd36b' }, svg);
+    // Quadro sopra il camino: un dipinto natalizio diverso ogni giorno
+    const quadro = creaQuadro(svg, defs);
 
     // Camino in pietra
     el('ellipse', { cx: 1160, cy: 400, rx: 380, ry: 260, fill: 'url(#luce-camino)', opacity: 0.6, class: 'luce-calda' }, svg);
@@ -1338,6 +1589,7 @@ function creaInterno({ onScarta, onEsci }) {
             [nastroBase, nastroCoperchio, ...anelli].forEach(parte => parte.setAttribute('fill', nastro));
             data.textContent = `${giorno} dicembre`;
             tavolino.mostra(giorno);
+            quadro.mostra(giorno);
             giornoMostrato = giorno;
             scartato = false;
             nodo.classList.remove('scartato');
