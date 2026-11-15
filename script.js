@@ -115,6 +115,20 @@ function suonaGiro() {
     musicaTimer = setTimeout(suonaGiro, (tempo - contestoAudio().currentTime) * 1000);
 }
 
+// Quando il coro del villaggio canta, la musica di sottofondo si mette in pausa e poi riparte
+let musicaInPausa = false;
+document.addEventListener('DOMContentLoaded', () => {
+    $('villaggio')?.addEventListener('coro', evento => {
+        if (evento.detail.canta && musicaTimer) {
+            musicaInPausa = true;
+            toggleAudio();
+        } else if (!evento.detail.canta && musicaInPausa) {
+            musicaInPausa = false;
+            toggleAudio();
+        }
+    });
+});
+
 function toggleAudio() {
     const pulsante = $('btnAudio');
     if (musicaTimer) {
