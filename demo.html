@@ -877,6 +877,79 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     }
 }
 
+/* ---- La slitta di Babbo Natale attraversa il cielo ogni tanto ---- */
+.scena .slitta { animation: volo-slitta 46s linear infinite; animation-delay: 6s; transform: translate(-600px, 420px); }
+@keyframes volo-slitta {
+    0% { transform: translate(-600px, 430px) scale(1.25); }
+    45% { transform: translate(3000px, 320px) scale(1.25); }
+    100% { transform: translate(3000px, 320px) scale(1.25); }
+}
+.scena .slitta-corpo { animation: ondeggia-slitta 1.6s ease-in-out infinite alternate; }
+@keyframes ondeggia-slitta { from { transform: translateY(-5px) rotate(-2deg); } to { transform: translateY(5px) rotate(1deg); } }
+.scena .zampe-volo { transform-box: fill-box; transform-origin: 50% 0; animation: galoppo 0.5s ease-in-out infinite alternate; }
+.scena .zampe-volo.dopo { animation-delay: -0.25s; }
+@keyframes galoppo { from { transform: rotate(-25deg); } to { transform: rotate(20deg); } }
+.scena .scia { animation: scia 1.2s ease-in-out infinite; }
+@keyframes scia { 0%, 100% { opacity: 0.95; } 50% { opacity: 0.2; } }
+
+/* ---- Lucine di festa sui tetti delle case già aperte ---- */
+.scena .luci-festa { opacity: 0; transition: opacity 0.8s; }
+.scena .aperta .luci-festa { opacity: 1; }
+.scena .aperta .luci-festa circle { animation: luce-tetto 1.4s ease-in-out infinite; }
+@keyframes luce-tetto { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.scena .aperta .luci-festa circle[opacity] { animation-name: alone-tetto; }
+@keyframes alone-tetto { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.05; } }
+.scena .lucina-cartello { animation: luce-tetto 1.4s ease-in-out infinite; }
+
+/* ---- Il finale del 24: fuochi d'artificio e "Buon Natale!" ---- */
+.scena .festa {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    cursor: pointer;
+    background: radial-gradient(ellipse at 50% 30%, rgba(10, 16, 50, 0.15), rgba(10, 16, 50, 0.45));
+    animation: festa-entra 0.8s ease-out;
+    transition: opacity 0.9s;
+}
+.scena .festa.via { opacity: 0; }
+.scena .festa canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+@keyframes festa-entra { from { opacity: 0; } to { opacity: 1; } }
+.scena .scritta-festa {
+    position: absolute;
+    left: 50%;
+    top: 16%;
+    width: 92%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: #fffaf0;
+    pointer-events: none;
+    animation: scritta-festa 1.4s cubic-bezier(.2, 1.4, .4, 1) 0.4s both;
+}
+.scena .scritta-festa strong {
+    display: block;
+    font-family: 'Brush Script MT', cursive;
+    font-size: clamp(3rem, 9vw, 7rem);
+    color: #ffd36b;
+    text-shadow: 0 0 18px rgba(255, 200, 80, 0.8), 0 4px 0 #9b1d2a;
+    line-height: 1.1;
+}
+.scena .scritta-festa span {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: rgba(155, 29, 42, 0.85);
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    font-weight: bold;
+}
+@keyframes scritta-festa { from { opacity: 0; transform: translateX(-50%) scale(0.4); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .scena .slitta { animation: none; transform: translate(1150px, 360px) scale(1.25); }
+    .scena .slitta-corpo, .scena .zampe-volo, .scena .scia,
+    .scena .aperta .luci-festa circle, .scena .lucina-cartello, .scena .scritta-festa { animation: none; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -1040,6 +1113,65 @@ function disegnaCielo(strato) {
     }
     el('circle', { cx: 1500, cy: 370, r: 40, fill: '#fdf6d8', filter: 'url(#bagliore)' }, strato);
     el('circle', { cx: 1516, cy: 360, r: 36, fill: '#1d2b6b', opacity: 0.25 }, strato);
+    disegnaSlitta(strato);
+}
+
+// ========== LA SLITTA DI BABBO NATALE ==========
+// Ogni tanto attraversa il cielo, trainata dalle renne, lasciando una scia di polvere di stelle
+
+function rennaVolante(genitore, x, y, scuro, naso) {
+    const r = el('g', { transform: `translate(${x} ${y})` }, genitore);
+    const pelo = scuro ? '#6b4428' : '#8a5a36';
+    // Zampe posteriori e anteriori: si muovono come al galoppo
+    el('path', { class: 'zampe-volo', d: 'M-9 3 l-7 7 M-6 3 l-4 9', stroke: pelo, 'stroke-width': 2.4, 'stroke-linecap': 'round' }, r);
+    el('path', { class: 'zampe-volo dopo', d: 'M8 3 l7 6 M10 2 l9 3', stroke: pelo, 'stroke-width': 2.4, 'stroke-linecap': 'round' }, r);
+    el('ellipse', { cx: 0, cy: 0, rx: 14, ry: 6.5, fill: pelo }, r);
+    el('ellipse', { cx: -1, cy: 2.5, rx: 10, ry: 3, fill: '#c9a27c', opacity: 0.7 }, r);
+    el('path', { d: 'M-14 -2 q -4 -3 -3 -6', stroke: '#f2e6d8', 'stroke-width': 3, 'stroke-linecap': 'round', fill: 'none' }, r);
+    // Collo, testa e corna
+    el('path', { d: 'M9 -3 Q14 -10 15 -14 L20 -12 Q18 -6 13 2 Z', fill: pelo }, r);
+    el('ellipse', { cx: 20, cy: -14, rx: 6, ry: 3.6, transform: 'rotate(18 20 -14)', fill: pelo }, r);
+    el('circle', { cx: 26, cy: -12, r: naso ? 2.4 : 1.6, fill: naso ? '#ff3b30' : '#2a1d14', ...(naso ? { filter: 'url(#bagliore)' } : {}) }, r);
+    el('path', { d: 'M17 -17 q -2 -7 -7 -9 M15 -22 l -5 -1 M18 -17 q 3 -7 0 -12 M19 -24 l 4 -2', stroke: '#d9c3a0', 'stroke-width': 1.5, fill: 'none', 'stroke-linecap': 'round' }, r);
+    // Finimenti rossi con il campanello
+    el('path', { d: 'M8 -4 Q10 2 7 6', stroke: '#c0392b', 'stroke-width': 2.4, fill: 'none' }, r);
+    el('circle', { cx: 8, cy: 6, r: 1.6, fill: '#f4d03f' }, r);
+    return r;
+}
+
+function disegnaSlitta(strato) {
+    const volo = el('g', { class: 'slitta', 'pointer-events': 'none' }, strato);
+    const corpo = el('g', { class: 'slitta-corpo' }, volo);
+    // Scia di polvere di stelle dietro la slitta
+    for (let i = 0; i < 26; i++) {
+        const x = -60 - i * 9 - (i % 3) * 4, y = 4 + Math.sin(i * 0.8) * 7 + i * 0.6;
+        el('circle', { class: 'scia', cx: x, cy: y, r: Math.max(0.6, 2.6 - i * 0.08), fill: i % 4 ? '#fff6c8' : '#ffd36b', style: `animation-delay:${(-i * 0.13).toFixed(2)}s` }, corpo);
+    }
+    // Redini dalla slitta fino alla renna davanti
+    el('path', { d: 'M18 -14 Q 90 -6 210 -14', stroke: '#8a5a1f', 'stroke-width': 1.2, fill: 'none' }, corpo);
+    el('path', { d: 'M18 -10 Q 90 0 206 -8', stroke: '#8a5a1f', 'stroke-width': 1.2, fill: 'none', opacity: 0.7 }, corpo);
+    // Il sacco dei regali e Babbo Natale
+    el('path', { d: 'M-40 -22 q -10 -22 6 -30 q 12 -4 18 6 q 6 14 -6 26 Z', fill: '#8a5a36' }, corpo);
+    [[-36, -50, '#2e7d5b'], [-26, -54, '#f4d03f'], [-30, -46, '#c0392b']].forEach(([x, y, c]) => el('rect', { x: x - 4, y: y - 4, width: 8, height: 7, fill: c }, corpo));
+    el('circle', { cx: -10, cy: -26, r: 11, fill: '#c0392b' }, corpo);
+    el('path', { d: 'M-20 -22 h20', stroke: '#2a1d14', 'stroke-width': 3 }, corpo);
+    el('circle', { cx: -6, cy: -41, r: 6, fill: '#f2d2bd' }, corpo);
+    el('path', { d: 'M-12 -40 q 2 10 7 10 q 6 0 7 -9 q -3 3 -7 3 q -4 0 -7 -4 Z', fill: '#fbfdff' }, corpo);
+    el('path', { d: 'M-12 -44 Q -6 -60 4 -52 L 0 -45 Z', fill: '#c0392b' }, corpo);
+    el('path', { d: 'M-13 -44 h 14', stroke: '#fbfdff', 'stroke-width': 3, 'stroke-linecap': 'round' }, corpo);
+    el('circle', { cx: 4, cy: -52, r: 2.6, fill: '#fbfdff' }, corpo);
+    el('path', { d: 'M-2 -28 L 16 -16', stroke: '#c0392b', 'stroke-width': 4, 'stroke-linecap': 'round' }, corpo);
+    // La slitta rossa con i bordi d'oro e il pattino ricurvo
+    el('path', { d: 'M-50 -2 Q-56 -26 -40 -28 L-28 -20 L8 -20 Q20 -20 22 -8 L18 4 L-44 4 Z', fill: '#b3202b' }, corpo);
+    el('path', { d: 'M-50 -2 Q-56 -26 -40 -28 L-28 -20 L8 -20 Q20 -20 22 -8', stroke: '#e8c766', 'stroke-width': 2.4, fill: 'none' }, corpo);
+    el('path', { d: 'M-30 -8 q 8 -6 16 0 q 8 6 16 0', stroke: '#e8c766', 'stroke-width': 1.4, fill: 'none' }, corpo);
+    el('path', { d: 'M-44 4 L-40 10 M14 4 L10 10 M-58 10 H22 Q34 10 32 0', stroke: '#e8c766', 'stroke-width': 2.6, fill: 'none', 'stroke-linecap': 'round' }, corpo);
+    // Quattro coppie di renne, con quella dal naso rosso davanti
+    [[52, -12], [96, -14], [140, -16], [184, -18]].forEach(([x, y], i) => {
+        rennaVolante(corpo, x - 4, y - 5, true, false);
+        rennaVolante(corpo, x, y, false, i === 3);
+    });
+    return volo;
 }
 
 function disegnaMontagne(strato) {
@@ -1366,6 +1498,8 @@ const COLORI = [
 ];
 
 // Materiali delle pareti: cambiano da casa a casa
+const COLORI_FESTA = ['#ff5a4f', '#ffd36b', '#6fd3ff', '#7dff9a', '#ff9de2'];
+
 const MATERIALI = ['assi', 'intonaco', 'mattoni', 'assi', 'intonaco'];
 
 function finestra(corpo, fx, fy, larghezza, altezza, { cornice, persiane }) {
@@ -1506,6 +1640,25 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
         const fumo = el('g', { class: 'fumo' }, corpo);
         for (let i = 0; i < 3; i++) el('circle', { cx: cx + 7, cy: cima + 4, r: 7, fill: '#dfe6f5' }, fumo);
     }
+
+    // ---- Lucine di festa sul tetto: si accendono quando la casa è stata aperta ----
+    const lucineTetto = el('g', { class: 'luci-festa' }, corpo);
+    const punti = [];
+    if (tipo === 'piatto') {
+        for (let i = 0; i <= 8; i++) punti.push([-w / 2 - 4 + ((w + 8) * i) / 8, -h - 3 + (i % 2) * 3]);
+    } else {
+        const rh = tipo === 'torre' ? 70 : 46;
+        for (let i = 0; i <= 10; i++) {
+            const t = i / 10;
+            punti.push([-w / 2 - 10 + (w + 20) * t, -h + 2 - (rh + 3) * (1 - Math.abs(2 * t - 1)) + (i % 2) * 3]);
+        }
+    }
+    el('path', { d: 'M' + punti.map(([px, py]) => `${px.toFixed(1)} ${py.toFixed(1)}`).join(' L'), fill: 'none', stroke: '#24322a', 'stroke-width': 1.2 }, lucineTetto);
+    punti.forEach(([px, py], i) => {
+        const colore = COLORI_FESTA[i % COLORI_FESTA.length], ritardo = `animation-delay:${((i % 4) * 0.35).toFixed(2)}s`;
+        el('circle', { cx: px.toFixed(1), cy: (py + 3).toFixed(1), r: 8, fill: colore, opacity: 0.3, style: ritardo }, lucineTetto);
+        el('circle', { cx: px.toFixed(1), cy: (py + 3).toFixed(1), r: 3.6, fill: colore, style: ritardo }, lucineTetto);
+    });
 
     // ---- Finestre ----
     const fy = tipo === 'torre' ? -h + 70 : -h + 16;
@@ -1742,6 +1895,36 @@ function disegnaCasaBabbo(mondo, x, y, scala) {
     return casa;
 }
 
+// Cartello di legno in piazza: quanti giorni mancano a Natale
+function disegnaCartelloNatale(mondo, x, y, scala) {
+    const c = el('g', { class: 'cartello-natale', transform: `translate(${x} ${y}) scale(${scala})`, 'pointer-events': 'none' }, mondo);
+    el('ellipse', { cx: 0, cy: 3, rx: 90, ry: 8, fill: '#6f84bd', opacity: 0.3 }, c);
+    el('path', { d: 'M-64 0 V-64 M64 0 V-64', stroke: '#5d3a22', 'stroke-width': 7 }, c);
+    el('rect', { x: -104, y: -112, width: 208, height: 56, rx: 6, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 3 }, c);
+    el('path', { d: 'M-100 -94 H100 M-100 -76 H100', stroke: '#7a4b2e', 'stroke-width': 1.5 }, c);
+    el('path', { d: 'M-108 -110 q 26 -12 60 -6 q 40 -10 80 -2 q 30 -6 76 4 L 106 -106 L-106 -106 Z', fill: '#fbfdff' }, c);
+    // Ghirlanda con le lucine sotto il cartello
+    el('path', { d: 'M-102 -56 q 51 16 102 0 q 51 16 102 0', stroke: '#2e6b3f', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, c);
+    [-78, -40, 0, 40, 78].forEach((lx, i) => el('circle', { class: 'lucina-cartello', cx: lx, cy: -50 + (i % 2) * 3, r: 3, fill: COLORI_FESTA[i], style: `animation-delay:${(i * 0.3).toFixed(1)}s` }, c));
+    const sopra = el('text', { x: 0, y: -88, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 'bold', fill: '#fffaf0', 'font-family': 'Georgia, serif' }, c);
+    const sotto = el('text', { x: 0, y: -66, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#ffd36b', 'font-family': 'Georgia, serif' }, c);
+    return { sopra, sotto };
+}
+
+// Che cosa dice il cartello, a seconda del giorno
+function testoAttesa(giorno) {
+    if (giorno <= 0) {
+        const oggi = new Date();
+        let natale = new Date(oggi.getFullYear(), 11, 25);
+        if (oggi > natale) natale = new Date(oggi.getFullYear() + 1, 11, 25);
+        const mancano = Math.ceil((natale - oggi) / 86400000);
+        return ['Mancano', `${mancano} giorni a Natale!`];
+    }
+    if (giorno >= 25) return ['Buon Natale', 'a tutti!'];
+    if (giorno === 24) return ['È la Vigilia:', 'domani è Natale!'];
+    return ['Mancano', `${25 - giorno} giorni a Natale!`];
+}
+
 // Altezza della strada in ogni punto, per mettere le case ai suoi lati
 function profiloStrada(mondo) {
     const traccia = el('path', { d: STRADA, fill: 'none' }, mondo);
@@ -1768,6 +1951,7 @@ function disegnaPaese(mondo) {
         if (Math.abs(x - PIAZZA.x) > 260) elementi.push({ x, y: yStrada(x) + 44, tipo: 'lampione' });
     }
     elementi.push({ x: PIAZZA.x - 210, y: PIAZZA.y + 30, tipo: 'pupazzo' }, { x: 920, y: 640, tipo: 'pupazzo' });
+    elementi.push({ x: PIAZZA.x - 60, y: PIAZZA.y + 118, tipo: 'cartello' });
     [[60, 640], [880, 600], [1680, 610], [2760, 600], [3000, 650], [3600, 640], [450, 880], [1880, 880], [2780, 885], [3300, 890]]
         .forEach(([x, y]) => elementi.push({ x, y, tipo: 'abete' }));
     elementi.push({ x: STAZIONE.x, y: STAZIONE.y, tipo: 'stazione' }, { x: 0, y: BINARI_Y, tipo: 'treno' });
@@ -1797,6 +1981,7 @@ function disegnaPaese(mondo) {
         else if (tipo === 'pupazzo') disegnaPupazzo(mondo, x, y, scala);
         else if (tipo === 'stazione') disegnaStazione(mondo, x, y, 0.62);
         else if (tipo === 'treno') disegnaTrenino(mondo);
+        else if (tipo === 'cartello') disegnaCartelloNatale(mondo, x, y, scala * 0.9);
         else if (tipo === 'renna') disegnaRenna(mondo, x, y, scala * (elemento.piccola ? 0.55 : 0.82), elemento);
         else disegnaAbete(mondo, x, y, scala * 1.4, '#24533f');
     }
@@ -3313,6 +3498,14 @@ function creaVillaggio(contenitore, opzioni) {
 
     // ---- Case ----
     function aggiornaStato() {
+        // Il cartello in piazza conta i giorni che mancano a Natale
+        const cartello = mondo.querySelector('.cartello-natale');
+        if (cartello) {
+            const giornoCartello = modifica ? (new Date().getMonth() === 11 ? new Date().getDate() : 0) : aperti;
+            const [sopra, sotto] = testoAttesa(giornoCartello);
+            cartello.querySelectorAll('text')[0].textContent = sopra;
+            cartello.querySelectorAll('text')[1].textContent = sotto;
+        }
         mondo.querySelectorAll('.casa').forEach(casa => {
             const giorno = Number(casa.dataset.giorno);
             if (modifica) {
@@ -3349,6 +3542,7 @@ function creaVillaggio(contenitore, opzioni) {
     }
 
     let inApertura = false;
+    let giornoInCasa = null;
 
     function apriCasa(casa) {
         const giorno = Number(casa.dataset.giorno);
@@ -3374,6 +3568,7 @@ function creaVillaggio(contenitore, opzioni) {
         inApertura = true;
         setTimeout(async () => {
             await avvicinaA(casa, 800);
+            giornoInCasa = giorno;
             interno.mostra(giorno);
             inApertura = false;
         }, 650);
@@ -3403,6 +3598,97 @@ function creaVillaggio(contenitore, opzioni) {
         interno.nascondi();
         adattaVista();
         mondo.querySelectorAll('.si-apre').forEach(casa => casa.classList.remove('si-apre'));
+        // Usciti dalla casa di Babbo Natale con il regalo scartato: grande festa sul villaggio
+        const eraIn = giornoInCasa;
+        giornoInCasa = null;
+        if (!modifica && eraIn === 24 && viste.has(24)) festaDiNatale();
+    }
+
+    // Fuochi d'artificio sopra il villaggio e la scritta "Buon Natale!"
+    function festaDiNatale() {
+        contenitore.querySelector('.festa')?.remove();
+        const festa = Object.assign(document.createElement('div'), { className: 'festa' });
+        const tela = document.createElement('canvas');
+        const scritta = Object.assign(document.createElement('div'), { className: 'scritta-festa' });
+        scritta.append(
+            Object.assign(document.createElement('strong'), { textContent: 'Buon Natale!' }),
+            Object.assign(document.createElement('span'), { textContent: '🎅 Siete arrivati alla casa di Babbo Natale' })
+        );
+        festa.append(tela, scritta);
+        contenitore.append(festa);
+        let finita = false;
+        const chiudi = () => {
+            if (finita) return;
+            finita = true;
+            festa.classList.add('via');
+            setTimeout(() => festa.remove(), 900);
+        };
+        festa.addEventListener('click', chiudi);
+        setTimeout(chiudi, 14000);
+        if (movimentoRidotto) return;
+
+        const ctx = tela.getContext('2d');
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const W = festa.clientWidth, H = festa.clientHeight;
+        tela.width = W * dpr;
+        tela.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const COLORI = ['#ff5a4f', '#ffd36b', '#6fd3ff', '#7dff9a', '#ff9de2', '#ffffff'];
+        const razzi = [], scintille = [];
+        const inizio = performance.now();
+        let ultimo = inizio, prossimo = inizio;
+        const passo = adesso => {
+            if (finita) return;
+            const dt = Math.min(0.05, (adesso - ultimo) / 1000);
+            ultimo = adesso;
+            if (adesso - inizio < 10000 && adesso >= prossimo) {
+                razzi.push({ x: W * (0.12 + Math.random() * 0.76), y: H, alto: H * (0.1 + Math.random() * 0.32), colore: COLORI[Math.floor(Math.random() * COLORI.length)] });
+                prossimo = adesso + 300 + Math.random() * 500;
+            }
+            // Le scie svaniscono pian piano
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fillRect(0, 0, W, H);
+            ctx.globalCompositeOperation = 'lighter';
+            for (let i = razzi.length - 1; i >= 0; i--) {
+                const razzo = razzi[i];
+                razzo.y -= H * 0.95 * dt;
+                ctx.fillStyle = '#fff3c4';
+                ctx.beginPath();
+                ctx.arc(razzo.x, razzo.y, 2.2, 0, Math.PI * 2);
+                ctx.fill();
+                if (razzo.y <= razzo.alto) {
+                    razzi.splice(i, 1);
+                    const quante = 50 + Math.floor(Math.random() * 30);
+                    const forza = H * (0.18 + Math.random() * 0.14);
+                    for (let k = 0; k < quante; k++) {
+                        const a = (k / quante) * Math.PI * 2;
+                        const v = forza * (0.6 + Math.random() * 0.4);
+                        scintille.push({ x: razzo.x, y: razzo.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vita: 1, svanisce: 0.45 + Math.random() * 0.35, colore: Math.random() < 0.15 ? '#ffffff' : razzo.colore });
+                    }
+                }
+            }
+            for (let i = scintille.length - 1; i >= 0; i--) {
+                const sc = scintille[i];
+                sc.vx *= 0.985;
+                sc.vy = sc.vy * 0.985 + H * 0.22 * dt;
+                sc.x += sc.vx * dt;
+                sc.y += sc.vy * dt;
+                sc.vita -= sc.svanisce * dt;
+                if (sc.vita <= 0) {
+                    scintille.splice(i, 1);
+                    continue;
+                }
+                ctx.globalAlpha = sc.vita;
+                ctx.fillStyle = sc.colore;
+                ctx.beginPath();
+                ctx.arc(sc.x, sc.y, 2.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(passo);
+        };
+        requestAnimationFrame(passo);
     }
 
     svg.addEventListener('click', evento => {
