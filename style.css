@@ -1325,3 +1325,40 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     border-radius: 8px;
     font-size: 1em;
 }
+
+/* Pannello di chi prepara: il regalo in primo piano, il resto in "Altro" */
+.bottone-regala {
+    width: 100%;
+    margin-top: 6px;
+    font-size: 1.2em;
+}
+
+#regala {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #fff8e1;
+    border: 2px solid #ffd166;
+}
+
+#regala p {
+    margin: 0 0 6px;
+}
+
+.altro {
+    margin-top: 16px;
+}
+
+.altro summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #6c757d;
+}
+
+.altro p {
+    font-size: 0.95em;
+}
+
+#btnEliminaCalendario {
+    margin-top: 10px;
+}

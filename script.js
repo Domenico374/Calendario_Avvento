@@ -227,7 +227,8 @@ function disegnaVillaggio() {
             modifica: true,
             piene: giorniPieni(),
             onTocco: suonoAperturaCasella,
-            onApri: giorno => (ID ? apriEditor(giorno) : chiediNome(giorno)),
+            // Casa vuota: si prepara la sorpresa. Casa pronta: si vede com'è, con Modifica ed Elimina
+            onApri: giorno => (!ID ? chiediNome(giorno) : calendario.giorni[giorno] ? mostraAnteprima(giorno) : apriEditor(giorno)),
             onChiusa: () => {}
         });
         aggiornaRiempimento();
@@ -283,7 +284,7 @@ function disegnaGriglia() {
 function aggiornaRiempimento() {
     const pieni = Object.keys(calendario.giorni).length;
     $('stato-riempimento').textContent = villaggio
-        ? `Sorprese pronte: ${pieni} su ${CONFIG.giorni}. Le case con le finestre accese sono già pronte. Chi riceve il link apre ogni casa solo dal suo giorno.`
+        ? `Sorprese pronte: ${pieni} su ${CONFIG.giorni}. Clicca una casa spenta per aggiungere una sorpresa, oppure una casa accesa per vederla.`
         : `Caselle riempite: ${pieni} su ${CONFIG.giorni}. Chi riceve il link vede ogni casella solo dal suo giorno.`;
 }
 
@@ -301,6 +302,7 @@ function aggiornaVista() {
 
 function apriEditor(giorno) {
     giornoCorrente = giorno;
+    $('btnModifica').hidden = true;
     const dati = calendario.giorni[giorno];
     $('editor').hidden = false;
     $('btnSalva').hidden = false;
@@ -617,26 +619,45 @@ async function importaVecchi() {
     mostraMessaggio(`Contenuti recuperati: ${recuperati} su ${vecchi.length}.`, recuperati ? 'successo' : 'info');
 }
 
+// Casa già pronta: si vede la sorpresa come la vedrà chi la riceve, con Modifica ed Elimina
+function mostraAnteprima(giorno) {
+    giornoCorrente = giorno;
+    $('editor').hidden = true;
+    $('btnSalva').hidden = true;
+    $('btnModifica').hidden = false;
+    $('btnElimina').hidden = false;
+    $('modal-corpo').replaceChildren(creaContenuto(giorno, calendario.giorni[giorno]));
+    apriFinestra(`${giorno} dicembre`);
+}
+
 // ========== PANNELLO E CREAZIONE ==========
 
-function preparaPannello({ nuovo = parametri.has('nuovo') } = {}) {
+function preparaPannello() {
     const linkPubblico = `${location.origin}/?c=${ID}`;
+    const linkPersonale = `${location.origin}/?c=${ID}&k=${CHIAVE}`;
     $('pannello-modifica').hidden = false;
-    $('avviso-nuovo').hidden = !nuovo;
     $('titolo-modifica').value = calendario.titolo;
     $('link-condivisione').value = linkPubblico;
+    $('link-personale').value = linkPersonale;
     $('linkAnteprima').href = linkPubblico;
     $('linkWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(`Ho preparato per te un calendario dell'Avvento 🎄 ${linkPubblico}`)}`;
     $('btnImporta').hidden = Object.keys(contenutiVecchi()).length === 0;
 
-    $('btnCopia').addEventListener('click', async () => {
+    const copia = async (testo, campo, messaggio) => {
         try {
-            await navigator.clipboard.writeText(linkPubblico);
-            mostraMessaggio('Link copiato!', 'successo');
+            await navigator.clipboard.writeText(testo);
+            mostraMessaggio(messaggio, 'successo');
         } catch {
-            $('link-condivisione').select();
+            $(campo).select();
             mostraMessaggio('Copia il link selezionato.');
         }
+    };
+    $('btnCopia').addEventListener('click', () => copia(linkPubblico, 'link-condivisione', 'Link da regalare copiato!'));
+    $('btnCopiaPersonale').addEventListener('click', () => copia(linkPersonale, 'link-personale', 'Link personale copiato!'));
+    $('btnRegala').addEventListener('click', () => {
+        const apri = $('regala').hidden;
+        $('regala').hidden = !apri;
+        $('btnRegala').setAttribute('aria-expanded', String(apri));
     });
     $('titolo-modifica').addEventListener('change', () => {
         salvaCalendario().then(
@@ -646,18 +667,35 @@ function preparaPannello({ nuovo = parametri.has('nuovo') } = {}) {
     $('btnImporta').addEventListener('click', () => {
         importaVecchi().catch(errore => mostraMessaggio(errore.message, 'errore'));
     });
+    $('btnEliminaCalendario').addEventListener('click', eliminaCalendario);
 
-    const salvati = leggiMemoria('miei_calendari', []);
-    if (!salvati.some(voce => voce.id === ID)) {
-        scriviMemoria('miei_calendari', [...salvati, { id: ID, chiave: CHIAVE, titolo: calendario.titolo }]);
+    // Il calendario si ricorda su questo dispositivo: l'ultimo usato si riapre da solo
+    const altri = leggiMemoria('miei_calendari', []).filter(voce => voce.id !== ID);
+    scriviMemoria('miei_calendari', [...altri, { id: ID, chiave: CHIAVE, titolo: calendario.titolo }]);
+}
+
+// Elimina il calendario intero e passa al prossimo ricordato su questo dispositivo, o a uno nuovo
+async function eliminaCalendario() {
+    if (!confirm(`Vuoi eliminare il calendario "${calendario.titolo}" con tutte le sue sorprese? Non si può annullare.`)) return;
+    try {
+        await chiamaApi('/api/calendario', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ azione: 'elimina', id: ID, chiave: CHIAVE })
+        });
+    } catch (errore) {
+        mostraMessaggio(errore.message, 'errore');
+        return;
     }
+    scriviMemoria('miei_calendari', leggiMemoria('miei_calendari', []).filter(voce => voce.id !== ID));
+    location.href = '/';
 }
 
 function mostraCreazione() {
     const invito = parametri.get('invito');
     const salvati = leggiMemoria('miei_calendari', []);
     // Sul PC si entra subito nel villaggio e il calendario si crea al primo clic su una casa
-    if (usaVillaggio()) return avviaVillaggioNuovo(invito, salvati);
+    if (usaVillaggio()) return avviaVillaggioNuovo(invito);
     $('vista-crea').hidden = false;
     // Chi arriva dal link di invito non deve digitare nessun codice
     // Il codice si chiede solo se il server lo richiede (vedi l'errore più sotto)
@@ -691,18 +729,8 @@ function mostraCreazione() {
 // Il calendario si crea al primo clic su una casa, dopo aver chiesto per chi è:
 // così chi apre l'invito solo per curiosità non lascia calendari vuoti
 
-function avviaVillaggioNuovo(invito, salvati) {
+function avviaVillaggioNuovo(invito) {
     codiceInvito = invito;
-    // Chi ha già creato calendari su questo dispositivo li ritrova sopra il villaggio
-    if (salvati.length) {
-        $('vista-crea').hidden = false;
-        $('form-crea').hidden = true;
-        $('vista-crea').querySelector('h2').textContent = 'Crea un nuovo calendario dal villaggio qui sotto';
-        $('vista-crea').querySelector('p').hidden = true;
-        $('miei-calendari').hidden = false;
-        $('lista-calendari').replaceChildren(...salvati.map(voce => crea('li', {},
-            crea('a', { href: `/?c=${encodeURIComponent(voce.id)}&k=${encodeURIComponent(voce.chiave)}`, textContent: voce.titolo }))));
-    }
     calendario = { titolo: "Il tuo calendario dell'Avvento", giorni: {}, modifica: true };
     $('titolo').textContent = calendario.titolo;
     $('sottotitolo').textContent = 'Clicca una casa per preparare la prima sorpresa';
@@ -744,14 +772,14 @@ async function creaDalVillaggio(titolo) {
     });
     ID = id;
     CHIAVE = chiave;
-    // L'indirizzo diventa il link di modifica, da salvare
-    history.replaceState(null, '', `/?c=${id}&k=${chiave}`);
+    // L'indirizzo resta quello semplice: il calendario si ricorda su questo dispositivo
+    history.replaceState(null, '', '/');
     calendario = { ...(await chiamaApi(`/api/calendario?id=${encodeURIComponent(id)}&chiave=${encodeURIComponent(chiave)}`)), modifica: true };
     document.title = calendario.titolo;
     $('titolo').textContent = calendario.titolo;
     $('sottotitolo').textContent = 'Un viaggio di 24 giorni di Meraviglia';
     $('vista-crea').hidden = true;
-    preparaPannello({ nuovo: true });
+    preparaPannello();
     aggiornaRiempimento();
 }
 
@@ -762,6 +790,7 @@ function preparaFinestra() {
     $('btnChiudi').addEventListener('click', chiudiModal);
     $('btnSalva').addEventListener('click', salvaGiorno);
     $('btnElimina').addEventListener('click', eliminaContenuto);
+    $('btnModifica').addEventListener('click', () => apriEditor(giornoCorrente));
     $('modal').addEventListener('click', evento => {
         if (evento.target === $('modal')) chiudiModal();
     });
@@ -778,12 +807,25 @@ function preparaFinestra() {
 
 async function avvia() {
     preparaFinestra();
-    if (!ID) return mostraCreazione();
+    if (!ID) {
+        // Chi ha già un calendario su questo dispositivo lo ritrova subito, senza link
+        const ultimo = parametri.has('nuovo-calendario') ? null : leggiMemoria('miei_calendari', []).at(-1);
+        if (!ultimo) return mostraCreazione();
+        ID = ultimo.id;
+        CHIAVE = ultimo.chiave;
+    }
 
     try {
         const indirizzo = `/api/calendario?id=${encodeURIComponent(ID)}${CHIAVE ? `&chiave=${encodeURIComponent(CHIAVE)}` : ''}`;
         calendario = await chiamaApi(indirizzo);
     } catch (errore) {
+        // Un calendario ricordato che non esiste più si dimentica, e si ricomincia
+        if (!parametri.get('c')) {
+            scriviMemoria('miei_calendari', leggiMemoria('miei_calendari', []).filter(voce => voce.id !== ID));
+            ID = null;
+            CHIAVE = null;
+            return mostraCreazione();
+        }
         mostraMessaggio(errore.message, 'errore');
         clearTimeout(mostraMessaggio.timer);
         return;

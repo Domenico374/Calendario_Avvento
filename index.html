@@ -48,20 +48,30 @@
 
     <!-- Pannello di chi crea -->
     <section id="pannello-modifica" class="scheda" hidden>
-        <div id="avviso-nuovo" class="avviso-importante" hidden>
-            <strong>Salva il link di questa pagina.</strong> È l'unico modo per tornare a modificare il calendario.
-        </div>
         <label for="titolo-modifica">Titolo</label>
         <input id="titolo-modifica" maxlength="80">
-        <label for="link-condivisione">Link da regalare</label>
-        <div class="input-group">
-            <input id="link-condivisione" readonly>
-            <button class="bottone" id="btnCopia" type="button">Copia</button>
-            <a class="bottone" id="linkWhatsApp" target="_blank" rel="noopener">WhatsApp</a>
-            <a class="bottone-chiusura" id="linkAnteprima" target="_blank" rel="noopener">Come lo vede chi lo riceve</a>
-        </div>
-        <button class="bottone" id="btnImporta" type="button" hidden>Recupera i contenuti salvati in questo browser</button>
         <p id="stato-riempimento" class="upload-info"></p>
+        <button class="bottone bottone-regala" id="btnRegala" type="button" aria-expanded="false" aria-controls="regala">🎁 Regala il calendario</button>
+        <div id="regala" hidden>
+            <p>Manda questo link a chi riceve il calendario: vedrà il villaggio e aprirà una casa al giorno da dicembre, senza poter modificare nulla.</p>
+            <div class="input-group">
+                <input id="link-condivisione" readonly aria-label="Link da regalare">
+                <button class="bottone" id="btnCopia" type="button">Copia</button>
+                <a class="bottone" id="linkWhatsApp" target="_blank" rel="noopener">WhatsApp</a>
+                <a class="bottone-chiusura" id="linkAnteprima" target="_blank" rel="noopener">Come lo vede chi lo riceve</a>
+            </div>
+        </div>
+        <details class="altro">
+            <summary>Altro</summary>
+            <p>Il calendario è ricordato su questo dispositivo. Per aprirlo da un altro computer o telefono usa il tuo link personale, e non darlo a nessuno: serve per modificarlo.</p>
+            <div class="input-group">
+                <input id="link-personale" readonly aria-label="Link personale per modificare">
+                <button class="bottone" id="btnCopiaPersonale" type="button">Copia</button>
+            </div>
+            <p><a href="/?nuovo-calendario=1">Crea un altro calendario</a></p>
+            <button class="bottone" id="btnImporta" type="button" hidden>Recupera i contenuti salvati in questo browser</button>
+            <button class="bottone-elimina" id="btnEliminaCalendario" type="button">Elimina questo calendario</button>
+        </details>
     </section>
 
     <!-- Griglia Calendario -->
@@ -85,6 +95,7 @@
 
             <div class="azioni">
                 <button class="bottone" id="btnSalva" type="button" hidden>Salva</button>
+                <button class="bottone" id="btnModifica" type="button" hidden>✏️ Modifica</button>
                 <button class="bottone-elimina" id="btnElimina" type="button" hidden>Elimina</button>
                 <button class="bottone-chiusura" id="btnChiudi" type="button">Chiudi</button>
             </div>

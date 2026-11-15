@@ -1,5 +1,5 @@
 import { del } from '@vercel/blob';
-import { creaCalendario, creaRedis, leggiCalendario, salvaModifiche } from '../lib/archivio.js';
+import { creaCalendario, creaRedis, eliminaCalendario, leggiCalendario, salvaModifiche } from '../lib/archivio.js';
 import {
     annoCalendario, chiaveValida, codiceValido, firma, idValido, nuovoId, pulisciTitolo, vistaPubblica
 } from '../lib/calendario.js';
@@ -25,6 +25,17 @@ async function salva(req, res, redis) {
     return res.status(200).json(esito.calendario);
 }
 
+// Elimina il calendario intero, con le sue foto, audio e video
+async function elimina(req, res, redis) {
+    const { id, chiave } = req.body ?? {};
+    if (!chiaveValida(id, chiave)) return res.status(403).json({ errore: 'Link di modifica non valido.' });
+
+    const file = await eliminaCalendario(redis, id);
+    if (!file) return res.status(404).json({ errore: 'Calendario non trovato.' });
+    if (file.length) await del(file).catch(errore => console.error('Pulizia file:', errore));
+    return res.status(200).json({ eliminato: true });
+}
+
 async function apri(req, res, redis) {
     const { id, chiave } = req.query;
     if (!idValido(id)) return res.status(404).json({ errore: 'Calendario non trovato.' });
@@ -45,6 +56,7 @@ export default async function handler(req, res) {
             const azione = req.body?.azione;
             if (azione === 'crea') return await crea(req, res, redis);
             if (azione === 'salva') return await salva(req, res, redis);
+            if (azione === 'elimina') return await elimina(req, res, redis);
         }
         return res.status(405).json({ errore: 'Richiesta non valida.' });
     } catch (errore) {

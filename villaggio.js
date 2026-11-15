@@ -1244,15 +1244,15 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
     function apriCasa(casa) {
         const giorno = Number(casa.dataset.giorno);
-        // Chi prepara il calendario apre la porta e passa subito alla sorpresa da preparare
-        if (modifica) {
+        // Chi prepara il calendario: casa vuota, si passa subito alla sorpresa da preparare
+        if (modifica && !piene.has(giorno)) {
             seguiTreno = false;
             onTocco();
             casa.classList.add('si-apre');
             setTimeout(() => onApri(giorno), 600);
             return;
         }
-        if (giorno > aperti) return onChiusa(giorno);
+        if (!modifica && giorno > aperti) return onChiusa(giorno);
         if (inApertura) return;
 
         seguiTreno = false;

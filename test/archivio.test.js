@@ -4,7 +4,7 @@ import { test } from 'node:test';
 process.env.SEGRETO = 'segreto-di-prova';
 process.env.BLOB_BASE_URL = 'https://archivio.example';
 
-const { creaCalendario, leggiCalendario, salvaModifiche } = await import('../lib/archivio.js');
+const { creaCalendario, eliminaCalendario, leggiCalendario, salvaModifiche } = await import('../lib/archivio.js');
 
 // Un Redis finto in memoria, con i soli comandi usati
 function redisFinto() {
@@ -16,6 +16,9 @@ function redisFinto() {
         },
         async hset(chiave, campi) {
             dati.set(chiave, { ...(dati.get(chiave) ?? {}), ...structuredClone(campi) });
+        },
+        async del(chiave) {
+            dati.delete(chiave);
         },
         async hdel(chiave, ...campi) {
             const hash = dati.get(chiave) ?? {};
@@ -55,4 +58,14 @@ test('contenuti non validi e calendari inesistenti vengono rifiutati', async () 
     await creaCalendario(redis, ID, { titolo: 'Prova', anno: 2026 });
     assert.equal((await salvaModifiche(redis, ID, { modifiche: { 4: { tipo: 'link', url: 'javascript:alert(1)' } } })).stato, 400);
     assert.deepEqual((await leggiCalendario(redis, ID)).giorni, {});
+});
+
+test('eliminare un calendario toglie anche i suoi file', async () => {
+    const redis = redisFinto();
+    const foto = `https://archivio.example/media/${ID}-foto.jpg`;
+    await creaCalendario(redis, ID, { titolo: 'Da eliminare', anno: 2026 });
+    await salvaModifiche(redis, ID, { modifiche: { 1: { tipo: 'foto', url: foto }, 2: { tipo: 'messaggio', testo: 'ciao' } } });
+    assert.deepEqual(await eliminaCalendario(redis, ID), [foto]);
+    assert.equal(await leggiCalendario(redis, ID), null);
+    assert.equal(await eliminaCalendario(redis, ID), null);
 });
