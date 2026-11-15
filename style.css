@@ -1397,3 +1397,72 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
         animation: none;
     }
 }
+
+/* La stazione: quando il treno arriva brilla e invita a entrare */
+.scena .stazione {
+    cursor: pointer;
+    outline: none;
+}
+
+.scena .stazione:focus-visible .cartello-entra {
+    opacity: 1;
+}
+
+.scena .alone-stazione,
+.scena .cartello-entra {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s;
+}
+
+.scena .invita .alone-stazione {
+    animation: alone 2s ease-in-out infinite;
+}
+
+.scena .invita .cartello-entra {
+    opacity: 1;
+    animation: salta 1.4s ease-in-out infinite;
+}
+
+/* La sala d'attesa con il pulsante per partire */
+.scena .sala .partenza {
+    position: absolute;
+    left: 50%;
+    bottom: 6%;
+    transform: translateX(-50%);
+    padding: 14px 32px;
+    border: 3px solid #ffd36b;
+    border-radius: 999px;
+    background: #c0392b;
+    color: #fff;
+    font: inherit;
+    font-size: 1.3em;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    animation: invito 2.4s ease-in-out infinite;
+}
+
+.scena .sala .partenza:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+/* Il fumetto del personaggio compare poco dopo essere entrati */
+.scena .visibile .fumetto {
+    animation: fumetto 0.6s ease-out 0.5s both;
+}
+
+@keyframes fumetto {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scena .invita .alone-stazione,
+    .scena .invita .cartello-entra,
+    .scena .sala .partenza,
+    .scena .visibile .fumetto {
+        animation: none;
+    }
+}

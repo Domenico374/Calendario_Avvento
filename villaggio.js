@@ -305,7 +305,11 @@ function disegnaTrenino(mondo) {
 
 // La stazione dove il treno si ferma, accanto alla piazza
 function disegnaStazione(mondo, x, y, scala) {
-    const stazione = el('g', { transform: `translate(${x} ${y}) scale(${scala})` }, mondo);
+    const stazione = el('g', {
+        class: 'stazione', role: 'button', tabindex: 0, 'aria-label': 'Entra in stazione', 'data-x': x,
+        transform: `translate(${x} ${y}) scale(${scala})`
+    }, mondo);
+    el('ellipse', { class: 'alone-stazione', cx: 0, cy: -70, rx: 200, ry: 140, fill: 'url(#alone)' }, stazione);
     el('rect', { x: -110, y: -8, width: 220, height: 12, fill: '#9aa0b5' }, stazione);
     el('rect', { x: -90, y: -96, width: 180, height: 90, fill: '#b5652f' }, stazione);
     el('rect', { x: -90, y: -96, width: 180, height: 90, fill: 'url(#tex-mattoni)' }, stazione);
@@ -320,6 +324,11 @@ function disegnaStazione(mondo, x, y, scala) {
     el('path', { d: 'M-130 -96 L0 -150 L130 -96 Z', fill: 'url(#tex-tegole)' }, stazione);
     el('path', { d: 'M-136 -94 L0 -153 L136 -94', fill: 'none', stroke: '#fbfdff', 'stroke-width': 10, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, stazione);
     ghiaccioli(stazione, -128, -93, 128, -93, 9);
+    // Cartello che invita a entrare, visibile quando il treno è arrivato
+    const cartello = el('g', { transform: 'translate(0 -200)' }, el('g', { class: 'cartello-entra' }, stazione));
+    el('rect', { x: -86, y: -24, width: 172, height: 40, rx: 20, fill: '#c0392b', stroke: '#ffd36b', 'stroke-width': 3 }, cartello);
+    el('text', { x: 0, y: 3, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 'bold', fill: '#fff', 'font-family': 'Georgia, serif' }, cartello).textContent = 'Entra! Si parte';
+    el('path', { d: 'M-10 16 l10 14 10 -14 Z', fill: '#c0392b' }, cartello);
     // Insegna e orologio
     el('rect', { x: -58, y: -122, width: 116, height: 24, rx: 4, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 2 }, stazione);
     el('text', { x: 0, y: -105, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 'bold', 'letter-spacing': 2, fill: '#9b1d2a', 'font-family': 'Georgia, serif' }, stazione).textContent = 'STAZIONE';
@@ -469,11 +478,11 @@ function ghiaccioli(corpo, x1, y1, x2, y2, quanti) {
     }
 }
 
-function disegnaCasa(mondo, giorno, x, y, scala, tipo) {
-    const colori = COLORI[(giorno * 5) % COLORI.length];
-    const materiale = tipo === 'torre' ? 'mattoni' : MATERIALI[(giorno * 3) % MATERIALI.length];
-    const w = 92 + caso() * 22;
-    const h = tipo === 'torre' ? 150 : 70 + caso() * 30;
+function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
+    const colori = speciale.colori ?? COLORI[(giorno * 5) % COLORI.length];
+    const materiale = speciale.materiale ?? (tipo === 'torre' ? 'mattoni' : MATERIALI[(giorno * 3) % MATERIALI.length]);
+    const w = speciale.w ?? 92 + caso() * 22;
+    const h = speciale.h ?? (tipo === 'torre' ? 150 : 70 + caso() * 30);
     const d = 34;
     const dy = d * 0.5;
     // Alcune case mostrano il fianco sinistro, come se fossero girate
@@ -623,10 +632,8 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo) {
 }
 
 function disegnaAlbero(mondo, x, y, scala) {
-    const albero = el('g', {
-        class: 'casa albero', 'data-giorno': 24, 'data-x': x, tabindex: 0, role: 'button',
-        'aria-label': '24 dicembre', transform: `translate(${x} ${y}) scale(${scala})`
-    }, mondo);
+    // L'albero della piazza è sempre acceso: il 24 è la casa di Babbo Natale, qui accanto
+    const albero = el('g', { class: 'albero aperta', transform: `translate(${x} ${y}) scale(${scala})` }, mondo);
     el('ellipse', { class: 'alone', cx: 0, cy: -140, rx: 170, ry: 200, fill: 'url(#alone)' }, albero);
     const corpo = el('g', { class: 'corpo' }, albero);
     el('rect', { x: -14, y: -30, width: 28, height: 32, fill: '#5d4037' }, corpo);
@@ -641,9 +648,33 @@ function disegnaAlbero(mondo, x, y, scala) {
         el('circle', { class: 'lucina', cx: (caso() * 2 - 1) * meta, cy: yy, r: 5 }, corpo);
     }
     el('path', { class: 'puntale', d: 'M0 -280 l9 18 20 3 -15 13 4 20 -18 -10 -18 10 4 -20 -15 -13 20 -3 Z' }, corpo);
-    el('circle', { class: 'targa', cx: 0, cy: -205, r: 17, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 2.5 }, corpo);
-    el('text', { class: 'targa-testo', x: 0, y: -199, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold', fill: '#b22222' }, corpo).textContent = 24;
     return albero;
+}
+
+// La casa di Babbo Natale: più grande, rossa con il tetto verde, il cartello, i bastoncini e il sacco dei regali
+function disegnaCasaBabbo(mondo, x, y, scala) {
+    const casa = disegnaCasa(mondo, 24, x, y, scala, 'punta', { w: 150, h: 104, colori: { muro: '#c0392b', tetto: '#2e5b3f' }, materiale: 'intonaco' });
+    casa.setAttribute('aria-label', '24 dicembre, la casa di Babbo Natale');
+    const corpo = casa.querySelector('.corpo');
+    const targa = [...corpo.querySelectorAll('.targa, .targa-testo')];
+    // Bastoncini di zucchero ai lati della porta
+    [-34, 34].forEach(px => {
+        el('path', { d: `M${px} 0 V-46 a7 7 0 0 ${px < 0 ? 0 : 1} ${px < 0 ? -14 : 14} 0`, fill: 'none', stroke: '#fbfdff', 'stroke-width': 6, 'stroke-linecap': 'round' }, corpo);
+        el('path', { d: `M${px} 0 V-46 a7 7 0 0 ${px < 0 ? 0 : 1} ${px < 0 ? -14 : 14} 0`, fill: 'none', stroke: '#d63031', 'stroke-width': 6, 'stroke-dasharray': '5 5' }, corpo);
+    });
+    // Cartello di legno
+    el('path', { d: 'M-116 0 V-50 M-60 0 V-50', stroke: '#5d3a22', 'stroke-width': 5 }, corpo);
+    el('rect', { x: -134, y: -84, width: 92, height: 38, rx: 4, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 2 }, corpo);
+    el('text', { x: -88, y: -68, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#fffaf0', 'font-family': 'Georgia, serif' }, corpo).textContent = 'CASA DI';
+    el('text', { x: -88, y: -53, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#ffd36b', 'font-family': 'Georgia, serif' }, corpo).textContent = 'BABBO NATALE';
+    el('path', { d: 'M-136 -84 q 46 -8 96 0', stroke: '#fbfdff', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, corpo);
+    // Sacco dei regali accanto alla porta
+    el('path', { d: 'M70 2 q -30 0 -24 -34 q 4 -16 24 -20 q 20 4 24 20 q 6 34 -24 34 Z', fill: '#a0663a' }, corpo);
+    el('path', { d: 'M58 -50 q 12 -8 24 0', stroke: '#c0392b', 'stroke-width': 4, fill: 'none' }, corpo);
+    [[60, -56, '#2e7d5b'], [74, -60, '#f4d03f'], [86, -54, '#3a5ba0']].forEach(([cx, cy, c]) => el('rect', { x: cx - 7, y: cy - 7, width: 14, height: 12, fill: c }, corpo));
+    // La targa con il 24 torna in primo piano
+    corpo.append(...targa);
+    return casa;
 }
 
 // Altezza della strada in ogni punto, per mettere le case ai suoi lati
@@ -665,13 +696,13 @@ function disegnaPaese(mondo) {
     DAVANTI.forEach((x, i) => elementi.push({ x, y: yStrada(x) + 88 + caso() * 18, tipo: 'casa', forma: TIPI_DAVANTI[i % TIPI_DAVANTI.length] }));
     // Da sinistra a destra: 1, 2, 3...
     [...elementi].sort((a, b) => a.x - b.x).forEach((elemento, i) => { elemento.giorno = i + 1; });
-    elementi.push({ x: PIAZZA.x, y: PIAZZA.y, tipo: 'albero' });
+    elementi.push({ x: PIAZZA.x - 70, y: PIAZZA.y, tipo: 'albero' }, { x: PIAZZA.x + 100, y: PIAZZA.y - 18, tipo: 'casaBabbo' });
 
     // Lampioni lungo la strada, pupazzi e qualche abete
     for (let x = 250; x < MONDO; x += 420) {
         if (Math.abs(x - PIAZZA.x) > 260) elementi.push({ x, y: yStrada(x) + 44, tipo: 'lampione' });
     }
-    elementi.push({ x: PIAZZA.x - 170, y: PIAZZA.y + 30, tipo: 'pupazzo' }, { x: 920, y: 640, tipo: 'pupazzo' });
+    elementi.push({ x: PIAZZA.x - 210, y: PIAZZA.y + 30, tipo: 'pupazzo' }, { x: 920, y: 640, tipo: 'pupazzo' });
     [[60, 640], [880, 600], [1680, 610], [2760, 600], [3000, 650], [3600, 640], [450, 880], [1880, 880], [2780, 885], [3300, 890]]
         .forEach(([x, y]) => elementi.push({ x, y, tipo: 'abete' }));
     elementi.push({ x: STAZIONE.x, y: STAZIONE.y, tipo: 'stazione' }, { x: 0, y: BINARI_Y, tipo: 'treno' });
@@ -696,6 +727,7 @@ function disegnaPaese(mondo) {
         const scala = scalaPer(y);
         if (tipo === 'casa') disegnaCasa(mondo, giorno, x, y, scala, forma);
         else if (tipo === 'albero') disegnaAlbero(mondo, x, y, scala * 1.15);
+        else if (tipo === 'casaBabbo') disegnaCasaBabbo(mondo, x, y, scala * 1.3);
         else if (tipo === 'lampione') disegnaLampione(mondo, x, y, scala);
         else if (tipo === 'pupazzo') disegnaPupazzo(mondo, x, y, scala);
         else if (tipo === 'stazione') disegnaStazione(mondo, x, y, 0.62);
@@ -1196,6 +1228,335 @@ function creaTavolino(genitore) {
     };
 }
 
+// ========== LA SALA D'ATTESA DELLA STAZIONE ==========
+// Si entra cliccando la stazione: c'è il benvenuto e si parte per il viaggio
+
+const BENVENUTO = [
+    'Qua inizia il vostro viaggio:',
+    'in ogni casa troverete dolci natalizi',
+    'e regali, fino ad arrivare',
+    'alla casa di Babbo Natale.',
+    'Siete pronti a iniziare',
+    'questo meraviglioso viaggio?'
+];
+
+function creaSala({ onParti }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
+    const parti = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: 'Sì, partiamo! 🚂' });
+    nodo.append(svg, parti);
+    parti.addEventListener('click', onParti);
+
+    const defs = el('defs', {}, svg);
+    const vetro = el('clipPath', { id: 'vetro-sala' }, defs);
+    el('path', { d: 'M1186 440 V250 q 0 -80 92 -80 q 92 0 92 80 V440 Z' }, vetro);
+    const ombra = el('radialGradient', { id: 'vignetta-sala', gradientUnits: 'userSpaceOnUse', cx: 800, cy: 470, r: 1000 }, defs);
+    el('stop', { offset: '55%', 'stop-color': '#000', 'stop-opacity': 0 }, ombra);
+    el('stop', { offset: '100%', 'stop-color': '#000', 'stop-opacity': 0.6 }, ombra);
+
+    // Stanza in prospettiva, come il salotto, con i colori di una stazione d'altri tempi
+    const FONDO = { x1: 220, x2: 1380, y1: 70, y2: 560 };
+    const fuga = (x, y, k = 5) => [800 + (x - 800) * k, 330 + (y - 330) * k];
+    const poligono = (punti, attributi) => el('path', { d: 'M' + punti.map(p => p.map(n => n.toFixed(1)).join(' ')).join(' L') + ' Z', ...attributi }, svg);
+    poligono([[FONDO.x1, FONDO.y1], [FONDO.x2, FONDO.y1], fuga(FONDO.x2, FONDO.y1), fuga(FONDO.x1, FONDO.y1)], { fill: '#3b2416' });
+    [[FONDO.x1, '#24473d'], [FONDO.x2, '#2b5347']].forEach(([bx, colore]) => {
+        poligono([[bx, FONDO.y1], [bx, FONDO.y2], fuga(bx, FONDO.y2), fuga(bx, FONDO.y1)], { fill: colore });
+        poligono([[bx, 440], [bx, FONDO.y2], fuga(bx, FONDO.y2), fuga(bx, 440)], { fill: '#5d3a22' });
+    });
+    el('rect', { x: FONDO.x1, y: FONDO.y1, width: FONDO.x2 - FONDO.x1, height: FONDO.y2 - FONDO.y1, fill: '#2f5d50' }, svg);
+    el('rect', { x: FONDO.x1, y: 440, width: FONDO.x2 - FONDO.x1, height: 120, fill: '#5d3a22' }, svg);
+    el('rect', { x: FONDO.x1, y: 434, width: FONDO.x2 - FONDO.x1, height: 8, fill: '#8a5a3c' }, svg);
+    // Pavimento a piastrelle
+    poligono([[FONDO.x1, FONDO.y2], [FONDO.x2, FONDO.y2], fuga(FONDO.x2, FONDO.y2), fuga(FONDO.x1, FONDO.y2)], { fill: '#d9ccb2' });
+    for (let bx = FONDO.x1; bx <= FONDO.x2; bx += 58) {
+        const [fx, fy] = fuga(bx, FONDO.y2);
+        el('path', { d: `M${bx} ${FONDO.y2} L${fx.toFixed(1)} ${fy.toFixed(1)}`, stroke: '#b8a989', 'stroke-width': 2 }, svg);
+    }
+    [592, 634, 690, 762, 856, 980].forEach(y => {
+        const k = (y - 330) / (FONDO.y2 - 330);
+        el('path', { d: `M${fuga(FONDO.x1, FONDO.y2, k)[0].toFixed(1)} ${y} H${fuga(FONDO.x2, FONDO.y2, k)[0].toFixed(1)}`, stroke: '#b8a989', 'stroke-width': 2 }, svg);
+    });
+
+    // Lampade appese al soffitto
+    [520, 800, 1080].forEach(x => {
+        el('path', { d: `M${x} 62 V128`, stroke: '#1a1a1a', 'stroke-width': 3 }, svg);
+        el('circle', { class: 'luce-calda', cx: x, cy: 160, r: 90, fill: 'url(#alone)', opacity: 0.55 }, svg);
+        el('path', { d: `M${x - 26} 150 q 26 -28 52 0 Z`, fill: '#2c2f45' }, svg);
+        el('ellipse', { cx: x, cy: 152, rx: 12, ry: 6, fill: '#fff3b0', filter: 'url(#bagliore)' }, svg);
+    });
+
+    // Biglietteria
+    el('rect', { x: 236, y: 230, width: 210, height: 330, fill: '#6d4630' }, svg);
+    el('rect', { x: 236, y: 230, width: 210, height: 330, fill: 'url(#tex-assi)' }, svg);
+    el('rect', { x: 226, y: 220, width: 230, height: 14, fill: '#4a2c1c' }, svg);
+    el('rect', { x: 260, y: 186, width: 162, height: 34, rx: 4, fill: '#1f3d33', stroke: '#c9a227', 'stroke-width': 3 }, svg);
+    el('text', { x: 341, y: 210, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 'bold', 'letter-spacing': 3, fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, svg).textContent = 'BIGLIETTI';
+    el('path', { d: 'M262 400 V300 q 0 -40 40 -40 h78 q 40 0 40 40 V400 Z', fill: 'url(#vetro-acceso)' }, svg);
+    el('path', { d: 'M341 260 V400', stroke: '#4a2c1c', 'stroke-width': 4 }, svg);
+    el('rect', { x: 248, y: 400, width: 186, height: 16, fill: '#8a5a3c' }, svg);
+    el('rect', { x: 296, y: 380, width: 30, height: 20, fill: '#fbf6ea' }, svg);
+
+    // Orologio della stazione
+    el('circle', { cx: 800, cy: 112, r: 36, fill: '#fdf6dc', stroke: '#2c2f45', 'stroke-width': 6 }, svg);
+    for (let ora = 0; ora < 12; ora++) {
+        const a = (ora / 12) * Math.PI * 2;
+        el('path', { d: `M${800 + Math.sin(a) * 28} ${112 - Math.cos(a) * 28} L${800 + Math.sin(a) * 23} ${112 - Math.cos(a) * 23}`, stroke: '#2c2f45', 'stroke-width': 2 }, svg);
+    }
+    el('path', { d: 'M800 112 V92 M800 112 L814 118', stroke: '#1a1a1a', 'stroke-width': 3, 'stroke-linecap': 'round' }, svg);
+
+    // Il cartellone con il benvenuto
+    el('rect', { x: 488, y: 162, width: 624, height: 362, rx: 10, fill: '#c9a227' }, svg);
+    el('rect', { x: 502, y: 176, width: 596, height: 334, rx: 6, fill: '#1f3d33' }, svg);
+    el('path', { d: 'M488 170 q 78 40 156 0 q 78 40 156 0 q 78 40 156 0 q 78 40 156 0', fill: 'none', stroke: '#2e6b3f', 'stroke-width': 14, 'stroke-linecap': 'round' }, svg);
+    for (let i = 0; i < 9; i++) el('circle', { class: 'pallina', cx: 505 + i * 74, cy: 178 + (i % 2) * 10, r: 6, fill: ['#e74c3c', '#f4d03f', '#5dade2'][i % 3], style: `animation-delay:${(i * 0.2).toFixed(1)}s` }, svg);
+    el('text', { x: 800, y: 244, 'text-anchor': 'middle', 'font-size': 42, 'font-style': 'italic', 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffd36b' }, svg).textContent = 'Benvenuti nel nostro villaggio!';
+    BENVENUTO.forEach((riga, i) => {
+        el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, svg).textContent = riga;
+    });
+
+    // Finestra ad arco con il treno fermo fuori e la neve
+    el('path', { d: 'M1174 450 V250 q 0 -92 104 -92 q 104 0 104 92 V450 Z', fill: '#efe6d2' }, svg);
+    const fuori = el('g', { 'clip-path': 'url(#vetro-sala)' }, svg);
+    el('rect', { x: 1180, y: 160, width: 200, height: 290, fill: '#16245c' }, fuori);
+    el('circle', { cx: 1330, cy: 220, r: 16, fill: '#fdf6d8' }, fuori);
+    el('rect', { x: 1180, y: 400, width: 200, height: 50, fill: '#eef3ff' }, fuori);
+    el('rect', { x: 1190, y: 360, width: 70, height: 34, rx: 4, fill: '#2e6b4a' }, fuori);
+    el('rect', { x: 1268, y: 352, width: 80, height: 42, rx: 5, fill: '#c0392b' }, fuori);
+    el('rect', { x: 1322, y: 330, width: 18, height: 24, fill: '#141414' }, fuori);
+    [1204, 1240, 1284, 1328].forEach(x => el('circle', { cx: x, cy: 398, r: 8, fill: '#1c1c1c' }, fuori));
+    [1200, 1214, 1232, 1280, 1298].forEach(x => el('rect', { x, y: 368, width: 10, height: 10, fill: '#ffd36b' }, fuori));
+    for (let i = 0; i < 16; i++) el('circle', { class: 'fiocco-finestra', cx: 1186 + caso() * 190, cy: 160, r: 1.5 + caso() * 2, fill: '#fff', style: `animation-delay:-${(caso() * 6).toFixed(2)}s;animation-duration:${(4 + caso() * 3).toFixed(1)}s` }, fuori);
+    el('path', { d: 'M1278 160 V450 M1182 320 H1374', stroke: '#efe6d2', 'stroke-width': 8 }, svg);
+
+    // Stufa accesa nell'angolo, con il tubo
+    el('path', { d: 'M1500 640 V80', stroke: '#2c2c2c', 'stroke-width': 18 }, svg);
+    el('ellipse', { class: 'luce-calda', cx: 1490, cy: 700, rx: 200, ry: 90, fill: 'url(#luce-camino)' }, svg);
+    el('rect', { x: 1446, y: 620, width: 100, height: 120, rx: 30, fill: '#2c2c2c' }, svg);
+    el('rect', { x: 1470, y: 664, width: 52, height: 34, rx: 8, fill: '#ff8c32', filter: 'url(#bagliore)' }, svg);
+    el('path', { d: 'M1452 740 v18 M1540 740 v18', stroke: '#1a1a1a', 'stroke-width': 8 }, svg);
+
+    // Panche di legno, una valigia e un sacco di regali
+    const panca = x => {
+        const p = el('g', { transform: `translate(${x} 800)` }, svg);
+        el('ellipse', { cx: 0, cy: 6, rx: 150, ry: 12, fill: 'rgba(0,0,0,0.25)' }, p);
+        el('path', { d: 'M-120 0 v-60 M120 0 v-60 M-110 -60 v-70 M110 -60 v-70', stroke: '#2c2c2c', 'stroke-width': 8 }, p);
+        [-64, -50].forEach(y => el('rect', { x: -136, y, width: 272, height: 12, rx: 4, fill: '#8a5a3c' }, p));
+        [-130, -112, -94].forEach(y => el('rect', { x: -126, y, width: 252, height: 12, rx: 4, fill: '#a0663a' }, p));
+    };
+    panca(420);
+    panca(1180);
+    el('rect', { x: 560, y: 740, width: 80, height: 58, rx: 8, fill: '#7a4b2e' }, svg);
+    el('path', { d: 'M580 740 v-12 h40 v12 M560 760 h80', stroke: '#4a2c1c', 'stroke-width': 4, fill: 'none' }, svg);
+    el('path', { d: 'M1000 800 q -36 0 -30 -50 q 6 -30 30 -36 q 24 6 30 36 q 6 50 -30 50 Z', fill: '#a0663a' }, svg);
+    el('path', { d: 'M988 716 q 12 -10 24 0', stroke: '#c0392b', 'stroke-width': 5, fill: 'none' }, svg);
+    [[984, 712, '#e74c3c'], [1000, 704, '#2e7d5b'], [1016, 712, '#f4d03f']].forEach(([x, y, c]) => el('rect', { x: x - 8, y: y - 8, width: 16, height: 14, fill: c }, svg));
+
+    el('rect', { x: -2200, y: -1000, width: 6000, height: 2600, fill: 'url(#vignetta-sala)', 'pointer-events': 'none' }, svg);
+
+    return {
+        nodo,
+        mostra() {
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                parti.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
+}
+
+// ========== I PERSONAGGI SULLA POLTRONA ==========
+// Ogni giorno sulla poltrona del salotto siede un personaggio del Natale, con una frase
+
+const FRASI = [
+    ['babbo', 'Ho, ho, ho! Benvenuti! Da oggi ogni giorno si apre una casa: siete pronti?'],
+    ['elfo', 'Shh! Sto finendo di incartare i regali… ne ho fatti mille e uno!'],
+    ['pupazzo', 'Brrr, che bel freddo! Qui dentro però si sta proprio bene.'],
+    ['mamma', 'Ho sfornato i biscotti: prendetene uno, ma solo uno!'],
+    ['renna', 'Mi sto allenando a volare: domani provo a fare il giro del villaggio!'],
+    ['zenzero', 'Non mangiatemi! Sono qui solo per farvi gli auguri.'],
+    ['angelo', 'Ogni gesto gentile accende una stella nel cielo.'],
+    ['befana', 'Sono arrivata un po\' in anticipo… volevo vedere il villaggio!'],
+    ['elfo', 'Il laboratorio di Babbo Natale è pieno di giocattoli. Che confusione!'],
+    ['pupazzo', 'Mi hanno messo una carota per naso. Vi piace?'],
+    ['mamma', 'Stasera cioccolata calda per tutti, con la panna!'],
+    ['renna', 'Sapete che dall\'alto riconosco ogni camino del mondo?'],
+    ['angelo', 'Oggi è Santa Lucia: porta luce e dolcetti, tenete gli occhi aperti!'],
+    ['zenzero', 'Ho le scarpe di glassa nuove. Guardate come brillano!'],
+    ['befana', 'La mia scopa è velocissima, ma la slitta di Babbo Natale di più!'],
+    ['elfo', 'Chi ha scritto la letterina a Babbo Natale? La porto io, di corsa!'],
+    ['mamma', 'Babbo Natale russa come un trenino… ma non ditelo a nessuno!'],
+    ['pupazzo', 'Se nevica ancora, domani avrò un fratellino!'],
+    ['renna', 'Il mio naso si accende quando sono felice. Oggi è acceso!'],
+    ['zenzero', 'Mancano pochi giorni a Natale: avete già fatto l\'albero?'],
+    ['angelo', 'È la notte più lunga dell\'anno: guardate quante stelle!'],
+    ['befana', 'Ho riempito le calze… di carbone dolce, naturalmente!'],
+    ['elfo', 'Domani è la vigilia! Le renne sono già pronte a partire.'],
+    ['babbo', 'Buona vigilia! Grazie per aver viaggiato con noi. Buon Natale a tutti!']
+];
+
+const NOMI_PERSONAGGI = {
+    babbo: 'Babbo Natale', mamma: 'Mamma Natale', elfo: "L'elfo", befana: 'La Befana',
+    pupazzo: 'Il pupazzo di neve', renna: 'La renna', angelo: "L'angioletto", zenzero: "L'omino di pan di zenzero"
+};
+
+// Disegna il personaggio seduto: il sedile della poltrona è all'altezza y = -78
+function disegnaPersonaggio(g, tipo) {
+    const pelle = '#f6c9a8';
+    const forma = (d, fill, extra = {}) => el('path', { d, fill, ...extra }, g);
+    const tondo = (cx, cy, r, fill, extra = {}) => el('circle', { cx, cy, r, fill, ...extra }, g);
+    const viso = (y = -192, occhi = '#3b2412') => {
+        tondo(-8, y - 2, 2.6, occhi);
+        tondo(8, y - 2, 2.6, occhi);
+        tondo(-13, y + 7, 4, '#f4a0a0', { opacity: 0.6 });
+        tondo(13, y + 7, 4, '#f4a0a0', { opacity: 0.6 });
+        forma(`M-6 ${y + 9} q 6 6 12 0`, 'none', { stroke: '#7a3c12', 'stroke-width': 2, 'stroke-linecap': 'round' });
+    };
+    const seduto = (abito, gambe, scarpe) => {
+        forma('M-26 -84 h20 v52 h-20 Z M6 -84 h20 v52 h-20 Z', gambe);
+        el('ellipse', { cx: -16, cy: -30, rx: 14, ry: 8, fill: scarpe }, g);
+        el('ellipse', { cx: 16, cy: -30, rx: 14, ry: 8, fill: scarpe }, g);
+        forma('M-38 -80 q -6 -52 12 -92 h52 q 18 40 12 92 Z', abito);
+        forma('M-34 -160 q -18 34 -6 72 M34 -160 q 18 34 6 72', 'none', { stroke: abito, 'stroke-width': 15, 'stroke-linecap': 'round' });
+    };
+
+    switch (tipo) {
+        case 'babbo':
+            seduto('#c0392b', '#c0392b', '#1a1a1a');
+            forma('M-4 -172 h8 v92 h-8 Z', '#fbfdff');
+            el('rect', { x: -38, y: -118, width: 76, height: 10, fill: '#1a1a1a' }, g);
+            el('rect', { x: -8, y: -120, width: 16, height: 14, fill: 'none', stroke: '#e2b93b', 'stroke-width': 3 }, g);
+            tondo(-40, -88, 8, '#fbfdff'); tondo(40, -88, 8, '#fbfdff');
+            tondo(0, -194, 24, pelle);
+            forma('M-24 -192 q -4 40 24 48 q 28 -8 24 -48 q -10 14 -24 12 q -14 2 -24 -12 Z', '#fbfdff');
+            viso(-198);
+            forma('M-14 -184 q 7 -6 14 0 q 7 -6 14 0 q -7 8 -14 2 q -7 6 -14 -2 Z', '#fbfdff');
+            forma('M-26 -210 Q 0 -250 26 -210 Z', '#c0392b');
+            forma('M18 -232 q 16 4 16 22', 'none', { stroke: '#c0392b', 'stroke-width': 9, 'stroke-linecap': 'round' });
+            tondo(34, -206, 7, '#fbfdff');
+            el('rect', { x: -28, y: -214, width: 56, height: 10, rx: 5, fill: '#fbfdff' }, g);
+            break;
+        case 'mamma':
+            seduto('#b03030', '#f3e6d6', '#5d3a22');
+            forma('M-24 -150 h48 l6 70 h-60 Z', '#fbf6ea');
+            forma('M-24 -150 q 24 10 48 0', 'none', { stroke: '#d63031', 'stroke-width': 3 });
+            tondo(0, -194, 24, pelle);
+            forma('M-26 -196 q 2 -30 26 -30 q 24 0 26 30 q -10 -14 -26 -14 q -16 0 -26 14 Z', '#eeeeee');
+            tondo(0, -226, 10, '#eeeeee');
+            viso(-194);
+            el('circle', { cx: -9, cy: -196, r: 7, fill: 'none', stroke: '#8a6d1d', 'stroke-width': 1.6 }, g);
+            el('circle', { cx: 9, cy: -196, r: 7, fill: 'none', stroke: '#8a6d1d', 'stroke-width': 1.6 }, g);
+            tondo(-40, -88, 8, pelle); tondo(40, -88, 8, pelle);
+            break;
+        case 'elfo':
+            seduto('#2e7d5b', '#fbfdff', '#7a3c12');
+            forma('M-26 -74 h20 M-26 -60 h20 M-26 -46 h20 M6 -74 h20 M6 -60 h20 M6 -46 h20', 'none', { stroke: '#d63031', 'stroke-width': 6 });
+            forma('M-30 -170 l8 10 8 -10 8 10 8 -10 8 10 8 -10 8 10 v-6 h-56 Z', '#d63031');
+            tondo(0, -194, 22, pelle);
+            forma('M-22 -196 l-16 -14 10 20 Z M22 -196 l16 -14 -10 20 Z', pelle);
+            viso(-194);
+            forma('M-24 -208 L10 -262 L26 -208 Z', '#2e7d5b');
+            tondo(10, -264, 6, '#e2b93b');
+            tondo(-40, -88, 7, pelle); tondo(40, -88, 7, pelle);
+            break;
+        case 'befana':
+            forma('M40 -40 L70 -250', 'none', { stroke: '#7a4b2e', 'stroke-width': 6 });
+            forma('M56 -40 l14 -40 14 40 Z', '#c9a46a');
+            seduto('#3d3a4a', '#3d3a4a', '#1a1a1a');
+            forma('M-30 -170 q 30 30 60 0 l8 40 q -38 20 -76 0 Z', '#7a3c8a');
+            el('rect', { x: -26, y: -130, width: 14, height: 12, fill: '#c0392b' }, g);
+            el('rect', { x: 10, y: -110, width: 14, height: 12, fill: '#2e7d5b' }, g);
+            tondo(0, -194, 23, '#efc8a4');
+            viso(-196);
+            forma('M-2 -194 q 8 8 2 16 q -4 -2 -2 -16 Z', '#e0b08c');
+            forma('M-28 -192 q 0 -42 28 -42 q 28 0 28 42 q -6 -24 -28 -26 q -22 2 -28 26 Z', '#5a2d6b');
+            forma('M-26 -176 l-8 22 8 -4 Z M26 -176 l8 22 -8 -4 Z', '#5a2d6b');
+            tondo(-40, -88, 7, '#efc8a4'); tondo(40, -88, 7, '#efc8a4');
+            break;
+        case 'pupazzo':
+            tondo(0, -110, 44, '#fbfdff', { stroke: '#cdd8ee', 'stroke-width': 2 });
+            tondo(0, -186, 28, '#fbfdff', { stroke: '#cdd8ee', 'stroke-width': 2 });
+            [-124, -104].forEach(y => tondo(0, y, 4, '#222'));
+            tondo(-9, -192, 3, '#222'); tondo(9, -192, 3, '#222');
+            forma('M0 -186 l 20 4 -20 4 Z', '#f39c12');
+            forma('M-8 -174 q 8 5 16 0', 'none', { stroke: '#222', 'stroke-width': 2, 'stroke-dasharray': '1 3', 'stroke-linecap': 'round' });
+            forma('M-26 -164 q 26 12 52 0 l 4 10 q -30 12 -60 0 Z M14 -158 l 6 34 -10 2 -4 -30', '#c0392b');
+            el('rect', { x: -22, y: -238, width: 44, height: 28, fill: '#222' }, g);
+            el('rect', { x: -32, y: -214, width: 64, height: 7, fill: '#222' }, g);
+            forma('M-42 -120 l -24 -24 M-56 -134 l -6 -10 M42 -120 l 24 -24 M56 -134 l 6 -10', 'none', { stroke: '#6b4a32', 'stroke-width': 4, 'stroke-linecap': 'round' });
+            break;
+        case 'renna':
+            seduto('#8a5a3c', '#7a5236', '#2a1d14');
+            forma('M-20 -150 q 20 20 40 0 v60 q -20 10 -40 0 Z', '#c8a27a');
+            el('ellipse', { cx: 0, cy: -194, rx: 22, ry: 26, fill: '#8a5a3c' }, g);
+            el('ellipse', { cx: 0, cy: -178, rx: 13, ry: 10, fill: '#c8a27a' }, g);
+            tondo(0, -182, 6, '#e74c3c', { filter: 'url(#bagliore)' });
+            tondo(-9, -200, 2.6, '#1a1a1a'); tondo(9, -200, 2.6, '#1a1a1a');
+            forma('M-20 -206 l-14 -8 6 12 Z M20 -206 l14 -8 -6 12 Z', '#6b4a32');
+            forma('M-10 -216 q -16 -20 -10 -44 M-18 -240 l -12 -6 M-14 -252 l -6 -12 M10 -216 q 16 -20 10 -44 M18 -240 l 12 -6 M14 -252 l 6 -12', 'none', { stroke: '#d8c3a0', 'stroke-width': 5, 'stroke-linecap': 'round' });
+            forma('M-24 -168 q 24 12 48 0 l 2 8 q -26 12 -52 0 Z', '#2e7d5b');
+            break;
+        case 'angelo':
+            el('ellipse', { cx: -44, cy: -150, rx: 30, ry: 18, fill: '#fbfdff', stroke: '#e3d5b8', transform: 'rotate(-30 -44 -150)' }, g);
+            el('ellipse', { cx: 44, cy: -150, rx: 30, ry: 18, fill: '#fbfdff', stroke: '#e3d5b8', transform: 'rotate(30 44 -150)' }, g);
+            seduto('#fbfdff', '#fbf6ea', '#e2b93b');
+            forma('M-38 -80 h76', 'none', { stroke: '#e2b93b', 'stroke-width': 4 });
+            tondo(0, -194, 23, pelle);
+            forma('M-24 -196 q -4 -30 24 -30 q 28 0 24 30 q -6 -14 -12 -10 q -6 -10 -12 -4 q -6 -10 -12 0 q -6 -6 -12 14 Z', '#f4d03f');
+            viso(-192);
+            el('ellipse', { cx: 0, cy: -234, rx: 20, ry: 5, fill: 'none', stroke: '#e2b93b', 'stroke-width': 4 }, g);
+            tondo(-40, -88, 7, pelle); tondo(40, -88, 7, pelle);
+            break;
+        case 'zenzero':
+            forma('M-26 -84 h20 v52 h-20 Z M6 -84 h20 v52 h-20 Z', '#b5652f');
+            forma('M-38 -80 q -6 -52 12 -92 h52 q 18 40 12 92 Z', '#b5652f');
+            forma('M-34 -160 q -18 34 -6 72 M34 -160 q 18 34 6 72', 'none', { stroke: '#b5652f', 'stroke-width': 15, 'stroke-linecap': 'round' });
+            forma('M-30 -40 q 4 -4 8 0 q 4 -4 8 0 M10 -40 q 4 -4 8 0 q 4 -4 8 0 M-44 -96 q 4 -4 8 0 M36 -96 q 4 -4 8 0', 'none', { stroke: '#fbfdff', 'stroke-width': 2.5 });
+            [[0, -150, '#e74c3c'], [0, -128, '#2ecc71'], [0, -106, '#f4d03f']].forEach(([x, y, c]) => tondo(x, y, 5, c));
+            tondo(0, -194, 24, '#b5652f');
+            tondo(-8, -198, 3, '#fbfdff'); tondo(8, -198, 3, '#fbfdff');
+            forma('M-9 -186 q 9 8 18 0', 'none', { stroke: '#fbfdff', 'stroke-width': 2.5, 'stroke-linecap': 'round' });
+            forma('M-22 -212 q 22 -12 44 0', 'none', { stroke: '#fbfdff', 'stroke-width': 2.5, 'stroke-dasharray': '4 4' });
+            break;
+    }
+}
+
+// Il personaggio sulla poltrona e il suo fumetto. La frase va a capo da sola
+function creaPersonaggio(poltrona) {
+    const posto = el('g', { transform: 'translate(0 -78) scale(1.2) translate(0 78)' }, poltrona);
+    const fumetto = el('g', { class: 'fumetto' });
+    return {
+        posto,
+        mostra(giorno) {
+            const [tipo, frase] = FRASI[(giorno - 1) % FRASI.length];
+            posto.replaceChildren();
+            disegnaPersonaggio(posto, tipo);
+
+            const righe = [];
+            frase.split(' ').forEach(parola => {
+                const ultima = righe[righe.length - 1];
+                if (ultima && (ultima + ' ' + parola).length <= 21) righe[righe.length - 1] = ultima + ' ' + parola;
+                else righe.push(parola);
+            });
+            const altezza = 52 + righe.length * 29;
+            const sopra = 590 - altezza;
+            const [sinistra, destra, sotto] = [1318, 1596, 590];
+            // Il fumetto va sopra a tutto il resto della stanza
+            poltrona.ownerSVGElement.append(fumetto);
+            fumetto.replaceChildren();
+            el('path', { d: `M${sinistra + 12} ${sopra} H${destra - 12} q 12 0 12 12 V${sotto - 12} q 0 12 -12 12 H1500 l-36 34 8 -34 H${sinistra + 12} q -12 0 -12 -12 V${sopra + 12} q 0 -12 12 -12 Z`, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 3 }, fumetto);
+            el('text', { x: sinistra + 14, y: sopra + 26, 'font-size': 17, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#9b1d2a' }, fumetto).textContent = NOMI_PERSONAGGI[tipo];
+            righe.forEach((riga, i) => {
+                el('text', { x: sinistra + 14, y: sopra + 56 + i * 29, 'font-size': 23, 'font-family': 'Georgia, serif', fill: '#3b2a1a' }, fumetto).textContent = riga;
+            });
+        }
+    };
+}
+
 // ========== DENTRO LA CASA ==========
 
 // Colori del pacco regalo: carta e nastro cambiano da un giorno all'altro
@@ -1437,6 +1798,7 @@ function creaInterno({ onScarta, onEsci }) {
     el('path', { d: 'M-60 -200 v120 M0 -214 v134 M60 -200 v120', stroke: '#5c141b', 'stroke-width': 3, opacity: 0.6 }, poltrona);
     el('rect', { x: -112, y: -78, width: 224, height: 72, rx: 14, fill: '#8e2b2b' }, poltrona);
     el('rect', { x: -96, y: -92, width: 192, height: 30, rx: 14, fill: '#a33a3a' }, poltrona);
+    const personaggio = creaPersonaggio(poltrona);
     [-1, 1].forEach(verso => {
         el('rect', { x: verso > 0 ? 96 : -136, y: -128, width: 40, height: 122, rx: 18, fill: '#6f1b22' }, poltrona);
         el('rect', { x: verso > 0 ? 96 : -136, y: -128, width: 40, height: 122, rx: 18, fill: 'url(#cilindro)' }, poltrona);
@@ -1590,6 +1952,7 @@ function creaInterno({ onScarta, onEsci }) {
             data.textContent = `${giorno} dicembre`;
             tavolino.mostra(giorno);
             quadro.mostra(giorno);
+            personaggio.mostra(giorno);
             giornoMostrato = giorno;
             scartato = false;
             nodo.classList.remove('scartato');
@@ -1642,7 +2005,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         },
         onEsci: () => esciDallaCasa()
     });
-    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo);
+    const sala = creaSala({ onParti: () => parti() });
+    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo);
     avviaNeve(neve);
     const movimentoRidotto = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1817,6 +2181,26 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         }, 650);
     }
 
+    // Si entra in stazione come in una casa: la vista si avvicina alla porta
+    async function entraInStazione(stazione) {
+        if (inApertura) return;
+        inApertura = true;
+        seguiTreno = false;
+        onTocco();
+        stazione.classList.remove('invita');
+        await avvicinaA(stazione, 800);
+        sala.mostra();
+        inApertura = false;
+    }
+
+    // "Sì, partiamo!": si torna al villaggio, davanti alla casa di oggi (o alla prima)
+    function parti() {
+        sala.nascondi();
+        adattaVista();
+        const casa = mondo.querySelector(`.casa[data-giorno="${Math.max(1, Math.min(aperti, 24))}"]`);
+        centraSu(Number(casa?.dataset.x ?? PIAZZA.x));
+    }
+
     function esciDallaCasa() {
         interno.nascondi();
         adattaVista();
@@ -1825,6 +2209,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
     svg.addEventListener('click', evento => {
         if (trascinato) return;
+        const stazione = evento.target.closest('.stazione');
+        if (stazione) return entraInStazione(stazione);
         const renna = evento.target.closest('.renna');
         if (renna) return faiSaltare(renna);
         const casa = evento.target.closest('.casa');
@@ -1841,9 +2227,11 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     }
     svg.addEventListener('keydown', evento => {
         const casa = evento.target.closest('.casa');
-        if (casa && (evento.key === 'Enter' || evento.key === ' ')) {
+        const stazione = evento.target.closest('.stazione');
+        if ((casa || stazione) && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
-            apriCasa(casa);
+            if (stazione) entraInStazione(stazione);
+            else apriCasa(casa);
         }
     });
     aggiornaStato();
@@ -1887,11 +2275,9 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     async function viaggiDelTreno(segui) {
         seguiTreno = segui;
         await corsa(-350, STAZIONE.fermata, 11000, true);
-        if (seguiTreno) {
-            seguiTreno = false;
-            await pausa(900);
-            centraSu(partenzaVista);
-        }
+        // Il treno è arrivato: la stazione brilla e invita a entrare
+        mondo.querySelector('.stazione').classList.add('invita');
+        seguiTreno = false;
         while (contenitore.isConnected) {
             await pausa(12000);
             await corsa(STAZIONE.fermata, MONDO + 400, 14000, false);
@@ -1902,6 +2288,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
     if (movimentoRidotto) {
         centraSu(partenzaVista, false);
+        mondo.querySelector('.stazione').classList.add('invita');
     } else if (modifica) {
         // Chi prepara il calendario parte dalla piazza, senza il giro del treno
         centraSu(partenzaVista, false);
