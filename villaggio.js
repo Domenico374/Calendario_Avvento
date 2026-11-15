@@ -15,8 +15,10 @@ const STAZIONE = { x: 2010, y: 572, fermata: 1990 };
 // La strada principale: le case si dispongono ai suoi lati
 const STRADA = 'M-50 720 C 300 660, 600 780, 1000 720 S 1500 640, 1800 700 S 2300 780, 2700 710 S 3300 650, 3700 720';
 
-// Le case non sono in ordine, come nei calendari veri
-const ORDINE = [7, 18, 3, 12, 22, 17, 2, 1, 20, 5, 14, 23, 10, 15, 9, 8, 19, 6, 13, 21, 4, 11, 16];
+// Le case sono in ordine di giorno, da sinistra a destra lungo la strada: il 24 è l'albero in piazza.
+// Il tipo di casa dipende dalla fila: le torri, alte, stanno solo dietro per non coprire i numeri
+const TIPI_DIETRO = ['punta', 'torre', 'punta', 'piatto'];
+const TIPI_DAVANTI = ['punta', 'piatto', 'punta'];
 // Lato della strada: dietro (più lontane e piccole) o davanti
 const DIETRO = [180, 380, 1000, 1230, 1460, 2150, 2380, 2610, 3080, 3300, 3500];
 const DAVANTI = [120, 330, 560, 790, 1030, 1270, 1520, 2080, 2330, 2580, 3150, 3420];
@@ -467,9 +469,8 @@ function ghiaccioli(corpo, x1, y1, x2, y2, quanti) {
     }
 }
 
-function disegnaCasa(mondo, giorno, x, y, scala) {
+function disegnaCasa(mondo, giorno, x, y, scala, tipo) {
     const colori = COLORI[(giorno * 5) % COLORI.length];
-    const tipo = ['punta', 'punta', 'torre', 'piatto', 'punta'][giorno % 5];
     const materiale = tipo === 'torre' ? 'mattoni' : MATERIALI[(giorno * 3) % MATERIALI.length];
     const w = 92 + caso() * 22;
     const h = tipo === 'torre' ? 150 : 70 + caso() * 30;
@@ -660,9 +661,10 @@ function disegnaPaese(mondo) {
     const yStrada = profiloStrada(mondo);
 
     const elementi = [];
-    DIETRO.forEach(x => elementi.push({ x, y: yStrada(x) - 62 - caso() * 22, tipo: 'casa' }));
-    DAVANTI.forEach(x => elementi.push({ x, y: yStrada(x) + 88 + caso() * 18, tipo: 'casa' }));
-    elementi.forEach((elemento, i) => { elemento.giorno = ORDINE[i]; });
+    DIETRO.forEach((x, i) => elementi.push({ x, y: yStrada(x) - 62 - caso() * 22, tipo: 'casa', forma: TIPI_DIETRO[i % TIPI_DIETRO.length] }));
+    DAVANTI.forEach((x, i) => elementi.push({ x, y: yStrada(x) + 88 + caso() * 18, tipo: 'casa', forma: TIPI_DAVANTI[i % TIPI_DAVANTI.length] }));
+    // Da sinistra a destra: 1, 2, 3...
+    [...elementi].sort((a, b) => a.x - b.x).forEach((elemento, i) => { elemento.giorno = i + 1; });
     elementi.push({ x: PIAZZA.x, y: PIAZZA.y, tipo: 'albero' });
 
     // Lampioni lungo la strada, pupazzi e qualche abete
@@ -685,9 +687,9 @@ function disegnaPaese(mondo) {
     // Da dietro in avanti, così le cose vicine coprono quelle lontane
     elementi.sort((a, b) => a.y - b.y);
     for (const elemento of elementi) {
-        const { x, y, tipo, giorno } = elemento;
+        const { x, y, tipo, giorno, forma } = elemento;
         const scala = scalaPer(y);
-        if (tipo === 'casa') disegnaCasa(mondo, giorno, x, y, scala);
+        if (tipo === 'casa') disegnaCasa(mondo, giorno, x, y, scala, forma);
         else if (tipo === 'albero') disegnaAlbero(mondo, x, y, scala * 1.15);
         else if (tipo === 'lampione') disegnaLampione(mondo, x, y, scala);
         else if (tipo === 'pupazzo') disegnaPupazzo(mondo, x, y, scala);
