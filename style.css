@@ -1616,3 +1616,40 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     .scena .sciarpa-vento, .scena .braccio-avanti, .scena .braccio-dietro, .scena .gamba-spinta,
     .scena .fumo-mercato circle, .scena .lucina-mercato { animation: none; }
 }
+
+/* ---- Le bancarelle si possono aprire ---- */
+.scena .bancarella { cursor: pointer; transition: filter 0.3s; }
+.scena .bancarella:hover, .scena .bancarella:focus-visible { filter: brightness(1.15) drop-shadow(0 0 6px rgba(255, 210, 120, 0.9)); outline: none; }
+
+/* ---- Dentro la bancarella: la nonna che cucina ---- */
+.scena .bancone .fumetto-nonna { animation: fumetto-nonna 0.6s cubic-bezier(.2, 1.4, .4, 1) 0.5s both; transform-box: fill-box; transform-origin: 0% 100%; }
+@keyframes fumetto-nonna { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
+.scena .bancone .fiamma { transform-box: fill-box; transform-origin: 50% 100%; animation: fiamma 0.5s ease-in-out infinite alternate; }
+@keyframes fiamma { from { transform: scaleY(0.8) skewX(-4deg); } to { transform: scaleY(1.15) skewX(4deg); } }
+.scena .bancone .brace { animation: brace 1.1s ease-in-out infinite alternate; }
+@keyframes brace { from { opacity: 0.6; } to { opacity: 1; } }
+.scena .bancone .luce-fuoco { animation: brace 0.9s ease-in-out infinite alternate; }
+.scena .bancone .padella { transform-box: fill-box; transform-origin: 90% 50%; animation: scuoti-padella 0.9s ease-in-out infinite; }
+@keyframes scuoti-padella { 0%, 100% { transform: rotate(0deg) translateX(0); } 30% { transform: rotate(-2.5deg) translateX(-10px); } 60% { transform: rotate(1.5deg) translateX(6px); } }
+.scena .bancone .castagna { animation: salta-castagna 0.9s ease-in-out infinite; }
+@keyframes salta-castagna { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-26px); } 55% { transform: translateY(-4px); } }
+.scena .bancone .fumo-grande { transform-box: fill-box; transform-origin: center; animation: fumo-grande 3.3s ease-out infinite; opacity: 0; }
+@keyframes fumo-grande { 0% { opacity: 0; transform: translateY(0) scale(0.5); } 20% { opacity: 0.55; } 100% { opacity: 0; transform: translate(-230px, -230px) scale(2.2); } }
+.scena .bancone .scintilla { animation: scintilla 2.4s ease-out infinite; opacity: 0; }
+@keyframes scintilla { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(20px, -180px); } }
+.scena .bancone .vortice { transform-box: fill-box; transform-origin: center; animation: vortice 3s linear infinite; }
+@keyframes vortice { to { transform: rotate(360deg); } }
+.scena .bancone .mestolo { animation: mescola 2s linear infinite; }
+@keyframes mescola { 0% { transform: translate(-70px, 0); } 25% { transform: translate(0, 10px); } 50% { transform: translate(70px, 0); } 75% { transform: translate(0, -8px); } 100% { transform: translate(-70px, 0); } }
+.scena .bancone .bolla { transform-box: fill-box; transform-origin: center; animation: bolla 0.9s ease-out infinite; }
+@keyframes bolla { 0% { opacity: 0; transform: translateY(4px) scale(0.4); } 50% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px) scale(1.4); } }
+.scena .bancone .frittella { animation: frittella 1.6s ease-in-out infinite alternate; }
+@keyframes frittella { from { transform: translateY(2px) rotate(-3deg); } to { transform: translateY(-4px) rotate(3deg); } }
+.scena .bancone .zucchero { animation: zucchero 1.4s linear infinite; opacity: 0; }
+@keyframes zucchero { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(80px); } }
+@media (prefers-reduced-motion: reduce) {
+    .scena .bancone .fiamma, .scena .bancone .brace, .scena .bancone .luce-fuoco, .scena .bancone .padella,
+    .scena .bancone .castagna, .scena .bancone .vortice, .scena .bancone .mestolo, .scena .bancone .bolla,
+    .scena .bancone .frittella, .scena .bancone .fumetto-nonna { animation: none; }
+    .scena .bancone .fumo-grande, .scena .bancone .scintilla, .scena .bancone .zucchero { animation: none; opacity: 0.4; }
+}

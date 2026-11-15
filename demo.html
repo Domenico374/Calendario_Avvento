@@ -1027,6 +1027,43 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     .scena .fumo-mercato circle, .scena .lucina-mercato { animation: none; }
 }
 
+/* ---- Le bancarelle si possono aprire ---- */
+.scena .bancarella { cursor: pointer; transition: filter 0.3s; }
+.scena .bancarella:hover, .scena .bancarella:focus-visible { filter: brightness(1.15) drop-shadow(0 0 6px rgba(255, 210, 120, 0.9)); outline: none; }
+
+/* ---- Dentro la bancarella: la nonna che cucina ---- */
+.scena .bancone .fumetto-nonna { animation: fumetto-nonna 0.6s cubic-bezier(.2, 1.4, .4, 1) 0.5s both; transform-box: fill-box; transform-origin: 0% 100%; }
+@keyframes fumetto-nonna { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
+.scena .bancone .fiamma { transform-box: fill-box; transform-origin: 50% 100%; animation: fiamma 0.5s ease-in-out infinite alternate; }
+@keyframes fiamma { from { transform: scaleY(0.8) skewX(-4deg); } to { transform: scaleY(1.15) skewX(4deg); } }
+.scena .bancone .brace { animation: brace 1.1s ease-in-out infinite alternate; }
+@keyframes brace { from { opacity: 0.6; } to { opacity: 1; } }
+.scena .bancone .luce-fuoco { animation: brace 0.9s ease-in-out infinite alternate; }
+.scena .bancone .padella { transform-box: fill-box; transform-origin: 90% 50%; animation: scuoti-padella 0.9s ease-in-out infinite; }
+@keyframes scuoti-padella { 0%, 100% { transform: rotate(0deg) translateX(0); } 30% { transform: rotate(-2.5deg) translateX(-10px); } 60% { transform: rotate(1.5deg) translateX(6px); } }
+.scena .bancone .castagna { animation: salta-castagna 0.9s ease-in-out infinite; }
+@keyframes salta-castagna { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-26px); } 55% { transform: translateY(-4px); } }
+.scena .bancone .fumo-grande { transform-box: fill-box; transform-origin: center; animation: fumo-grande 3.3s ease-out infinite; opacity: 0; }
+@keyframes fumo-grande { 0% { opacity: 0; transform: translateY(0) scale(0.5); } 20% { opacity: 0.55; } 100% { opacity: 0; transform: translate(-230px, -230px) scale(2.2); } }
+.scena .bancone .scintilla { animation: scintilla 2.4s ease-out infinite; opacity: 0; }
+@keyframes scintilla { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(20px, -180px); } }
+.scena .bancone .vortice { transform-box: fill-box; transform-origin: center; animation: vortice 3s linear infinite; }
+@keyframes vortice { to { transform: rotate(360deg); } }
+.scena .bancone .mestolo { animation: mescola 2s linear infinite; }
+@keyframes mescola { 0% { transform: translate(-70px, 0); } 25% { transform: translate(0, 10px); } 50% { transform: translate(70px, 0); } 75% { transform: translate(0, -8px); } 100% { transform: translate(-70px, 0); } }
+.scena .bancone .bolla { transform-box: fill-box; transform-origin: center; animation: bolla 0.9s ease-out infinite; }
+@keyframes bolla { 0% { opacity: 0; transform: translateY(4px) scale(0.4); } 50% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px) scale(1.4); } }
+.scena .bancone .frittella { animation: frittella 1.6s ease-in-out infinite alternate; }
+@keyframes frittella { from { transform: translateY(2px) rotate(-3deg); } to { transform: translateY(-4px) rotate(3deg); } }
+.scena .bancone .zucchero { animation: zucchero 1.4s linear infinite; opacity: 0; }
+@keyframes zucchero { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(80px); } }
+@media (prefers-reduced-motion: reduce) {
+    .scena .bancone .fiamma, .scena .bancone .brace, .scena .bancone .luce-fuoco, .scena .bancone .padella,
+    .scena .bancone .castagna, .scena .bancone .vortice, .scena .bancone .mestolo, .scena .bancone .bolla,
+    .scena .bancone .frittella, .scena .bancone .fumetto-nonna { animation: none; }
+    .scena .bancone .fumo-grande, .scena .bancone .scintilla, .scena .bancone .zucchero { animation: none; opacity: 0.4; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -2380,9 +2417,9 @@ function disegnaPalleDiNeve(mondo, x, y, scala) {
 
 // ---- Il mercatino di Natale ----
 const BANCARELLE = [
-    { nome: 'Castagne', tetto: '#9b1d2a', banco: 'castagne', venditore: { giacca: '#5d3a22', cappello: '#2c2c3a', pelle: '#e3b393' } },
-    { nome: 'Cioccolata', tetto: '#2e6b3f', banco: 'cioccolata', venditore: { giacca: '#c0392b', cappello: '#fbfdff', pelle: '#f2d2bd' } },
-    { nome: 'Addobbi', tetto: '#2d4f8a', banco: 'addobbi', venditore: { giacca: '#7d4e9e', cappello: '#f4d03f', pelle: '#9c6a4b' } }
+    { nome: 'Castagne', tetto: '#9b1d2a', banco: 'castagne', venditore: { giacca: '#3b3f58', cappello: '#c0392b', pelle: '#f0cfb6' } },
+    { nome: 'Cioccolata', tetto: '#2e6b3f', banco: 'cioccolata', venditore: { giacca: '#5b3a6b', cappello: '#e3e3ea', pelle: '#e3b393' } },
+    { nome: 'Frittelle', tetto: '#2d4f8a', banco: 'frittelle', venditore: { giacca: '#2d4f8a', cappello: '#e3e3ea', pelle: '#c48a66' } }
 ];
 
 function disegnaBancarella(genitore, x, b) {
@@ -2400,6 +2437,10 @@ function disegnaBancarella(genitore, x, b) {
     el('path', { d: 'M-3 -54 q 1 -1 2 0 M1.5 -54 q 1 -1 2 0', stroke: '#2a1d14', 'stroke-width': 0.8, fill: 'none' }, g);
     el('path', { d: 'M-2.5 -50 q 2.5 2 5 0', stroke: '#7a3a2a', 'stroke-width': 0.9, fill: 'none' }, g);
     el('path', { d: 'M-7.5 -56 Q-8 -64 0 -64 Q8 -64 7.5 -56 Z', fill: v.cappello }, g);
+    if (v.cappello === '#e3e3ea') el('circle', { cx: 0, cy: -65, r: 3.6, fill: '#d4d4de' }, g);
+    // Occhialini da nonna
+    el('path', { d: 'M-4.6 -54 a 2.2 2.2 0 1 0 0.1 0 M2.4 -54 a 2.2 2.2 0 1 0 0.1 0 M-2.4 -54 h2.8', stroke: '#8a6a2a', 'stroke-width': 0.7, fill: 'none' }, g);
+    el('path', { d: 'M-12 -40 Q0 -36 12 -40 L11 -30 L-11 -30 Z', fill: '#fbf6ea' }, g);
     // Il banco con la tovaglia
     el('rect', { x: -44, y: -32, width: 88, height: 32, fill: '#8a5a3c' }, g);
     el('path', { d: 'M-46 -33 H46 V-24 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 Z', fill: '#fbf6ea' }, g);
@@ -2418,14 +2459,16 @@ function disegnaBancarella(genitore, x, b) {
             el('path', { class: 'vapore-tazza', d: `M${cx} -44 q -2 -4 0 -7 q 2 -3 0 -6`, stroke: '#ffffff', 'stroke-width': 1.3, fill: 'none', opacity: 0.8, style: `animation-delay:${(i * 0.4).toFixed(1)}s` }, g);
         });
     } else {
-        [[-32, '#e74c3c'], [-22, '#f4d03f'], [-12, '#3498db'], [14, '#e84393'], [24, '#2ecc71'], [34, '#e67e22']].forEach(([cx, c]) => {
-            el('circle', { cx, cy: -37, r: 4, fill: c }, g);
-            el('circle', { cx: cx - 1.2, cy: -38.2, r: 1.2, fill: '#fff', opacity: 0.8 }, g);
-        });
-        // Palline appese al bordo del tetto
-        [-36, -20, -4, 12, 28].forEach((cx, i) => {
-            el('path', { d: `M${cx} -78 v${8 + (i % 2) * 6}`, stroke: '#c9a227', 'stroke-width': 0.8 }, g);
-            el('circle', { cx, cy: -68 + (i % 2) * 6, r: 3.4, fill: ['#e74c3c', '#f4d03f', '#3498db', '#e84393', '#2ecc71'][i] }, g);
+        // Padella di ferro sul fuoco e piatto di frittelle con lo zucchero
+        el('path', { d: 'M-36 -33 l3 -6 h20 l3 6 Z', fill: '#2f2f33' }, g);
+        el('ellipse', { cx: -23, cy: -39, rx: 11, ry: 2.5, fill: '#e0a94a' }, g);
+        [-28, -21, -16].forEach(cx => el('circle', { cx, cy: -40, r: 2.4, fill: '#d4882e' }, g));
+        const fumo = el('g', { class: 'fumo-mercato' }, g);
+        for (let i = 0; i < 3; i++) el('circle', { cx: -23, cy: -46, r: 4.5, fill: '#e8edf6', style: `animation-delay:${(i * 0.9).toFixed(1)}s` }, fumo);
+        el('ellipse', { cx: 24, cy: -34, rx: 16, ry: 3, fill: '#fbf6ea' }, g);
+        [[17, -37], [24, -37], [31, -37], [20.5, -41], [27.5, -41], [24, -45]].forEach(([cx, cy]) => {
+            el('circle', { cx, cy, r: 3.4, fill: '#d4882e' }, g);
+            el('circle', { cx: cx - 0.8, cy: cy - 1.2, r: 1.4, fill: '#fdf6ea' }, g);
         });
     }
     // Tetto a punta innevato con l'insegna
@@ -2443,11 +2486,19 @@ function disegnaBancarella(genitore, x, b) {
 }
 
 function disegnaMercatino(mondo, x, y, scala) {
-    const m = el('g', { class: 'mercatino', transform: `translate(${x} ${y}) scale(${scala})`, 'pointer-events': 'none' }, mondo);
-    // Tre bancarelle sfalsate: quella in mezzo un po' più indietro
-    disegnaBancarella(m, 0, BANCARELLE[1]).setAttribute('transform', 'translate(0 -18) scale(0.94)');
-    disegnaBancarella(m, -96, BANCARELLE[0]);
-    disegnaBancarella(m, 96, BANCARELLE[2]);
+    const m = el('g', { class: 'mercatino', transform: `translate(${x} ${y}) scale(${scala})` }, mondo);
+    // Tre bancarelle sfalsate: quella in mezzo un po' più indietro.
+    // Si possono cliccare: si entra a vedere la nonna che cucina
+    [[1, 0, -18, 0.94], [0, -96, 0, 1], [2, 96, 0, 1]].forEach(([i, dx, dy, k]) => {
+        const b = BANCARELLE[i];
+        const g = disegnaBancarella(m, 0, b);
+        g.setAttribute('transform', `translate(${dx} ${dy}) scale(${k})`);
+        g.classList.add('bancarella');
+        Object.assign(g.dataset, { tipo: b.banco, cx: x + dx * scala, cy: y + (dy - 50) * scala, larghezza: 140 * scala });
+        g.setAttribute('tabindex', 0);
+        g.setAttribute('role', 'button');
+        g.setAttribute('aria-label', `Bancarella delle ${b.nome.toLowerCase()}: entra a vedere la nonna che cucina`);
+    });
     return m;
 }
 
@@ -3903,6 +3954,309 @@ function creaInterno({ onScarta, onEsci }) {
 // Disegna il villaggio nel contenitore e avvisa quando si apre una casa
 // Con modifica: true è il villaggio di chi prepara il calendario: tutte le case si aprono
 // e quelle con la sorpresa già pronta hanno le finestre accese
+// ========== DENTRO LA BANCARELLA: LE NONNE CHE CUCINANO ==========
+// Cliccando una bancarella del mercatino ci si avvicina e si vede la nonna che cucina come una volta
+
+const CUCINE = {
+    castagne: {
+        insegna: ['Caldarroste', 'come una volta'],
+        frase: ['Caldarroste calde calde,', 'come le facevo', 'da bambina!'],
+        nonna: { vestito: '#3b3f58', scialle: '#8e2433', pelle: '#f0cfb6', capo: 'fazzoletto', fazzoletto: '#c0392b' }
+    },
+    cioccolata: {
+        insegna: ['Cioccolata calda', 'con la panna'],
+        frase: ['Si mescola piano piano', 'col cucchiaio di legno,', 'così viene densa!'],
+        nonna: { vestito: '#5b3a6b', scialle: '#2e6b4a', pelle: '#e3b393', capo: 'chignon' }
+    },
+    frittelle: {
+        insegna: ['Frittelle', 'della nonna'],
+        frase: ['Zucchero sopra', 'e mangiatele', 'finché sono calde!'],
+        nonna: { vestito: '#2d4f8a', scialle: '#b5651d', pelle: '#c48a66', capo: 'chignon' }
+    }
+};
+
+function creaBancone({ onEsci }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno bancone', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro la bancarella: la nonna che cucina' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    nodo.append(svg, esci);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    const defs = el('defs', {}, svg);
+    const quadretti = el('pattern', { id: 'quadretti-bancone', width: 40, height: 40, patternUnits: 'userSpaceOnUse' }, defs);
+    el('rect', { width: 40, height: 40, fill: '#fbf6ea' }, quadretti);
+    el('rect', { width: 20, height: 20, fill: '#c0392b', opacity: 0.8 }, quadretti);
+    el('rect', { x: 20, y: 20, width: 20, height: 20, fill: '#c0392b', opacity: 0.8 }, quadretti);
+    el('rect', { x: 20, width: 20, height: 20, fill: '#c0392b', opacity: 0.35 }, quadretti);
+    el('rect', { y: 20, width: 20, height: 20, fill: '#c0392b', opacity: 0.35 }, quadretti);
+    const fuoco = el('radialGradient', { id: 'luce-fuoco' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffb347', 'stop-opacity': 0.75 }, fuoco);
+    el('stop', { offset: '100%', 'stop-color': '#ff7a1a', 'stop-opacity': 0 }, fuoco);
+    const vignetta = el('radialGradient', { id: 'vignetta-bancone', gradientUnits: 'userSpaceOnUse', cx: 800, cy: 450, r: 950 }, defs);
+    el('stop', { offset: '55%', 'stop-color': '#000', 'stop-opacity': 0 }, vignetta);
+    el('stop', { offset: '100%', 'stop-color': '#000', 'stop-opacity': 0.6 }, vignetta);
+
+    const p = (d, attributi, genitore = svg) => el('path', { d, ...attributi }, genitore);
+
+    // ---- Il fondo della casetta: assi di legno, mensole con i vasetti, lucine ----
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#3b2416' }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    for (let x = -1400; x < 3000; x += 120) p(`M${x} -600 V1500`, { stroke: '#2a180e', 'stroke-width': 4 });
+    el('circle', { cx: 800, cy: 420, r: 700, fill: 'url(#alone)', opacity: 0.35 }, svg);
+    [[80, 400, 330], [1200, 1520, 330], [80, 400, 470], [1200, 1520, 470]].forEach(([x1, x2, y], i) => {
+        el('rect', { x: x1, y, width: x2 - x1, height: 14, fill: '#8a5a3c' }, svg);
+        for (let k = 0; k < 4; k++) {
+            const vx = x1 + 30 + k * ((x2 - x1 - 60) / 3);
+            const colore = ['#c0392b', '#e8a33d', '#6b3a1f', '#7d9b3a'][(k + i) % 4];
+            el('rect', { x: vx - 22, y: y - 62, width: 44, height: 62, rx: 8, fill: colore, opacity: 0.85 }, svg);
+            el('rect', { x: vx - 22, y: y - 62, width: 44, height: 62, rx: 8, fill: '#ffffff', opacity: 0.12 }, svg);
+            el('rect', { x: vx - 25, y: y - 74, width: 50, height: 14, rx: 3, fill: 'url(#quadretti-bancone)' }, svg);
+            el('rect', { x: vx - 16, y: y - 42, width: 32, height: 20, rx: 2, fill: '#fbf6ea' }, svg);
+        }
+    });
+    // Festone con le lucine in alto
+    p('M-200 70 q 150 60 300 0 q 150 60 300 0 q 150 60 300 0 q 150 60 300 0 q 150 60 300 0 q 150 60 300 0', { fill: 'none', stroke: '#1f5c34', 'stroke-width': 16, 'stroke-linecap': 'round' });
+    for (let i = 0; i < 24; i++) {
+        const x = -170 + i * 75, y = 70 + Math.sin(((i * 75 + 30) % 300) / 300 * Math.PI) * 30;
+        el('circle', { class: 'pallina', cx: x, cy: y + 8, r: 8, fill: COLORI_FESTA[i % COLORI_FESTA.length], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.3) % 2).toFixed(1)}s` }, svg);
+    }
+
+    // ---- La lavagnetta con il nome e il fumetto della nonna ----
+    const lavagna = el('g', {}, svg);
+    el('rect', { x: 100, y: 130, width: 380, height: 160, rx: 10, fill: '#8a5a3c' }, lavagna);
+    el('rect', { x: 114, y: 144, width: 352, height: 132, rx: 4, fill: '#24302a' }, lavagna);
+    const insegna1 = el('text', { x: 290, y: 206, 'text-anchor': 'middle', 'font-size': 40, 'font-family': "'Brush Script MT', cursive", fill: '#fdf6dc' }, lavagna);
+    const insegna2 = el('text', { x: 290, y: 250, 'text-anchor': 'middle', 'font-size': 26, 'font-family': 'Georgia, serif', 'font-style': 'italic', fill: '#ffd36b' }, lavagna);
+
+    const fumetto = el('g', { class: 'fumetto-nonna' }, svg);
+    el('rect', { x: 1000, y: 110, width: 470, height: 170, rx: 36, fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 4 }, fumetto);
+    p('M1060 270 L1000 330 L1110 272 Z', { fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 4, 'stroke-linejoin': 'round' }, fumetto);
+    el('rect', { x: 1052, y: 262, width: 70, height: 14, fill: '#fffdf6' }, fumetto);
+    const righe = [0, 1, 2].map(i => el('text', { x: 1235, y: 170 + i * 42, 'text-anchor': 'middle', 'font-size': 32, 'font-family': 'Georgia, serif', fill: '#3b2416' }, fumetto));
+
+    // ---- La nonna: vestito, scialle, grembiule, occhiali e capelli bianchi ----
+    function disegnaNonna(genitore, n, mani) {
+        const g = el('g', {}, genitore);
+        p('M640 620 Q630 430 700 392 Q800 360 900 392 Q970 430 960 620 Z', { fill: n.vestito }, g);
+        // Braccia (dietro al grembiule, davanti al corpo) fino alle mani
+        const spalle = [[700, 420], [900, 420]];
+        mani.forEach(([mx, my], i) => {
+            const [sx, sy] = spalle[i];
+            const gomito = [(sx + mx) / 2 + (i ? 40 : -40), Math.max(sy, my) + 60];
+            p(`M${sx} ${sy} Q${gomito[0]} ${gomito[1]} ${mx} ${my}`, { fill: 'none', stroke: n.vestito, 'stroke-width': 40, 'stroke-linecap': 'round' }, g);
+            p(`M${(sx + mx) / 2 + (i ? 30 : -30)} ${Math.max(sy, my) + 40} Q${(gomito[0] + mx) / 2} ${(gomito[1] + my) / 2} ${mx + (i ? -14 : 14)} ${my + 6}`, { fill: 'none', stroke: scurisci(n.vestito, 0.25), 'stroke-width': 6, opacity: 0.6 }, g);
+            el('circle', { cx: mx, cy: my, r: 19, fill: n.pelle }, g);
+            p(`M${mx - 12} ${my - 4} q 12 -8 24 0`, { stroke: scurisci(n.pelle, 0.25), 'stroke-width': 2, fill: 'none' }, g);
+        });
+        // Grembiule bianco con il pizzo e la tasca
+        p('M712 470 Q800 492 888 470 L900 620 L700 620 Z', { fill: '#fbf6ea' }, g);
+        p('M712 470 Q800 492 888 470', { fill: 'none', stroke: '#e6dcc4', 'stroke-width': 8, 'stroke-dasharray': '6 6' }, g);
+        el('rect', { x: 760, y: 540, width: 80, height: 50, rx: 8, fill: '#f1e8d2', stroke: '#e0d4b6', 'stroke-width': 2 }, g);
+        // Scialle di lana sulle spalle, con le frange
+        p('M686 398 Q800 480 914 398 Q940 440 905 478 Q800 530 695 478 Q660 440 686 398 Z', { fill: n.scialle }, g);
+        p('M700 470 Q800 520 900 470', { fill: 'none', stroke: scurisci(n.scialle, 0.3), 'stroke-width': 3, 'stroke-dasharray': '4 8' }, g);
+        for (let i = 0; i < 12; i++) p(`M${712 + i * 16} ${488 + Math.sin(i / 11 * Math.PI) * 22} v14`, { stroke: n.scialle, 'stroke-width': 3 }, g);
+        el('circle', { cx: 800, cy: 432, r: 10, fill: '#c9a227' }, g);
+        // Collo e testa
+        el('rect', { x: 780, y: 350, width: 40, height: 40, fill: scurisci(n.pelle, 0.08) }, g);
+        el('ellipse', { cx: 742, cy: 305, rx: 10, ry: 16, fill: n.pelle }, g);
+        el('ellipse', { cx: 858, cy: 305, rx: 10, ry: 16, fill: n.pelle }, g);
+        el('ellipse', { cx: 800, cy: 300, rx: 60, ry: 66, fill: n.pelle }, g);
+        if (n.capo === 'fazzoletto') {
+            // Fazzoletto a pois annodato sotto il mento
+            p('M736 312 Q726 222 800 218 Q874 222 864 312 Q850 262 800 258 Q750 262 736 312 Z', { fill: n.fazzoletto }, g);
+            for (let i = 0; i < 9; i++) el('circle', { cx: 752 + (i % 5) * 24, cy: 238 + Math.floor(i / 5) * 18, r: 4, fill: '#fbf6ea' }, g);
+            p('M738 312 Q745 360 790 368 L810 368 Q855 360 862 312', { fill: 'none', stroke: n.fazzoletto, 'stroke-width': 12 }, g);
+            p('M800 366 l-22 26 l18 4 Z M800 366 l22 26 l-18 4 Z', { fill: n.fazzoletto }, g);
+            p('M752 270 q 12 -10 26 -6 M822 264 q 14 -4 26 6', { stroke: '#e3e3ea', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, g);
+        } else {
+            // Capelli bianchi raccolti nello chignon, con la forcina
+            p('M740 300 Q732 232 800 228 Q868 232 860 300 Q852 262 828 252 Q800 268 772 252 Q748 262 740 300 Z', { fill: '#e3e3ea' }, g);
+            p('M770 246 q 30 -14 60 0', { stroke: '#c8c8d2', 'stroke-width': 3, fill: 'none' }, g);
+            el('circle', { cx: 800, cy: 214, r: 30, fill: '#d4d4de' }, g);
+            p('M782 204 q 18 -10 36 0 M784 222 q 16 6 32 0', { stroke: '#bdbdc8', 'stroke-width': 3, fill: 'none' }, g);
+            p('M822 194 l 16 -10', { stroke: '#8a6a2a', 'stroke-width': 4, 'stroke-linecap': 'round' }, g);
+        }
+        // Occhiali tondi, occhi sorridenti, guance rosse e sorriso
+        [776, 824].forEach(x => {
+            el('circle', { cx: x, cy: 300, r: 18, fill: '#ffffff', opacity: 0.18, stroke: '#8a6a2a', 'stroke-width': 3.5 }, g);
+            p(`M${x - 9} 302 q 9 -9 18 0`, { stroke: '#3a2a22', 'stroke-width': 3.5, fill: 'none', 'stroke-linecap': 'round' }, g);
+            p(`M${x + (x < 800 ? -24 : 18)} 296 l ${x < 800 ? -6 : 6} -3 M${x + (x < 800 ? -24 : 18)} 304 l ${x < 800 ? -6 : 6} 3`, { stroke: scurisci(n.pelle, 0.3), 'stroke-width': 2 }, g);
+        });
+        p('M794 300 h12 M758 300 h-16 M842 300 h16', { stroke: '#8a6a2a', 'stroke-width': 3 }, g);
+        p('M800 306 q -6 18 2 22', { stroke: scurisci(n.pelle, 0.25), 'stroke-width': 3, fill: 'none' }, g);
+        el('circle', { cx: 760, cy: 330, r: 12, fill: '#e8848a', opacity: 0.45 }, g);
+        el('circle', { cx: 840, cy: 330, r: 12, fill: '#e8848a', opacity: 0.45 }, g);
+        p('M772 338 Q800 364 828 338', { stroke: '#7a3a2a', 'stroke-width': 4, fill: '#a8444c', 'stroke-linecap': 'round' }, g);
+        p('M778 342 Q800 356 822 342', { stroke: '#fff', 'stroke-width': 3, fill: 'none', opacity: 0.8 }, g);
+        return g;
+    }
+
+    // ---- Il bancone con la tovaglia a quadretti ----
+    function bancone(genitore) {
+        el('rect', { x: -1400, y: 600, width: 4400, height: 900, fill: '#6d4630' }, genitore);
+        el('rect', { x: -1400, y: 600, width: 4400, height: 900, fill: 'url(#tex-assi)' }, genitore);
+        el('rect', { x: -1400, y: 588, width: 4400, height: 26, fill: '#8a5a3c' }, genitore);
+        p('M-1400 612 H3000 V700 ' + Array.from({ length: 110 }, (_, i) => `q -20 18 -40 0`).join(' ') + ' Z', { fill: 'url(#quadretti-bancone)' }, genitore);
+    }
+
+    // Il fuoco di legna nel braciere di ferro
+    function braciere(genitore) {
+        el('ellipse', { class: 'luce-fuoco', cx: 800, cy: 560, rx: 330, ry: 190, fill: 'url(#luce-fuoco)' }, genitore);
+        p('M650 540 L950 540 L920 606 L680 606 Z', { fill: '#2a2a2e' }, genitore);
+        for (let i = 0; i < 7; i++) el('circle', { class: 'brace', cx: 690 + i * 37, cy: 574, r: 7, fill: '#ff8c32', style: `animation-delay:${(i * 0.23).toFixed(2)}s` }, genitore);
+        p('M670 540 L700 522 M760 540 L780 518 M830 540 L800 520 M900 540 L875 522', { stroke: '#5d3a22', 'stroke-width': 12, 'stroke-linecap': 'round' }, genitore);
+        el('ellipse', { cx: 800, cy: 540, rx: 150, ry: 12, fill: '#ff7a1a', filter: 'url(#bagliore)' }, genitore);
+        [[720, 0], [770, 0.3], [820, 0.15], [870, 0.45], [795, 0.6]].forEach(([x, ritardo], i) => {
+            p(`M${x - 22} 540 Q${x - 26} ${505 - (i % 2) * 14} ${x} ${478 - (i % 3) * 10} Q${x + 26} ${505 - (i % 2) * 14} ${x + 22} 540 Z`, { class: 'fiamma', fill: i % 2 ? '#ffb347' : '#ff7a1a', style: `animation-delay:${ritardo}s` }, genitore);
+            p(`M${x - 10} 540 Q${x - 10} 520 ${x} 508 Q${x + 10} 520 ${x + 10} 540 Z`, { class: 'fiamma', fill: '#ffe08a', style: `animation-delay:${ritardo + 0.2}s` }, genitore);
+        });
+    }
+
+    function fumo(genitore, x, y, quanti = 6, colore = '#e8edf6') {
+        for (let i = 0; i < quanti; i++) {
+            el('circle', { class: 'fumo-grande', cx: x + (i % 3 - 1) * 50, cy: y, r: 26 + (i % 2) * 10, fill: colore, style: `animation-delay:${(i * 0.55).toFixed(2)}s` }, genitore);
+        }
+    }
+
+    const scene = {};
+
+    // ===== Caldarroste nella padella bucata =====
+    {
+        const g = scene.castagne = el('g', {}, svg);
+        disegnaNonna(g, CUCINE.castagne.nonna, [[640, 560], [1110, 458]]);
+        bancone(g);
+        braciere(g);
+        // Padella bucata che la nonna scuote: le castagne saltano
+        const padella = el('g', { class: 'padella' }, g);
+        p('M968 498 L1110 456', { stroke: '#2b2b2b', 'stroke-width': 16, 'stroke-linecap': 'round' }, padella);
+        p('M1070 468 L1120 453', { stroke: '#6d4630', 'stroke-width': 22, 'stroke-linecap': 'round' }, padella);
+        el('ellipse', { cx: 800, cy: 500, rx: 176, ry: 38, fill: '#2b2b2b' }, padella);
+        el('ellipse', { cx: 800, cy: 496, rx: 160, ry: 28, fill: '#3d3d42' }, padella);
+        for (let i = 0; i < 18; i++) el('circle', { cx: 670 + (i % 9) * 32, cy: 488 + Math.floor(i / 9) * 14, r: 3, fill: '#1a1a1a' }, padella);
+        const posti = [[700, 496], [736, 488], [772, 500], [808, 486], [844, 498], [880, 490], [918, 498], [720, 508], [790, 512], [860, 510], [752, 478], [826, 474], [896, 478]];
+        posti.forEach(([x, y], i) => {
+            const c = el('g', { class: 'castagna', style: `animation-delay:${((i * 0.17) % 1).toFixed(2)}s` }, padella);
+            el('ellipse', { cx: x, cy: y, rx: 17, ry: 12, fill: i % 3 ? '#6b3a1f' : '#5a2f17' }, c);
+            el('ellipse', { cx: x - 4, cy: y - 4, rx: 7, ry: 3, fill: '#a0663a', opacity: 0.7 }, c);
+            p(`M${x - 6} ${y - 3} l 12 6 M${x + 6} ${y - 3} l -12 6`, { stroke: '#f0cf8a', 'stroke-width': 3, 'stroke-linecap': 'round' }, c);
+        });
+        fumo(g, 690, 450, 6);
+        for (let i = 0; i < 8; i++) el('circle', { class: 'scintilla', cx: 720 + i * 22, cy: 520, r: 3, fill: '#ffb347', style: `animation-delay:${(i * 0.37).toFixed(2)}s` }, g);
+        // Cesto di castagne crude e cartocci di carta già pronti
+        p('M300 600 Q300 520 400 516 Q500 520 500 600 Z', { fill: '#b5853f' }, g);
+        for (let i = 0; i < 4; i++) p(`M${306 + i * 2} ${590 - i * 18} Q400 ${580 - i * 22} ${494 - i * 2} ${590 - i * 18}`, { stroke: '#8a6a2a', 'stroke-width': 3, fill: 'none' }, g);
+        for (let i = 0; i < 9; i++) el('ellipse', { cx: 340 + (i % 5) * 30, cy: 516 - Math.floor(i / 5) * 14, rx: 15, ry: 11, fill: '#6b3a1f' }, g);
+        [[1220, '#efe3c2'], [1330, '#e6d6ae']].forEach(([x, c]) => {
+            p(`M${x - 40} 500 L${x + 40} 500 L${x} 600 Z`, { fill: c, stroke: '#c9b48a', 'stroke-width': 2 }, g);
+            p(`M${x - 34} 510 h68 M${x - 26} 530 h52`, { stroke: '#9a9a9a', 'stroke-width': 2, opacity: 0.5 }, g);
+            [[-18, 494], [2, 488], [20, 494]].forEach(([dx, y]) => el('ellipse', { cx: x + dx, cy: y, rx: 14, ry: 10, fill: '#6b3a1f' }, g));
+        });
+    }
+
+    // ===== Cioccolata nel paiolo di rame =====
+    {
+        const g = scene.cioccolata = el('g', {}, svg);
+        disegnaNonna(g, CUCINE.cioccolata.nonna, [[620, 580], [1004, 318]]);
+        bancone(g);
+        // Fornello di ghisa con il fuocherello
+        el('ellipse', { class: 'luce-fuoco', cx: 800, cy: 590, rx: 300, ry: 140, fill: 'url(#luce-fuoco)' }, g);
+        el('rect', { x: 670, y: 548, width: 260, height: 60, rx: 6, fill: '#26262b' }, g);
+        el('rect', { x: 760, y: 562, width: 80, height: 36, rx: 6, fill: '#ff8c32', class: 'brace' }, g);
+        p('M760 580 h80', { stroke: '#26262b', 'stroke-width': 4 }, g);
+        // Il paiolo di rame
+        p('M636 400 L964 400 Q972 540 900 552 L700 552 Q628 540 636 400 Z', { fill: '#b8652f' }, g);
+        p('M660 410 Q656 520 700 540', { stroke: '#e8a06a', 'stroke-width': 10, fill: 'none', opacity: 0.6, 'stroke-linecap': 'round' }, g);
+        p('M940 410 Q944 520 900 540', { stroke: '#7a3a18', 'stroke-width': 10, fill: 'none', opacity: 0.5, 'stroke-linecap': 'round' }, g);
+        el('ellipse', { cx: 800, cy: 400, rx: 166, ry: 30, fill: '#d98a4e' }, g);
+        el('ellipse', { cx: 800, cy: 402, rx: 150, ry: 23, fill: '#4a2412' }, g);
+        const vortice = el('g', { class: 'vortice' }, g);
+        p('M800 402 m -90 0 a 90 14 0 1 1 180 0 a 60 10 0 1 1 -120 0 a 30 6 0 1 1 60 0', { stroke: '#7a4426', 'stroke-width': 4, fill: 'none' }, vortice);
+        p('M640 400 q -30 -6 -34 18 M960 400 q 30 -6 34 18', { stroke: '#8a4a22', 'stroke-width': 8, fill: 'none' }, g);
+        // Il cucchiaio di legno che mescola
+        const cucchiaio = el('g', { class: 'mestolo' }, g);
+        p('M806 398 L1004 318', { stroke: '#c9955a', 'stroke-width': 14, 'stroke-linecap': 'round' }, cucchiaio);
+        el('ellipse', { cx: 800, cy: 402, rx: 22, ry: 10, fill: '#b07a44' }, cucchiaio);
+        fumo(g, 690, 380, 5, '#f4efe8');
+        // Tazze con la panna e il biscotto, latte e cioccolato a pezzi
+        [1180, 1300, 1420].forEach((x, i) => {
+            p(`M${x - 40} 520 L${x + 40} 520 L${x + 34} 596 Q${x} 606 ${x - 34} 596 Z`, { fill: ['#c0392b', '#fbf6ea', '#2e6b4a'][i] }, g);
+            p(`M${x + 38} 536 q 26 0 24 22 q -2 20 -26 18`, { stroke: ['#c0392b', '#e6dcc4', '#2e6b4a'][i], 'stroke-width': 9, fill: 'none' }, g);
+            el('ellipse', { cx: x, cy: 520, rx: 40, ry: 9, fill: '#5a2c14' }, g);
+            p(`M${x - 34} 518 q 10 -26 22 -14 q 8 -22 20 -6 q 14 -14 22 16 Z`, { fill: '#fffdf6' }, g);
+            el('circle', { cx: x + 6, cy: 494, r: 3, fill: '#8a4a22' }, g);
+            p(`M${x - 6} 470 q -6 -12 0 -24 q 6 -12 0 -24`, { class: 'vapore-tazza', stroke: '#ffffff', 'stroke-width': 4, fill: 'none', opacity: 0.8, style: `animation-delay:${i * 0.5}s` }, g);
+        });
+        p('M300 600 L300 470 Q300 452 318 452 L382 452 Q400 452 400 470 L400 600 Z', { fill: '#eef3fb', stroke: '#c9d3e6', 'stroke-width': 3 }, g);
+        p('M318 452 l -8 -24 h80 l -8 24', { fill: '#eef3fb', stroke: '#c9d3e6', 'stroke-width': 3 }, g);
+        el('rect', { x: 316, y: 500, width: 68, height: 30, rx: 4, fill: '#2d4f8a' }, g);
+        el('text', { x: 350, y: 521, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', fill: '#fff', 'font-family': 'Georgia, serif' }, g).textContent = 'LATTE';
+        p('M440 600 L560 600 L548 572 L452 572 Z', { fill: '#efe3c2' }, g);
+        [[460, 560], [496, 552], [530, 562]].forEach(([x, y]) => el('rect', { x, y, width: 32, height: 22, rx: 3, fill: '#5a2c14', transform: `rotate(${x % 7 - 3} ${x} ${y})` }, g));
+    }
+
+    // ===== Frittelle nella padella di ferro =====
+    {
+        const g = scene.frittelle = el('g', {}, svg);
+        disegnaNonna(g, CUCINE.frittelle.nonna, [[470, 452], [1060, 352]]);
+        bancone(g);
+        braciere(g);
+        // La padella di ferro con l'olio che sfrigola
+        p('M626 466 L974 466 L944 548 L656 548 Z', { fill: '#2f2f33' }, g);
+        p('M974 470 L1060 452', { stroke: '#2f2f33', 'stroke-width': 14, 'stroke-linecap': 'round' }, g);
+        el('ellipse', { cx: 800, cy: 466, rx: 174, ry: 26, fill: '#3d3d42' }, g);
+        el('ellipse', { cx: 800, cy: 468, rx: 160, ry: 20, fill: '#e0a94a' }, g);
+        el('ellipse', { cx: 760, cy: 464, rx: 70, ry: 6, fill: '#ffe08a', opacity: 0.6 }, g);
+        for (let i = 0; i < 14; i++) el('circle', { class: 'bolla', cx: 660 + (i * 23) % 290, cy: 470 + (i % 3) * 4, r: 3 + (i % 3), fill: '#fff3c4', style: `animation-delay:${(i * 0.21).toFixed(2)}s` }, g);
+        [[700, 462], [760, 470], [826, 462], [884, 470], [790, 456]].forEach(([x, y], i) => {
+            const f = el('g', { class: 'frittella', style: `animation-delay:${(i * 0.4).toFixed(1)}s` }, g);
+            el('ellipse', { cx: x, cy: y, rx: 28, ry: 14, fill: i % 2 ? '#d4882e' : '#e09a3a' }, f);
+            el('ellipse', { cx: x - 6, cy: y - 5, rx: 12, ry: 5, fill: '#f4c26a', opacity: 0.8 }, f);
+        });
+        // La schiumarola con una frittella appena tirata su
+        p('M900 440 L1060 352', { stroke: '#8d98b8', 'stroke-width': 8, 'stroke-linecap': 'round' }, g);
+        el('ellipse', { cx: 892, cy: 444, rx: 34, ry: 12, fill: '#b8c2d8' }, g);
+        el('ellipse', { cx: 892, cy: 436, rx: 22, ry: 13, fill: '#d4882e' }, g);
+        fumo(g, 690, 430, 5, '#f4efe8');
+        // Il piatto di frittelle e lo zucchero che scende dal setaccio della nonna
+        el('ellipse', { cx: 420, cy: 588, rx: 120, ry: 22, fill: '#fbf6ea', stroke: '#d8cdb5', 'stroke-width': 3 }, g);
+        [[370, 566], [420, 570], [470, 566], [395, 546], [445, 546], [420, 526]].forEach(([x, y]) => {
+            el('circle', { cx: x, cy: y, r: 24, fill: '#d4882e' }, g);
+            el('circle', { cx: x - 5, cy: y - 8, r: 10, fill: '#fdf6ea', opacity: 0.85 }, g);
+        });
+        el('ellipse', { cx: 466, cy: 452, rx: 40, ry: 12, fill: '#b8c2d8', stroke: '#8d98b8', 'stroke-width': 3 }, g);
+        p('M426 452 q 40 22 80 0', { fill: '#d4dbea' }, g);
+        for (let i = 0; i < 14; i++) el('circle', { class: 'zucchero', cx: 436 + (i * 7) % 60, cy: 466, r: 2.6, fill: '#ffffff', style: `animation-delay:${(i * 0.13).toFixed(2)}s` }, g);
+        // La ciotola con l'impasto
+        p('M1180 600 Q1180 520 1290 516 Q1400 520 1400 600 Z', { fill: '#d98a4e' }, g);
+        el('ellipse', { cx: 1290, cy: 518, rx: 110, ry: 18, fill: '#f3e3b8' }, g);
+        p('M1300 512 L1400 420', { stroke: '#c9955a', 'stroke-width': 12, 'stroke-linecap': 'round' }, g);
+    }
+
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#vignetta-bancone)', 'pointer-events': 'none' }, svg);
+
+    return {
+        nodo,
+        mostra(tipo) {
+            const cucina = CUCINE[tipo] ?? CUCINE.castagne;
+            Object.entries(scene).forEach(([nome, g]) => g.setAttribute('display', nome === tipo ? 'inline' : 'none'));
+            insegna1.textContent = cucina.insegna[0];
+            insegna2.textContent = cucina.insegna[1];
+            righe.forEach((riga, i) => { riga.textContent = cucina.frase[i] ?? ''; });
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
+}
+
 // ========== GIORNO E NOTTE ==========
 // Il cielo segue l'ora vera in Italia: alba, giorno, tramonto e notte (con l'aurora)
 
@@ -3952,9 +4306,10 @@ function creaVillaggio(contenitore, opzioni) {
         onEsci: () => esciDallaCasa()
     });
     const sala = creaSala({ onParti: () => parti() });
+    const bancone = creaBancone({ onEsci: () => esciDalBancone() });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
-    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo);
+    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {
@@ -4100,10 +4455,13 @@ function creaVillaggio(contenitore, opzioni) {
     // La vista si avvicina alla porta, come se si entrasse in casa
     function avvicinaA(casa, durata) {
         const [, x, y, s] = casa.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
+        return avvicinaAlPunto(x, y - 22 * s, 150 * s, durata);
+    }
+
+    function avvicinaAlPunto(x, y, larghezza, durata) {
         const partenza = [0, VISTA_Y, larghezzaVista, VISTA_H];
-        const larghezza = 150 * s;
         const altezza = larghezza * VISTA_H / larghezzaVista;
-        const arrivo = [x - posizione - larghezza / 2, y - 22 * s - altezza / 2, larghezza, altezza];
+        const arrivo = [x - posizione - larghezza / 2, y - altezza / 2, larghezza, altezza];
         return new Promise(fatto => {
             if (movimentoRidotto) return fatto();
             // Se il browser mette in pausa l'animazione (scheda in secondo piano), si entra lo stesso
@@ -4163,6 +4521,23 @@ function creaVillaggio(contenitore, opzioni) {
         await avvicinaA(stazione, 800);
         sala.mostra();
         inApertura = false;
+    }
+
+    // Si entra nella bancarella del mercatino a guardare la nonna che cucina
+    async function entraNellaBancarella(banco) {
+        if (inApertura) return;
+        inApertura = true;
+        seguiTreno = false;
+        onTocco();
+        const { cx, cy, larghezza, tipo } = banco.dataset;
+        await avvicinaAlPunto(Number(cx), Number(cy), Number(larghezza), 800);
+        bancone.mostra(tipo);
+        inApertura = false;
+    }
+
+    function esciDalBancone() {
+        bancone.nascondi();
+        adattaVista();
     }
 
     // "Sì, partiamo!": si torna al villaggio, davanti alla casa di oggi (o alla prima)
@@ -4278,6 +4653,8 @@ function creaVillaggio(contenitore, opzioni) {
         if (renna) return faiSaltare(renna);
         const coro = evento.target.closest('.coro');
         if (coro) return cantaIlCoro(coro);
+        const banco = evento.target.closest('.bancarella');
+        if (banco) return entraNellaBancarella(banco);
         const casa = evento.target.closest('.casa');
         if (casa) apriCasa(casa);
     });
@@ -4308,9 +4685,11 @@ function creaVillaggio(contenitore, opzioni) {
         const casa = evento.target.closest('.casa');
         const stazione = evento.target.closest('.stazione');
         const coro = evento.target.closest('.coro');
-        if ((casa || stazione || coro) && (evento.key === 'Enter' || evento.key === ' ')) {
+        const banco = evento.target.closest('.bancarella');
+        if ((casa || stazione || coro || banco) && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
-            if (coro) cantaIlCoro(coro);
+            if (banco) entraNellaBancarella(banco);
+            else if (coro) cantaIlCoro(coro);
             else if (stazione) entraInStazione(stazione);
             else apriCasa(casa);
         }
