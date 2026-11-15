@@ -69,3 +69,18 @@ test('eliminare un calendario toglie anche i suoi file', async () => {
     assert.equal(await leggiCalendario(redis, ID), null);
     assert.equal(await eliminaCalendario(redis, ID), null);
 });
+
+test('il benvenuto si salva, resta se non lo si manda e si vede nel link regalo', async () => {
+    const { vistaPubblica, MAX_BENVENUTO } = await import('../lib/calendario.js');
+    const redis = redisFinto();
+    await creaCalendario(redis, ID, { titolo: 'Benvenuto', anno: 2026 });
+    await salvaModifiche(redis, ID, { benvenuto: '  Ciao Oliver!\r\n\r\n\r\nBuon viaggio  ', modifiche: {} });
+    let calendario = await leggiCalendario(redis, ID);
+    assert.equal(calendario.benvenuto, 'Ciao Oliver!\n\nBuon viaggio');
+    await salvaModifiche(redis, ID, { modifiche: { 1: { tipo: 'messaggio', testo: 'ciao' } } });
+    calendario = await leggiCalendario(redis, ID);
+    assert.equal(calendario.benvenuto, 'Ciao Oliver!\n\nBuon viaggio');
+    assert.equal(vistaPubblica(calendario, new Date('2026-11-15T10:00:00Z')).benvenuto, 'Ciao Oliver!\n\nBuon viaggio');
+    await salvaModifiche(redis, ID, { benvenuto: 'x'.repeat(500), modifiche: {} });
+    assert.equal((await leggiCalendario(redis, ID)).benvenuto.length, MAX_BENVENUTO);
+});

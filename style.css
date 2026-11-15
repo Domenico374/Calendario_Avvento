@@ -1718,3 +1718,78 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     }
     .scena .sala .partenza { bottom: 70px; }
 }
+
+/* ---- Intestazione nello stile del villaggio: cielo di notte e titolo dorato ---- */
+body::before {
+    background-image:
+        radial-gradient(1.4px 1.4px at 22px 34px, rgba(255, 255, 255, 0.9) 50%, transparent 52%),
+        radial-gradient(1px 1px at 120px 80px, rgba(255, 255, 255, 0.7) 50%, transparent 52%),
+        radial-gradient(1.8px 1.8px at 170px 150px, rgba(255, 246, 200, 0.9) 50%, transparent 52%),
+        radial-gradient(1px 1px at 60px 170px, rgba(255, 255, 255, 0.6) 50%, transparent 52%),
+        radial-gradient(ellipse at 50% 0%, #1d2a6b 0%, #0d1438 55%, #070b22 100%);
+    background-size: 200px 200px, 200px 200px, 200px 200px, 200px 200px, 100% 100%;
+    background-repeat: repeat, repeat, repeat, repeat, no-repeat;
+    filter: none;
+}
+.header-container {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 8px 16px 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+.etichetta-villaggio {
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #0a1030;
+    background: #ffd36b;
+    border-radius: 999px;
+    padding: 3px 12px;
+}
+.header-container h1 {
+    margin: 0;
+    font-family: 'Mountains of Christmas', 'Brush Script MT', cursive;
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    line-height: 1.1;
+    color: #ffd36b;
+    background: none;
+    -webkit-text-fill-color: #ffd36b;
+    text-shadow: 0 0 22px rgba(255, 211, 107, 0.45);
+    text-wrap: balance;
+}
+.header-container p {
+    margin: 0;
+    color: #dfe6fb;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: clamp(1rem, 2.4vw, 1.25rem);
+}
+#btnAudio {
+    background: rgba(10, 16, 48, 0.75);
+    color: #ffe9a8;
+    border: 2px solid #ffd36b;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+#btnAudio.attivo {
+    background: #ffd36b;
+    color: #0a1030;
+}
+
+/* ---- Stelline sulle cose da toccare ---- */
+.scena .scintilla-tocco > * { transform-box: fill-box; transform-origin: center; animation: scintilla-tocco 1.6s ease-in-out infinite; }
+@keyframes scintilla-tocco {
+    0%, 100% { transform: scale(0.7) rotate(0deg); opacity: 0.6; }
+    50% { transform: scale(1.25) rotate(45deg); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .scintilla-tocco > * { animation: none; }
+}

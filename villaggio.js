@@ -1998,7 +1998,23 @@ const BENVENUTO = [
     'questo meraviglioso viaggio?'
 ];
 
-function creaSala({ onParti }) {
+// Va a capo tra le parole, rispettando gli a capo scritti da chi prepara il calendario
+function avvolgiTesto(testo, massimo) {
+    const righe = [];
+    for (const paragrafo of testo.split('\n')) {
+        let riga = '';
+        for (const parola of paragrafo.split(/\s+/).filter(Boolean)) {
+            if (riga && (riga + ' ' + parola).length > massimo) {
+                righe.push(riga);
+                riga = parola;
+            } else riga = riga ? `${riga} ${parola}` : parola;
+        }
+        righe.push(riga);
+    }
+    return righe;
+}
+
+function creaSala({ onParti, benvenuto = '' }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
     const parti = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: 'Sì, partiamo! 🚂' });
@@ -2140,9 +2156,28 @@ function creaSala({ onParti }) {
         [[0, 0], [7 * verso, -5], [7 * verso, 5]].forEach(([dx, dy]) => el('circle', { cx: x + dx, cy: y + dy, r: 5, fill: '#e0262f' }, svg));
     });
     el('text', { x: 800, y: 244, 'text-anchor': 'middle', 'font-size': 42, 'font-style': 'italic', 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffd36b' }, svg).textContent = 'Benvenuti nel nostro villaggio!';
-    BENVENUTO.forEach((riga, i) => {
-        el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, svg).textContent = riga;
-    });
+    // Il testo del cartellone: quello del villaggio, oppure il benvenuto scritto da chi ha preparato il calendario
+    const testoCartellone = el('g', {}, svg);
+    function scriviBenvenuto(testo) {
+        testoCartellone.replaceChildren();
+        const proprio = (testo ?? '').trim();
+        if (!proprio) {
+            BENVENUTO.forEach((riga, i) => {
+                el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, testoCartellone).textContent = riga;
+            });
+            return;
+        }
+        // Più è lungo, più le lettere si fanno piccole per stare nel cartellone
+        let dimensione = 28, righe = avvolgiTesto(proprio, 36);
+        if (righe.length > 6) { dimensione = 23; righe = avvolgiTesto(proprio, 44); }
+        if (righe.length > 8) { dimensione = 19; righe = avvolgiTesto(proprio, 54).slice(0, 10); }
+        const passo = dimensione * 1.32;
+        const inizio = 382 - ((righe.length - 1) * passo) / 2 + dimensione * 0.35;
+        righe.forEach((riga, i) => {
+            el('text', { x: 800, y: (inizio + i * passo).toFixed(1), 'text-anchor': 'middle', 'font-size': dimensione, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#f3ead8' }, testoCartellone).textContent = riga;
+        });
+    }
+    scriviBenvenuto(benvenuto);
 
     // Finestra ad arco con il treno fermo fuori e la neve
     el('path', { d: 'M1174 450 V250 q 0 -92 104 -92 q 104 0 104 92 V450 Z', fill: '#efe6d2' }, svg);
@@ -2254,7 +2289,8 @@ function creaSala({ onParti }) {
         nascondi() {
             nodo.classList.remove('visibile');
             nodo.hidden = true;
-        }
+        },
+        impostaBenvenuto: scriviBenvenuto
     };
 }
 
@@ -3183,7 +3219,7 @@ function momentoDiAdesso(adesso = new Date()) {
     return 'notte';
 }
 
-export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set() }) {
+export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '' }) {
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -3213,7 +3249,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         },
         onEsci: () => esciDallaCasa()
     });
-    const sala = creaSala({ onParti: () => parti() });
+    const sala = creaSala({ onParti: () => parti(), benvenuto });
     const bancone = creaBancone({ onEsci: () => esciDalBancone() });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
@@ -3661,6 +3697,40 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     });
     aggiornaStato();
 
+    // ---- Le scintille: dicono cosa si può toccare ----
+    // Una stellina che pulsa sopra coro, balletto, bancarelle e renne finché non le si tocca la prima volta.
+    // Il dispositivo se lo ricorda, così non ricompaiono ogni volta
+    const TOCCABILI = [
+        { chiave: 'coro', selettore: '.coro', x: 0, y: -100, k: 1.3 },
+        { chiave: 'balletto', selettore: '.albero', x: 120, y: -90, k: 1.3 },
+        { chiave: 'mercatino', selettore: '.bancarella', x: 0, y: -134, k: 1.8 },
+        { chiave: 'renne', selettore: '.renna', x: 0, y: -100, k: 2.4 }
+    ];
+    const leggiToccati = () => {
+        try { return JSON.parse(localStorage.getItem('villaggio_toccati') || '[]'); } catch { return []; }
+    };
+    TOCCABILI.forEach(({ chiave, selettore, x, y, k }) => {
+        if (leggiToccati().includes(chiave)) return;
+        mondo.querySelectorAll(selettore).forEach((nodo, i) => {
+            // Delle renne basta una stellina sulla prima
+            if (chiave === 'renne' && i > 0) return;
+            const stellina = el('g', { class: 'scintilla-tocco', 'data-chiave': chiave, transform: `translate(${x} ${y}) scale(${k})`, 'pointer-events': 'none' }, nodo);
+            el('circle', { r: 14, fill: 'url(#alone)' }, stellina);
+            el('path', { d: 'M0 -11 Q1.6 -1.6 11 0 Q1.6 1.6 0 11 Q-1.6 1.6 -11 0 Q-1.6 -1.6 0 -11 Z', fill: '#fff6c8' }, stellina);
+            el('circle', { r: 2.2, fill: '#ffffff' }, stellina);
+        });
+    });
+    // Toccato una volta, la stellina se ne va da tutte le parti di quel tipo
+    svg.addEventListener('click', evento => {
+        const voce = TOCCABILI.find(({ selettore }) => evento.target.closest(selettore));
+        if (!voce) return;
+        mondo.querySelectorAll(`.scintilla-tocco[data-chiave="${voce.chiave}"]`).forEach(n => n.remove());
+        try {
+            const toccati = new Set(leggiToccati()).add(voce.chiave);
+            localStorage.setItem('villaggio_toccati', JSON.stringify([...toccati]));
+        } catch { /* senza memoria la stellina ricomparirà la prossima volta */ }
+    });
+
     // ---- Il treno ----
     const treno = mondo.querySelector('.trenino');
     let seguiTreno = false;
@@ -3729,6 +3799,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         segnaPiene(nuove) {
             piene = nuove;
             aggiornaStato();
+        },
+        // Il benvenuto della stazione, cambiato da chi prepara il calendario
+        impostaBenvenuto(testo) {
+            sala.impostaBenvenuto(testo);
         },
         // Per provare i diversi momenti della giornata (null = ora vera)
         impostaMomento(momento) {

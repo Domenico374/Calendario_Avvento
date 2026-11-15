@@ -242,6 +242,7 @@ function disegnaVillaggio() {
             aperti: CONFIG.giorni,
             viste: new Set(),
             modifica: true,
+            benvenuto: calendario.benvenuto,
             piene: giorniPieni(),
             onTocco: suonoAperturaCasella,
             // Casa vuota: si prepara la sorpresa. Casa pronta: si vede com'è, con Modifica ed Elimina
@@ -258,6 +259,7 @@ function disegnaVillaggio() {
     villaggio = creaVillaggio($('villaggio'), {
         aperti: calendario.aperti,
         viste,
+        benvenuto: calendario.benvenuto,
         onTocco: suonoAperturaCasella,
         onApri: giorno => {
             scriviMemoria(chiaveViste, [...viste]);
@@ -545,11 +547,13 @@ async function salvaCalendario(modifiche = {}) {
             id: ID,
             chiave: CHIAVE,
             titolo: $('titolo-modifica').value,
+            benvenuto: $('benvenuto-modifica').value,
             modifiche
         })
     });
     calendario = { ...dati, modifica: true };
     $('titolo').textContent = calendario.titolo;
+    villaggio?.impostaBenvenuto(calendario.benvenuto);
     aggiornaVista();
 }
 
@@ -654,6 +658,7 @@ function preparaPannello() {
     const linkPersonale = `${location.origin}/?c=${ID}&k=${CHIAVE}`;
     $('pannello-modifica').hidden = false;
     $('titolo-modifica').value = calendario.titolo;
+    $('benvenuto-modifica').value = calendario.benvenuto ?? '';
     $('link-condivisione').value = linkPubblico;
     $('link-personale').value = linkPersonale;
     $('linkAnteprima').href = linkPubblico;
@@ -679,6 +684,11 @@ function preparaPannello() {
     $('titolo-modifica').addEventListener('change', () => {
         salvaCalendario().then(
             () => mostraMessaggio('Titolo salvato!', 'successo'),
+            errore => mostraMessaggio(errore.message, 'errore'));
+    });
+    $('benvenuto-modifica').addEventListener('change', () => {
+        salvaCalendario().then(
+            () => mostraMessaggio('Benvenuto salvato! Entra in stazione per vederlo.', 'successo'),
             errore => mostraMessaggio(errore.message, 'errore'));
     });
     $('btnImporta').addEventListener('click', () => {

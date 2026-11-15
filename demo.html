@@ -1129,6 +1129,81 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     .scena .sala .partenza { bottom: 70px; }
 }
 
+/* ---- Intestazione nello stile del villaggio: cielo di notte e titolo dorato ---- */
+body::before {
+    background-image:
+        radial-gradient(1.4px 1.4px at 22px 34px, rgba(255, 255, 255, 0.9) 50%, transparent 52%),
+        radial-gradient(1px 1px at 120px 80px, rgba(255, 255, 255, 0.7) 50%, transparent 52%),
+        radial-gradient(1.8px 1.8px at 170px 150px, rgba(255, 246, 200, 0.9) 50%, transparent 52%),
+        radial-gradient(1px 1px at 60px 170px, rgba(255, 255, 255, 0.6) 50%, transparent 52%),
+        radial-gradient(ellipse at 50% 0%, #1d2a6b 0%, #0d1438 55%, #070b22 100%);
+    background-size: 200px 200px, 200px 200px, 200px 200px, 200px 200px, 100% 100%;
+    background-repeat: repeat, repeat, repeat, repeat, no-repeat;
+    filter: none;
+}
+.header-container {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 8px 16px 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+.etichetta-villaggio {
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #0a1030;
+    background: #ffd36b;
+    border-radius: 999px;
+    padding: 3px 12px;
+}
+.header-container h1 {
+    margin: 0;
+    font-family: 'Mountains of Christmas', 'Brush Script MT', cursive;
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    line-height: 1.1;
+    color: #ffd36b;
+    background: none;
+    -webkit-text-fill-color: #ffd36b;
+    text-shadow: 0 0 22px rgba(255, 211, 107, 0.45);
+    text-wrap: balance;
+}
+.header-container p {
+    margin: 0;
+    color: #dfe6fb;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: clamp(1rem, 2.4vw, 1.25rem);
+}
+#btnAudio {
+    background: rgba(10, 16, 48, 0.75);
+    color: #ffe9a8;
+    border: 2px solid #ffd36b;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+#btnAudio.attivo {
+    background: #ffd36b;
+    color: #0a1030;
+}
+
+/* ---- Stelline sulle cose da toccare ---- */
+.scena .scintilla-tocco > * { transform-box: fill-box; transform-origin: center; animation: scintilla-tocco 1.6s ease-in-out infinite; }
+@keyframes scintilla-tocco {
+    0%, 100% { transform: scale(0.7) rotate(0deg); opacity: 0.6; }
+    50% { transform: scale(1.25) rotate(45deg); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .scintilla-tocco > * { animation: none; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -3174,7 +3249,23 @@ const BENVENUTO = [
     'questo meraviglioso viaggio?'
 ];
 
-function creaSala({ onParti }) {
+// Va a capo tra le parole, rispettando gli a capo scritti da chi prepara il calendario
+function avvolgiTesto(testo, massimo) {
+    const righe = [];
+    for (const paragrafo of testo.split('\n')) {
+        let riga = '';
+        for (const parola of paragrafo.split(/\s+/).filter(Boolean)) {
+            if (riga && (riga + ' ' + parola).length > massimo) {
+                righe.push(riga);
+                riga = parola;
+            } else riga = riga ? `${riga} ${parola}` : parola;
+        }
+        righe.push(riga);
+    }
+    return righe;
+}
+
+function creaSala({ onParti, benvenuto = '' }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
     const parti = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: 'Sì, partiamo! 🚂' });
@@ -3316,9 +3407,28 @@ function creaSala({ onParti }) {
         [[0, 0], [7 * verso, -5], [7 * verso, 5]].forEach(([dx, dy]) => el('circle', { cx: x + dx, cy: y + dy, r: 5, fill: '#e0262f' }, svg));
     });
     el('text', { x: 800, y: 244, 'text-anchor': 'middle', 'font-size': 42, 'font-style': 'italic', 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffd36b' }, svg).textContent = 'Benvenuti nel nostro villaggio!';
-    BENVENUTO.forEach((riga, i) => {
-        el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, svg).textContent = riga;
-    });
+    // Il testo del cartellone: quello del villaggio, oppure il benvenuto scritto da chi ha preparato il calendario
+    const testoCartellone = el('g', {}, svg);
+    function scriviBenvenuto(testo) {
+        testoCartellone.replaceChildren();
+        const proprio = (testo ?? '').trim();
+        if (!proprio) {
+            BENVENUTO.forEach((riga, i) => {
+                el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, testoCartellone).textContent = riga;
+            });
+            return;
+        }
+        // Più è lungo, più le lettere si fanno piccole per stare nel cartellone
+        let dimensione = 28, righe = avvolgiTesto(proprio, 36);
+        if (righe.length > 6) { dimensione = 23; righe = avvolgiTesto(proprio, 44); }
+        if (righe.length > 8) { dimensione = 19; righe = avvolgiTesto(proprio, 54).slice(0, 10); }
+        const passo = dimensione * 1.32;
+        const inizio = 382 - ((righe.length - 1) * passo) / 2 + dimensione * 0.35;
+        righe.forEach((riga, i) => {
+            el('text', { x: 800, y: (inizio + i * passo).toFixed(1), 'text-anchor': 'middle', 'font-size': dimensione, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#f3ead8' }, testoCartellone).textContent = riga;
+        });
+    }
+    scriviBenvenuto(benvenuto);
 
     // Finestra ad arco con il treno fermo fuori e la neve
     el('path', { d: 'M1174 450 V250 q 0 -92 104 -92 q 104 0 104 92 V450 Z', fill: '#efe6d2' }, svg);
@@ -3430,7 +3540,8 @@ function creaSala({ onParti }) {
         nascondi() {
             nodo.classList.remove('visibile');
             nodo.hidden = true;
-        }
+        },
+        impostaBenvenuto: scriviBenvenuto
     };
 }
 
@@ -4361,7 +4472,7 @@ function momentoDiAdesso(adesso = new Date()) {
 
 function creaVillaggio(contenitore, opzioni) {
     let { aperti } = opzioni;
-    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set() } = opzioni;
+    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = "" } = opzioni;
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -4391,7 +4502,7 @@ function creaVillaggio(contenitore, opzioni) {
         },
         onEsci: () => esciDallaCasa()
     });
-    const sala = creaSala({ onParti: () => parti() });
+    const sala = creaSala({ onParti: () => parti(), benvenuto });
     const bancone = creaBancone({ onEsci: () => esciDalBancone() });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
@@ -4839,6 +4950,40 @@ function creaVillaggio(contenitore, opzioni) {
     });
     aggiornaStato();
 
+    // ---- Le scintille: dicono cosa si può toccare ----
+    // Una stellina che pulsa sopra coro, balletto, bancarelle e renne finché non le si tocca la prima volta.
+    // Il dispositivo se lo ricorda, così non ricompaiono ogni volta
+    const TOCCABILI = [
+        { chiave: 'coro', selettore: '.coro', x: 0, y: -100, k: 1.3 },
+        { chiave: 'balletto', selettore: '.albero', x: 120, y: -90, k: 1.3 },
+        { chiave: 'mercatino', selettore: '.bancarella', x: 0, y: -134, k: 1.8 },
+        { chiave: 'renne', selettore: '.renna', x: 0, y: -100, k: 2.4 }
+    ];
+    const leggiToccati = () => {
+        try { return JSON.parse(localStorage.getItem('villaggio_toccati') || '[]'); } catch { return []; }
+    };
+    TOCCABILI.forEach(({ chiave, selettore, x, y, k }) => {
+        if (leggiToccati().includes(chiave)) return;
+        mondo.querySelectorAll(selettore).forEach((nodo, i) => {
+            // Delle renne basta una stellina sulla prima
+            if (chiave === 'renne' && i > 0) return;
+            const stellina = el('g', { class: 'scintilla-tocco', 'data-chiave': chiave, transform: `translate(${x} ${y}) scale(${k})`, 'pointer-events': 'none' }, nodo);
+            el('circle', { r: 14, fill: 'url(#alone)' }, stellina);
+            el('path', { d: 'M0 -11 Q1.6 -1.6 11 0 Q1.6 1.6 0 11 Q-1.6 1.6 -11 0 Q-1.6 -1.6 0 -11 Z', fill: '#fff6c8' }, stellina);
+            el('circle', { r: 2.2, fill: '#ffffff' }, stellina);
+        });
+    });
+    // Toccato una volta, la stellina se ne va da tutte le parti di quel tipo
+    svg.addEventListener('click', evento => {
+        const voce = TOCCABILI.find(({ selettore }) => evento.target.closest(selettore));
+        if (!voce) return;
+        mondo.querySelectorAll(`.scintilla-tocco[data-chiave="${voce.chiave}"]`).forEach(n => n.remove());
+        try {
+            const toccati = new Set(leggiToccati()).add(voce.chiave);
+            localStorage.setItem('villaggio_toccati', JSON.stringify([...toccati]));
+        } catch { /* senza memoria la stellina ricomparirà la prossima volta */ }
+    });
+
     // ---- Il treno ----
     const treno = mondo.querySelector('.trenino');
     let seguiTreno = false;
@@ -4907,6 +5052,10 @@ function creaVillaggio(contenitore, opzioni) {
         segnaPiene(nuove) {
             piene = nuove;
             aggiornaStato();
+        },
+        // Il benvenuto della stazione, cambiato da chi prepara il calendario
+        impostaBenvenuto(testo) {
+            sala.impostaBenvenuto(testo);
         },
         // Per provare i diversi momenti della giornata (null = ora vera)
         impostaMomento(momento) {
