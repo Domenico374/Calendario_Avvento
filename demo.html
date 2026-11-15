@@ -1550,6 +1550,11 @@ function disegnaAlbero(mondo, x, y, scala) {
     // L'albero della piazza è sempre acceso: il 24 è la casa di Babbo Natale, qui accanto
     const albero = el('g', { class: 'albero aperta', transform: `translate(${x} ${y}) scale(${scala})` }, mondo);
     el('ellipse', { class: 'alone', cx: 0, cy: -140, rx: 170, ry: 200, fill: 'url(#alone)' }, albero);
+    // Il laghetto ghiacciato dove danzano le ballerine
+    el('ellipse', { cx: 0, cy: 0, rx: 128, ry: 34, fill: '#cfe0f5', stroke: '#a9c1e4', 'stroke-width': 3 }, albero);
+    el('ellipse', { cx: -20, cy: -4, rx: 84, ry: 16, fill: '#eef5ff', opacity: 0.8 }, albero);
+    el('path', { d: 'M-70 8 q 30 -6 60 2 M20 12 q 30 -8 56 -2', stroke: '#ffffff', 'stroke-width': 2, fill: 'none', opacity: 0.9 }, albero);
+    const dietro = el('g', { class: 'ballerine', 'pointer-events': 'none' }, albero);
     const corpo = el('g', { class: 'corpo' }, albero);
     el('rect', { x: -14, y: -30, width: 28, height: 32, fill: '#5d4037' }, corpo);
     [[0, 170, 90], [-60, 140, 80], [-115, 105, 70], [-165, 70, 60]].forEach(([dy, larghezza, altezza]) => {
@@ -1563,7 +1568,94 @@ function disegnaAlbero(mondo, x, y, scala) {
         el('circle', { class: 'lucina', cx: (caso() * 2 - 1) * meta, cy: yy, r: 5 }, corpo);
     }
     el('path', { class: 'puntale', d: 'M0 -280 l9 18 20 3 -15 13 4 20 -18 -10 -18 10 4 -20 -15 -13 20 -3 Z' }, corpo);
+    const davanti = el('g', { class: 'ballerine', 'pointer-events': 'none' }, albero);
+    danzaBallerine(albero, dietro, davanti);
     return albero;
+}
+
+// ========== LE BALLERINE ==========
+// Danzano in cerchio intorno all'albero della piazza, come i cigni del balletto:
+// tutù bianco, braccia ad ali, ogni tanto una piroetta. Passano dietro e davanti all'albero.
+
+function disegnaBallerina(variante) {
+    const pelle = ['#f2d2bd', '#e0b090', '#c98d6a', '#f5dccb', '#a8714f'][variante % 5];
+    const capelli = ['#5a3b2a', '#2b1d14', '#1c1410', '#c9984a', '#3a2418'][variante % 5];
+    const nero = variante === 2; // un cigno nero tra quelli bianchi
+    const abito = nero ? '#2a2638' : '#fbf9ff';
+    const piume = nero ? '#4a4460' : '#e6e9f8';
+    const posto = el('g', {});
+    el('ellipse', { cx: 0, cy: 1, rx: 16, ry: 3.5, fill: 'rgba(40,60,110,0.25)' }, posto);
+    const giro = el('g', {}, posto);
+    // Gamba sulle punte e gamba alzata in arabesque
+    el('path', { d: 'M-1 -1 L-2 -30', stroke: '#f6d3cc', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
+    el('path', { d: 'M-1 0 l -1 -5', stroke: '#e8a0a6', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
+    el('path', { d: 'M1 -30 L24 -42', stroke: '#f6d3cc', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
+    el('path', { d: 'M22 -41 l 4 -2', stroke: '#e8a0a6', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
+    // Il tutù a piume
+    el('ellipse', { cx: 0, cy: -32, rx: 23, ry: 6, fill: piume }, giro);
+    el('ellipse', { cx: 0, cy: -34, rx: 20, ry: 4.5, fill: abito }, giro);
+    for (let i = 0; i < 9; i++) {
+        const a = (i / 9) * Math.PI;
+        el('circle', { cx: Math.cos(a) * 22, cy: -31 + Math.sin(a) * 5.5, r: 3, fill: abito }, giro);
+    }
+    // Corpetto con un brillantino
+    el('path', { d: 'M-5 -34 L-6 -49 Q0 -52 6 -49 L5 -34 Z', fill: abito, stroke: piume, 'stroke-width': 1 }, giro);
+    el('circle', { cx: 0, cy: -46, r: 1.6, fill: nero ? '#e0262f' : '#bfe3ff' }, giro);
+    // Braccia aperte come ali, che ondeggiano
+    const braccia = el('path', { class: 'ali', d: 'M-5 -47 Q-15 -58 -26 -50 M5 -47 Q15 -58 26 -50', stroke: pelle, 'stroke-width': 2.6, fill: 'none', 'stroke-linecap': 'round' }, giro);
+    // Testa con lo chignon e la coroncina di piume
+    el('rect', { x: -1.5, y: -54, width: 3, height: 5, fill: pelle }, giro);
+    el('circle', { cx: 0, cy: -58, r: 5.5, fill: pelle }, giro);
+    el('path', { d: 'M-5.5 -58 q 0 -7 5.5 -7 q 5.5 0 5.5 7 q -3 -3 -5.5 -3 q -2.5 0 -5.5 3 Z', fill: capelli }, giro);
+    el('circle', { cx: -3, cy: -64, r: 3.2, fill: capelli }, giro);
+    el('path', { d: 'M-5 -62 q 5 -5 10 0', stroke: nero ? '#4a4460' : '#ffffff', 'stroke-width': 2.4, fill: 'none' }, giro);
+    el('circle', { cx: 0, cy: -65, r: 1.4, fill: '#ffd36b' }, giro);
+    return { posto, giro, braccia };
+}
+
+function danzaBallerine(albero, dietro, davanti) {
+    const RX = 104, RY = 26, QUANTE = 5;
+    const ballerine = Array.from({ length: QUANTE }, (_, i) => ({ ...disegnaBallerina(i), fase: (i / QUANTE) * Math.PI * 2 }));
+    const ferma = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const disponi = t => {
+        for (const [i, b] of ballerine.entries()) {
+            const a = b.fase + t * 0.32;
+            const x = Math.cos(a) * RX, y = Math.sin(a) * RY;
+            const avanti = Math.sin(a) > 0;
+            // Va verso sinistra quando passa davanti, verso destra quando passa dietro
+            const verso = avanti ? -1 : 1;
+            // Ogni tanto una piroetta, a turno
+            const ciclo = (t * 0.25 + i * 0.37) % 1;
+            const piroetta = ciclo < 0.18 ? Math.cos((ciclo / 0.18) * Math.PI * 4) : 1;
+            const salto = Math.abs(Math.sin(t * 2.6 + i)) * 3;
+            const scala = 1.3 * (1 + Math.sin(a) * 0.08);
+            b.posto.setAttribute('transform', `translate(${x.toFixed(1)} ${(y - salto).toFixed(1)}) scale(${scala.toFixed(3)})`);
+            b.giro.setAttribute('transform', `scale(${(verso * piroetta).toFixed(3)} 1)`);
+            const onda = Math.sin(t * 3 + i) * 5;
+            b.braccia.setAttribute('d', `M-5 -47 Q-15 ${(-58 + onda).toFixed(1)} -26 ${(-50 - onda).toFixed(1)} M5 -47 Q15 ${(-58 + onda).toFixed(1)} 26 ${(-50 - onda).toFixed(1)}`);
+            const gruppo = avanti ? davanti : dietro;
+            if (b.posto.parentNode !== gruppo) gruppo.append(b.posto);
+        }
+        // Più in basso sullo schermo = più vicine: vanno disegnate dopo
+        for (const gruppo of [dietro, davanti]) {
+            [...gruppo.children]
+                .sort((p, q) => p.transform.baseVal.consolidate().matrix.f - q.transform.baseVal.consolidate().matrix.f)
+                .forEach(figlio => gruppo.append(figlio));
+        }
+    };
+
+    disponi(0);
+    if (ferma) return;
+    let era = false;
+    const inizio = performance.now();
+    const passo = adesso => {
+        if (albero.isConnected) era = true;
+        else if (era) return;
+        disponi((adesso - inizio) / 1000);
+        requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
 }
 
 // La casa di Babbo Natale: più grande, rossa con il tetto verde, il cartello, i bastoncini e il sacco dei regali
