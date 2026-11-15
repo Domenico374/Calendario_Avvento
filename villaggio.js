@@ -662,44 +662,102 @@ function disegnaAlbero(mondo, x, y, scala) {
 // Danzano in cerchio intorno all'albero della piazza, come i cigni del balletto:
 // tutù bianco, braccia ad ali, ogni tanto una piroetta. Passano dietro e davanti all'albero.
 
+let contaBallerine = 0;
+
+// Sfumature del tutù: tulle bianco che sfuma verso il bordo, oppure nero per il cigno nero
+function sfumatureTutu(contenitore) {
+    const defs = el('defs', {}, contenitore);
+    [['tutu-bianco', '#ffffff', '#eef0fb', '#c9cfe6'], ['tutu-nero', '#3a3450', '#221e30', '#0e0c16']].forEach(([id, centro, medio, bordo]) => {
+        const g = el('radialGradient', { id, cx: '50%', cy: '45%', r: '55%' }, defs);
+        el('stop', { offset: '0%', 'stop-color': centro }, g);
+        el('stop', { offset: '70%', 'stop-color': medio }, g);
+        el('stop', { offset: '100%', 'stop-color': bordo, 'stop-opacity': 0.75 }, g);
+    });
+}
+
+// Gamba affusolata (coscia, ginocchio, polpaccio, caviglia) con la scarpetta da punta.
+// L'anca è in (0,0), il piede in (0,44)
+function gambaBallerina(padre, collant, scarpetta, transform) {
+    const g = el('g', { transform }, padre);
+    el('path', { d: 'M-3.7 0 Q-4.2 9 -2.6 21 Q-1.6 26 -2.9 31 Q-2.4 37 -1.2 39 L1.2 39 Q2 36 2.6 30 Q3.4 25 2.5 21 Q3.8 10 3.7 0 Z', fill: collant }, g);
+    el('path', { d: 'M1 2 Q2.6 10 1.6 20', stroke: '#ffffff', 'stroke-width': 0.9, opacity: 0.35, fill: 'none' }, g);
+    el('path', { d: 'M-1.4 38.5 L1.4 38.5 L1.1 44 L-1.1 44 Z', fill: scarpetta }, g);
+    el('path', { d: 'M-1.3 36 L1.3 39 M1.3 36 L-1.3 39', stroke: scarpetta, 'stroke-width': 0.8 }, g);
+    return g;
+}
+
+// Braccia da cigno: spalla, gomito morbido, polso e mano allungata. "onda" le fa ondeggiare come ali
+function bracciaBallerina(onda) {
+    const lato = s => {
+        const gx = 15 * s, gy = -67 + onda * 0.5, px = 26 * s, py = -61 - onda, mx = 31 * s, my = -63 - onda * 1.4;
+        return `M${5 * s} -63.5 Q${10 * s} ${(-68 + onda * 0.3).toFixed(1)} ${gx} ${gy.toFixed(1)} Q${21 * s} ${(-66 - onda * 0.2).toFixed(1)} ${px} ${py.toFixed(1)} L${mx} ${my.toFixed(1)}`;
+    };
+    return `${lato(-1)} ${lato(1)}`;
+}
+
 function disegnaBallerina(variante) {
-    const pelle = ['#f2d2bd', '#e0b090', '#c98d6a', '#f5dccb', '#a8714f'][variante % 5];
+    const n = ++contaBallerine;
+    const pelle = ['#f2d2bd', '#e3b393', '#c48a66', '#f5dccb', '#9c6a4b'][variante % 5];
+    const ombraPelle = ['#e0b9a2', '#cf9c7b', '#a9714f', '#e6c4ae', '#82553a'][variante % 5];
     const capelli = ['#5a3b2a', '#2b1d14', '#1c1410', '#c9984a', '#3a2418'][variante % 5];
-    const nero = variante === 2; // un cigno nero tra quelli bianchi
-    const abito = nero ? '#2a2638' : '#fbf9ff';
-    const piume = nero ? '#4a4460' : '#e6e9f8';
+    const nero = variante === 2; // il cigno nero tra quelli bianchi
+    const abito = nero ? '#25212f' : '#fbfaff';
+    const ricamo = nero ? '#c0263a' : '#d9c27a';
+    const collant = '#f3d4cc', scarpetta = '#e8b4b0';
+
     const posto = el('g', {});
-    el('ellipse', { cx: 0, cy: 1, rx: 16, ry: 3.5, fill: 'rgba(40,60,110,0.25)' }, posto);
-    const giro = el('g', {}, posto);
-    // Gamba sulle punte e gamba alzata in arabesque
-    el('path', { d: 'M-1 -1 L-2 -30', stroke: '#f6d3cc', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
-    el('path', { d: 'M-1 0 l -1 -5', stroke: '#e8a0a6', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
-    el('path', { d: 'M1 -30 L24 -42', stroke: '#f6d3cc', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
-    el('path', { d: 'M22 -41 l 4 -2', stroke: '#e8a0a6', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, giro);
-    // Il tutù a piume
-    el('ellipse', { cx: 0, cy: -32, rx: 23, ry: 6, fill: piume }, giro);
-    el('ellipse', { cx: 0, cy: -34, rx: 20, ry: 4.5, fill: abito }, giro);
-    for (let i = 0; i < 9; i++) {
-        const a = (i / 9) * Math.PI;
-        el('circle', { cx: Math.cos(a) * 22, cy: -31 + Math.sin(a) * 5.5, r: 3, fill: abito }, giro);
+    // Ombra sul ghiaccio e riflesso della ballerina
+    el('ellipse', { cx: 0, cy: 1, rx: 15, ry: 3, fill: 'rgba(40,60,110,0.28)' }, posto);
+    el('use', { href: `#ballerina-${n}`, transform: 'scale(1 -0.55)', opacity: 0.16 }, posto);
+    const giro = el('g', { id: `ballerina-${n}` }, posto);
+
+    // Gamba d'appoggio sulle punte e gamba alzata all'indietro in arabesque
+    gambaBallerina(giro, collant, scarpetta, 'translate(0 -44)');
+    gambaBallerina(giro, '#ecc8bf', scarpetta, 'translate(2 -46) rotate(-112)');
+
+    // Tutù a piatto: strati di tulle con il bordo a piume
+    const tutu = el('g', { transform: 'rotate(-6 0 -45)' }, giro);
+    el('ellipse', { cx: 0, cy: -43.5, rx: 25, ry: 5.5, fill: nero ? '#0e0c16' : '#c7cde4', opacity: 0.9 }, tutu);
+    for (let i = 0; i < 22; i++) {
+        const a = (i / 22) * Math.PI * 2;
+        const x = Math.cos(a) * 25.5, y = -45 + Math.sin(a) * 6.2;
+        el('ellipse', { cx: x.toFixed(1), cy: y.toFixed(1), rx: 3.2, ry: 1.6, transform: `rotate(${(a * 180 / Math.PI).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})`, fill: nero ? '#2c2738' : '#ffffff', opacity: 0.9 }, tutu);
     }
-    // Corpetto con un brillantino
-    el('path', { d: 'M-5 -34 L-6 -49 Q0 -52 6 -49 L5 -34 Z', fill: abito, stroke: piume, 'stroke-width': 1 }, giro);
-    el('circle', { cx: 0, cy: -46, r: 1.6, fill: nero ? '#e0262f' : '#bfe3ff' }, giro);
-    // Braccia aperte come ali, che ondeggiano
-    const braccia = el('path', { class: 'ali', d: 'M-5 -47 Q-15 -58 -26 -50 M5 -47 Q15 -58 26 -50', stroke: pelle, 'stroke-width': 2.6, fill: 'none', 'stroke-linecap': 'round' }, giro);
-    // Testa con lo chignon e la coroncina di piume
-    el('rect', { x: -1.5, y: -54, width: 3, height: 5, fill: pelle }, giro);
-    el('circle', { cx: 0, cy: -58, r: 5.5, fill: pelle }, giro);
-    el('path', { d: 'M-5.5 -58 q 0 -7 5.5 -7 q 5.5 0 5.5 7 q -3 -3 -5.5 -3 q -2.5 0 -5.5 3 Z', fill: capelli }, giro);
-    el('circle', { cx: -3, cy: -64, r: 3.2, fill: capelli }, giro);
-    el('path', { d: 'M-5 -62 q 5 -5 10 0', stroke: nero ? '#4a4460' : '#ffffff', 'stroke-width': 2.4, fill: 'none' }, giro);
-    el('circle', { cx: 0, cy: -65, r: 1.4, fill: '#ffd36b' }, giro);
+    el('ellipse', { cx: 0, cy: -45.5, rx: 24, ry: 6, fill: `url(#${nero ? 'tutu-nero' : 'tutu-bianco'})` }, tutu);
+    el('ellipse', { cx: 0, cy: -46.5, rx: 15, ry: 3.4, fill: nero ? '#3a3450' : '#ffffff', opacity: 0.8 }, tutu);
+    for (let i = 0; i < 7; i++) {
+        const a = Math.PI * (0.15 + i * 0.12);
+        el('circle', { cx: (Math.cos(a) * 17).toFixed(1), cy: (-46 + Math.sin(a) * 4).toFixed(1), r: 0.9, fill: ricamo }, tutu);
+    }
+
+    // Busto leggermente inclinato in avanti, come nell'arabesque
+    const busto = el('g', { transform: 'rotate(-9 0 -46)' }, giro);
+    // Corpetto aderente con la vita stretta e il ricamo a punta
+    el('path', { d: 'M-4.2 -45 Q-3.6 -51 -5.2 -57 Q-6 -61.5 -4.6 -63.2 L4.6 -63.2 Q6 -61.5 5.2 -57 Q3.6 -51 4.2 -45 Z', fill: abito }, busto);
+    el('path', { d: 'M1.5 -45 Q3.6 -51 3.4 -57 Q4.4 -61.5 4.6 -63.2 L5.5 -62 Q6 -58 5 -55 Q3.8 -50 4.2 -45 Z', fill: '#000', opacity: 0.12 }, busto);
+    el('path', { d: 'M-4.4 -47 L0 -43.5 L4.4 -47 M-4.6 -58 Q0 -55.5 4.6 -58', stroke: ricamo, 'stroke-width': 0.9, fill: 'none' }, busto);
+    // Spalle, collo lungo e braccia
+    el('path', { d: 'M-5 -63 Q0 -61.6 5 -63 Q5.6 -65.5 3 -66.2 L-3 -66.2 Q-5.6 -65.5 -5 -63 Z', fill: pelle }, busto);
+    el('path', { d: 'M-1.7 -71 L-1.9 -65.5 L1.9 -65.5 L1.7 -71 Z', fill: ombraPelle }, busto);
+    const braccia = el('path', { d: bracciaBallerina(0), stroke: pelle, 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, busto);
+    // Testa di profilo, con lo chignon dietro e la coroncina di piume da cigno
+    el('ellipse', { cx: -0.6, cy: -75.2, rx: 4.3, ry: 5.2, fill: pelle }, busto);
+    el('path', { d: 'M-4.9 -75.5 Q-5.2 -81 0 -81 Q4.4 -81 4.4 -76 Q4 -73 3.2 -71.8 Q1.5 -75 -0.5 -76.6 Q-3 -77.6 -4.9 -75.5 Z', fill: capelli }, busto);
+    el('circle', { cx: 4.4, cy: -77.2, r: 2.9, fill: capelli }, busto);
+    el('path', { d: 'M-3.6 -75.2 q 0.9 -0.5 1.8 0', stroke: '#3a2a22', 'stroke-width': 0.6, fill: 'none' }, busto);
+    el('circle', { cx: -3, cy: -73, r: 0.9, fill: '#e89a9a', opacity: 0.55 }, busto);
+    const piuma = nero ? '#1a1724' : '#ffffff';
+    [[-3.8, -80.2, -40], [-1.5, -81.4, -15], [1.2, -81.3, 15], [3.4, -80.2, 40]].forEach(([x, y, r]) => {
+        el('ellipse', { cx: x, cy: y, rx: 1.3, ry: 2.4, transform: `rotate(${r} ${x} ${y})`, fill: piuma, stroke: nero ? '#3a3450' : '#d8dcef', 'stroke-width': 0.4 }, busto);
+    });
+    el('circle', { cx: -0.2, cy: -80.6, r: 0.8, fill: nero ? '#e0263a' : '#bfe3ff' }, busto);
+
     return { posto, giro, braccia };
 }
 
 function danzaBallerine(albero, dietro, davanti) {
     const RX = 104, RY = 26, QUANTE = 5;
+    sfumatureTutu(albero);
     const ballerine = Array.from({ length: QUANTE }, (_, i) => ({ ...disegnaBallerina(i), fase: (i / QUANTE) * Math.PI * 2 }));
     const ferma = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -709,16 +767,16 @@ function danzaBallerine(albero, dietro, davanti) {
             const x = Math.cos(a) * RX, y = Math.sin(a) * RY;
             const avanti = Math.sin(a) > 0;
             // Va verso sinistra quando passa davanti, verso destra quando passa dietro
-            const verso = avanti ? -1 : 1;
+            const verso = avanti ? 1 : -1;
             // Ogni tanto una piroetta, a turno
             const ciclo = (t * 0.25 + i * 0.37) % 1;
             const piroetta = ciclo < 0.18 ? Math.cos((ciclo / 0.18) * Math.PI * 4) : 1;
             const salto = Math.abs(Math.sin(t * 2.6 + i)) * 3;
-            const scala = 1.3 * (1 + Math.sin(a) * 0.08);
+            const scala = 1.15 * (1 + Math.sin(a) * 0.08);
             b.posto.setAttribute('transform', `translate(${x.toFixed(1)} ${(y - salto).toFixed(1)}) scale(${scala.toFixed(3)})`);
             b.giro.setAttribute('transform', `scale(${(verso * piroetta).toFixed(3)} 1)`);
-            const onda = Math.sin(t * 3 + i) * 5;
-            b.braccia.setAttribute('d', `M-5 -47 Q-15 ${(-58 + onda).toFixed(1)} -26 ${(-50 - onda).toFixed(1)} M5 -47 Q15 ${(-58 + onda).toFixed(1)} 26 ${(-50 - onda).toFixed(1)}`);
+            const onda = Math.sin(t * 3 + i) * 3;
+            b.braccia.setAttribute('d', bracciaBallerina(onda));
             const gruppo = avanti ? davanti : dietro;
             if (b.posto.parentNode !== gruppo) gruppo.append(b.posto);
         }
