@@ -1596,3 +1596,23 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
     .scena .cantore, .scena .bocca, .scena .luce-lanterna { animation: none; }
     .scena .nota-coro { animation: none; opacity: 0.8; }
 }
+
+/* ---- La vita nel villaggio ---- */
+.scena .sciarpa-vento { transform-box: fill-box; transform-origin: 0% 50%; animation: sciarpa-vento 0.6s ease-in-out infinite alternate; }
+@keyframes sciarpa-vento { from { transform: rotate(-6deg) scaleX(0.9); } to { transform: rotate(5deg) scaleX(1.05); } }
+.scena .braccio-avanti, .scena .braccio-dietro { transform-box: fill-box; animation: braccio-pattina 1.2s ease-in-out infinite alternate; }
+.scena .braccio-avanti { transform-origin: 100% 0%; }
+.scena .braccio-dietro { transform-origin: 0% 0%; animation-delay: -0.6s; }
+@keyframes braccio-pattina { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+.scena .gamba-spinta { transform-box: fill-box; transform-origin: 0% 0%; animation: spinta 1.2s ease-in-out infinite alternate; }
+@keyframes spinta { from { transform: rotate(-8deg); } to { transform: rotate(10deg); } }
+.scena .fumo-mercato circle { animation: fumo 3.4s linear infinite; }
+.scena .lucina-mercato { animation: luce-tetto 1.4s ease-in-out infinite; }
+
+/* La neve in più segue i giorni di dicembre */
+.scena .neve-extra { opacity: var(--neve, 0.3); transition: opacity 1.2s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .scena .sciarpa-vento, .scena .braccio-avanti, .scena .braccio-dietro, .scena .gamba-spinta,
+    .scena .fumo-mercato circle, .scena .lucina-mercato { animation: none; }
+}

@@ -727,6 +727,16 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
     // Cumuli di neve alla base
     el('path', { d: `M${-w / 2 - 6} 3 q 10 -12 22 -6 q 8 -6 14 2 Z`, fill: '#fbfdff' }, corpo);
     el('path', { d: `M${w / 2 - 30} 3 q 12 -10 22 -5 q 10 -7 16 3 Z`, fill: '#fbfdff' }, corpo);
+    // Neve che cresce con i giorni: cumuli più alti e il tetto più carico
+    const neveInPiu = el('g', { class: 'neve-extra' }, corpo);
+    el('path', { d: `M${-w / 2 - 12} 4 q 8 -20 26 -14 q 10 -10 22 -2 q 6 4 4 16 Z`, fill: '#fbfdff' }, neveInPiu);
+    el('path', { d: `M${w / 2 - 34} 4 q 6 -16 22 -12 q 12 -12 24 0 q 4 6 0 12 Z`, fill: '#fbfdff' }, neveInPiu);
+    if (tipo === 'piatto') {
+        el('path', { d: `M${-w / 2 - 8} ${-h - 12} q ${w / 4} -16 ${w / 2} -8 q ${w / 4} -12 ${w / 2 + 16} 4 Z`, fill: '#fbfdff' }, neveInPiu);
+    } else {
+        const rh = tipo === 'torre' ? 70 : 46;
+        el('path', { d: `M${-w / 2 - 12} ${-h - 1} L0 ${-h - rh - 9} L${w / 2 + 12} ${-h - 1} L${w / 2 + 2} ${-h + 2} L0 ${-h - rh - 1} L${-w / 2 - 2} ${-h + 2} Z`, fill: '#fbfdff' }, neveInPiu);
+    }
 
     // Targa con il numero, in alto sul timpano
     el('circle', { class: 'targa', cx: 0, cy: targaY, r: 15, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 2.5 }, corpo);
@@ -1135,6 +1145,250 @@ function cantaMerryChristmas(alla_fine) {
     return ferma;
 }
 
+// ========== LA VITA NEL VILLAGGIO ==========
+
+// Muove una figura disegnata di profilo: verso 1 guarda a sinistra, -1 a destra
+function giraFigura(nodo, x, y, scala, verso) {
+    nodo.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(scala * verso).toFixed(3)} ${scala.toFixed(3)})`);
+}
+
+// Avvia un'animazione che si ferma da sola quando il villaggio viene tolto dalla pagina
+function anima(nodo, passo) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return passo(0);
+    let era = false;
+    const inizio = performance.now();
+    const giro = adesso => {
+        if (nodo.isConnected) era = true;
+        else if (era) return;
+        passo((adesso - inizio) / 1000);
+        requestAnimationFrame(giro);
+    };
+    requestAnimationFrame(giro);
+}
+
+// ---- I pattinatori sul laghetto ----
+const PATTINATORI = [
+    { giacca: '#c0392b', pantaloni: '#2c3e66', cappello: '#f4d03f', sciarpa: '#2e7d5b', pelle: '#f2d2bd', velocita: 0.32, fase: 0 },
+    { giacca: '#2e6fb5', pantaloni: '#3a2f45', cappello: '#e74c3c', sciarpa: '#fbfdff', pelle: '#c48a66', velocita: 0.27, fase: 2.1 },
+    { giacca: '#7d4e9e', pantaloni: '#2c2c3a', cappello: '#fbfdff', sciarpa: '#ff9de2', pelle: '#f5dccb', velocita: 0.3, fase: 4.2, piccolo: true },
+    { giacca: '#2e7d5b', pantaloni: '#4a3426', cappello: '#c0392b', sciarpa: '#f4d03f', pelle: '#9c6a4b', velocita: 0.24, fase: 3.1 }
+];
+
+function disegnaPattinatore(c) {
+    const posto = el('g', {});
+    el('ellipse', { cx: 0, cy: 1, rx: 14, ry: 2.5, fill: 'rgba(60,90,140,0.25)' }, posto);
+    // Gamba di spinta, tesa all'indietro, con il pattino
+    const dietro = el('g', { class: 'gamba-spinta' }, posto);
+    el('path', { d: 'M2 -27 L16 -11', stroke: c.pantaloni, 'stroke-width': 5, 'stroke-linecap': 'round' }, dietro);
+    el('path', { d: 'M14 -13 l5 4 l-3 3 l-5 -4 Z', fill: '#3a2a22' }, dietro);
+    el('path', { d: 'M13 -6 l9 -2', stroke: '#c9d3e6', 'stroke-width': 1.4, 'stroke-linecap': 'round' }, dietro);
+    // Gamba d'appoggio piegata e pattino sul ghiaccio
+    el('path', { d: 'M0 -27 L-4 -15 L-2 -5', stroke: c.pantaloni, 'stroke-width': 5, fill: 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, posto);
+    el('path', { d: 'M-6 -6 h8 v-4 h-6 Z', fill: '#3a2a22' }, posto);
+    el('path', { d: 'M-9 -0.5 h13 q2 0 2 -2', stroke: '#c9d3e6', 'stroke-width': 1.4, fill: 'none', 'stroke-linecap': 'round' }, posto);
+    el('path', { d: 'M-5 -2 v-3 M1 -2 v-3', stroke: '#8d98b8', 'stroke-width': 0.8 }, posto);
+    // Busto inclinato in avanti, con la giacca
+    el('path', { d: 'M-4 -24 L-12 -45 Q-6 -49 0 -46 L6 -25 Q1 -21 -4 -24 Z', fill: c.giacca }, posto);
+    el('path', { d: 'M-5 -25 Q0 -22 6 -25 L7 -22 Q1 -19 -6 -22 Z', fill: scurisci(c.giacca, 0.3) }, posto);
+    // Braccia: una avanti e una dietro, che oscillano
+    el('path', { class: 'braccio-avanti', d: 'M-9 -42 L-20 -33', stroke: c.giacca, 'stroke-width': 4, 'stroke-linecap': 'round' }, posto);
+    el('path', { class: 'braccio-dietro', d: 'M-4 -43 L8 -37', stroke: scurisci(c.giacca, 0.15), 'stroke-width': 4, 'stroke-linecap': 'round' }, posto);
+    // Sciarpa che svolazza all'indietro
+    el('path', { class: 'sciarpa-vento', d: 'M-9 -46 q 8 -2 14 2 q 6 3 12 0 l-1 4 q -6 3 -12 0 q -5 -3 -12 -1 Z', fill: c.sciarpa }, posto);
+    // Testa con il berretto e il pompon
+    el('circle', { cx: -14, cy: -52, r: 6.2, fill: c.pelle }, posto);
+    el('circle', { cx: -17.5, cy: -52, r: 0.9, fill: '#2a1d14' }, posto);
+    el('circle', { cx: -16.5, cy: -49.5, r: 1.3, fill: '#e8848a', opacity: 0.6 }, posto);
+    el('path', { d: 'M-20.5 -54 Q-20 -62 -13 -62 Q-7 -62 -7.5 -54 Z', fill: c.cappello }, posto);
+    el('rect', { x: -21, y: -55.5, width: 14, height: 3, rx: 1.4, fill: '#fbfdff' }, posto);
+    el('circle', { cx: -11, cy: -63, r: 2.4, fill: '#fbfdff' }, posto);
+    return posto;
+}
+
+function disegnaPattinatori(mondo, cx, cy) {
+    const lago = el('g', { class: 'pattinatori', 'pointer-events': 'none' }, mondo);
+    // Le righe lasciate dai pattini sul ghiaccio
+    [[0, 0, 128, 21], [8, -2, 104, 15], [-10, 3, 146, 25]].forEach(([dx, dy, rx, ry]) => {
+        el('ellipse', { cx: cx + dx, cy: cy + dy, rx, ry, fill: 'none', stroke: '#ffffff', 'stroke-width': 1.2, opacity: 0.55, 'stroke-dasharray': '30 14 50 20' }, lago);
+    });
+    const RX = 128, RY = 21;
+    const figure = PATTINATORI.map(c => ({ ...c, nodo: disegnaPattinatore(c) }));
+    figure.forEach(f => lago.append(f.nodo));
+    anima(lago, t => {
+        for (const [i, f] of figure.entries()) {
+            const a = f.fase + t * f.velocita;
+            const x = cx + Math.cos(a) * RX * (f.piccolo ? 0.8 : 1);
+            const y = cy + Math.sin(a) * RY * (f.piccolo ? 0.8 : 1);
+            // Davanti al lago va verso sinistra, dietro torna verso destra
+            const verso = Math.sin(a) > 0 ? 1 : -1;
+            // Leggera inclinazione nelle curve e piccola spinta ritmica
+            const spinta = Math.sin(t * 3 + i) * 2;
+            giraFigura(f.nodo, x + spinta * verso, y, scalaPer(y) * (f.piccolo ? 0.95 : 1.15), verso);
+        }
+        [...lago.children].filter(n => n.tagName === 'g')
+            .sort((p, q) => p.transform.baseVal.consolidate().matrix.f - q.transform.baseVal.consolidate().matrix.f)
+            .forEach(n => lago.append(n));
+    });
+    return lago;
+}
+
+// ---- I bambini che giocano a palle di neve ----
+function disegnaBambino(genitore, x, verso, c) {
+    const b = el('g', { transform: `translate(${x} 0) scale(${verso} 1)` }, genitore);
+    el('ellipse', { cx: 0, cy: 1, rx: 11, ry: 2.5, fill: 'rgba(60,90,140,0.28)' }, b);
+    // Stivaletti e pantaloni da neve
+    el('path', { d: 'M-6 -11 h5 v9 h-6 Z M1 -11 h5 v9 h-5 Z', fill: c.pantaloni }, b);
+    el('path', { d: 'M-8 -3 h7 v3 h-8 Z M1 -3 h7 q1 3 0 3 h-7 Z', fill: '#3a2a22' }, b);
+    // Giaccone imbottito
+    el('path', { d: 'M-9 -10 Q-11 -24 -7 -31 L7 -31 Q11 -24 9 -10 Q0 -7 -9 -10 Z', fill: c.giacca }, b);
+    el('path', { d: 'M-9 -20 Q0 -17 9 -20 M-8 -14 Q0 -11 8 -14', stroke: scurisci(c.giacca, 0.25), 'stroke-width': 1, fill: 'none' }, b);
+    el('path', { d: 'M0 -30 V-9', stroke: scurisci(c.giacca, 0.35), 'stroke-width': 0.9 }, b);
+    // Il braccio che lancia (si alza e si abbassa) e l'altro col guanto
+    const lancio = el('g', { class: 'braccio-lancio' }, b);
+    el('path', { d: 'M5 -28 Q12 -36 9 -44', stroke: c.giacca, 'stroke-width': 4.2, fill: 'none', 'stroke-linecap': 'round' }, lancio);
+    el('circle', { cx: 9, cy: -45, r: 2.6, fill: c.guanti }, lancio);
+    el('path', { d: 'M-6 -28 Q-12 -22 -10 -16', stroke: c.giacca, 'stroke-width': 4.2, fill: 'none', 'stroke-linecap': 'round' }, b);
+    el('circle', { cx: -10, cy: -15, r: 2.6, fill: c.guanti }, b);
+    // Sciarpa e testa con il berretto
+    el('rect', { x: -6.5, y: -33.5, width: 13, height: 4, rx: 2, fill: c.sciarpa }, b);
+    el('path', { d: 'M-5 -31 l-4 7 l3 1 l3 -7 Z', fill: c.sciarpa }, b);
+    el('circle', { cx: 0, cy: -40, r: 7, fill: c.pelle }, b);
+    el('circle', { cx: 3, cy: -41, r: 0.9, fill: '#2a1d14' }, b);
+    el('circle', { cx: -2.5, cy: -41, r: 0.9, fill: '#2a1d14' }, b);
+    el('path', { d: 'M-1.5 -37.5 q 2 2 4 0', stroke: '#7a3a2a', 'stroke-width': 0.9, fill: 'none' }, b);
+    el('circle', { cx: 4.5, cy: -38.5, r: 1.4, fill: '#e8848a', opacity: 0.65 }, b);
+    el('circle', { cx: -4, cy: -38.5, r: 1.4, fill: '#e8848a', opacity: 0.65 }, b);
+    el('path', { d: 'M-7.5 -42 Q-8 -51 0 -51 Q8 -51 7.5 -42 Z', fill: c.cappello }, b);
+    el('rect', { x: -8, y: -43.5, width: 16, height: 3.2, rx: 1.5, fill: '#fbfdff' }, b);
+    el('path', { d: 'M0 -51 q 5 -3 7 2', stroke: c.cappello, 'stroke-width': 2.4, fill: 'none', 'stroke-linecap': 'round' }, b);
+    el('circle', { cx: 7.5, cy: -48, r: 2.4, fill: '#fbfdff' }, b);
+    return lancio;
+}
+
+function disegnaPalleDiNeve(mondo, x, y, scala) {
+    const gioco = el('g', { class: 'palle-di-neve', transform: `translate(${x} ${y}) scale(${scala})`, 'pointer-events': 'none' }, mondo);
+    // Il fortino di neve di uno dei due, con le palle pronte
+    const DIST = 46;
+    el('ellipse', { cx: 0, cy: 2, rx: 70, ry: 7, fill: '#eef3fb' }, gioco);
+    const braccioA = disegnaBambino(gioco, -DIST, 1, { giacca: '#e67e22', pantaloni: '#34495e', cappello: '#2e86de', sciarpa: '#c0392b', guanti: '#c0392b', pelle: '#f2d2bd' });
+    const braccioB = disegnaBambino(gioco, DIST, -1, { giacca: '#16a085', pantaloni: '#5b3a6b', cappello: '#e84393', sciarpa: '#f4d03f', guanti: '#f4d03f', pelle: '#c48a66' });
+    [[20, 0], [32, 0], [44, 0], [26, -7], [38, -7]].forEach(([bx, by]) => el('ellipse', { cx: bx, cy: by - 4, rx: 7, ry: 5, fill: '#fbfdff', stroke: '#cfdaee', 'stroke-width': 1 }, gioco));
+    [[-30, -1], [-24, -2], [-27, -6]].forEach(([bx, by]) => el('circle', { cx: bx, cy: by, r: 2.6, fill: '#fbfdff', stroke: '#cfdaee', 'stroke-width': 0.8 }, gioco));
+    const palla = el('circle', { cx: 0, cy: 0, r: 3, fill: '#ffffff', stroke: '#cfdaee', 'stroke-width': 0.8 }, gioco);
+    const sbuffo = el('g', { opacity: 0 }, gioco);
+    [[-4, -2], [3, -4], [0, 3], [5, 2], [-3, 4]].forEach(([dx, dy]) => el('circle', { cx: dx, cy: dy, r: 1.8, fill: '#ffffff' }, sbuffo));
+
+    // Si lanciano la palla a turno: parte dalla mano, fa un arco e si sbriciola dall'altra parte
+    const DURATA = 2.4, VOLO = 0.9;
+    anima(gioco, t => {
+        const turno = Math.floor(t / DURATA);
+        const f = (t % DURATA) / DURATA * (DURATA / VOLO);
+        const daA = turno % 2 === 0;
+        const [x0, x1] = daA ? [-DIST + 9, DIST - 12] : [DIST - 9, -DIST + 12];
+        const lanciatore = daA ? braccioA : braccioB;
+        const altro = daA ? braccioB : braccioA;
+        lanciatore.setAttribute('transform', f < 1 ? `rotate(${(-40 * Math.max(0, 1 - f * 3)).toFixed(1)} 5 -28)` : 'rotate(0 5 -28)');
+        altro.setAttribute('transform', 'rotate(0 5 -28)');
+        if (f < 1) {
+            palla.setAttribute('opacity', 1);
+            palla.setAttribute('cx', (x0 + (x1 - x0) * f).toFixed(1));
+            palla.setAttribute('cy', (-45 - Math.sin(f * Math.PI) * 30 + f * 18).toFixed(1));
+            sbuffo.setAttribute('opacity', 0);
+        } else {
+            palla.setAttribute('opacity', 0);
+            const g = Math.min(1, (f - 1) * 2);
+            sbuffo.setAttribute('opacity', (1 - g).toFixed(2));
+            sbuffo.setAttribute('transform', `translate(${x1} -27) scale(${(1 + g * 1.5).toFixed(2)})`);
+        }
+    });
+    return gioco;
+}
+
+// ---- Il mercatino di Natale ----
+const BANCARELLE = [
+    { nome: 'Castagne', tetto: '#9b1d2a', banco: 'castagne', venditore: { giacca: '#5d3a22', cappello: '#2c2c3a', pelle: '#e3b393' } },
+    { nome: 'Cioccolata', tetto: '#2e6b3f', banco: 'cioccolata', venditore: { giacca: '#c0392b', cappello: '#fbfdff', pelle: '#f2d2bd' } },
+    { nome: 'Addobbi', tetto: '#2d4f8a', banco: 'addobbi', venditore: { giacca: '#7d4e9e', cappello: '#f4d03f', pelle: '#9c6a4b' } }
+];
+
+function disegnaBancarella(genitore, x, b) {
+    const g = el('g', { transform: `translate(${x} 0)` }, genitore);
+    el('ellipse', { cx: 0, cy: 2, rx: 54, ry: 6, fill: 'rgba(60,90,140,0.25)' }, g);
+    // Casetta di legno aperta sul davanti
+    el('rect', { x: -46, y: -78, width: 92, height: 78, fill: '#7a4b2e' }, g);
+    el('rect', { x: -46, y: -78, width: 92, height: 78, fill: 'url(#tex-assi)' }, g);
+    el('rect', { x: -38, y: -70, width: 76, height: 40, fill: '#3b2416' }, g);
+    el('circle', { class: 'luce-calda', cx: 0, cy: -50, r: 46, fill: 'url(#alone)', opacity: 0.7 }, g);
+    // Il venditore dietro al banco
+    const v = b.venditore;
+    el('path', { d: 'M-12 -30 Q-12 -46 0 -47 Q12 -46 12 -30 Z', fill: v.giacca }, g);
+    el('circle', { cx: 0, cy: -53, r: 7, fill: v.pelle }, g);
+    el('path', { d: 'M-3 -54 q 1 -1 2 0 M1.5 -54 q 1 -1 2 0', stroke: '#2a1d14', 'stroke-width': 0.8, fill: 'none' }, g);
+    el('path', { d: 'M-2.5 -50 q 2.5 2 5 0', stroke: '#7a3a2a', 'stroke-width': 0.9, fill: 'none' }, g);
+    el('path', { d: 'M-7.5 -56 Q-8 -64 0 -64 Q8 -64 7.5 -56 Z', fill: v.cappello }, g);
+    // Il banco con la tovaglia
+    el('rect', { x: -44, y: -32, width: 88, height: 32, fill: '#8a5a3c' }, g);
+    el('path', { d: 'M-46 -33 H46 V-24 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 q -7.7 5 -15.3 0 Z', fill: '#fbf6ea' }, g);
+    el('path', { d: 'M-46 -29 H46', stroke: b.tetto, 'stroke-width': 2, 'stroke-dasharray': '4 4' }, g);
+    // La merce sul banco
+    if (b.banco === 'castagne') {
+        el('path', { d: 'M-34 -33 q 14 10 28 0 Z', fill: '#2c2c2c' }, g);
+        for (let i = 0; i < 6; i++) el('ellipse', { cx: -30 + i * 4.4, cy: -35 + (i % 2), rx: 2.6, ry: 2, fill: '#6b3a1f' }, g);
+        const fumo = el('g', { class: 'fumo-mercato' }, g);
+        for (let i = 0; i < 3; i++) el('circle', { cx: -20, cy: -40, r: 5, fill: '#e8edf6', style: `animation-delay:${(i * 0.9).toFixed(1)}s` }, fumo);
+        [[14, '#a0663a'], [24, '#8a5a3c'], [34, '#a0663a']].forEach(([cx, c]) => el('path', { d: `M${cx - 4} -33 l2 -8 h4 l2 8 Z`, fill: c }, g));
+    } else if (b.banco === 'cioccolata') {
+        [-30, -18, -6, 18, 30].forEach((cx, i) => {
+            el('rect', { x: cx - 4, y: -41, width: 8, height: 8, rx: 1.5, fill: ['#c0392b', '#fbfdff', '#2e6b3f', '#f4d03f', '#c0392b'][i] }, g);
+            el('path', { d: `M${cx + 4} -39 q 3 0 3 2.5 q 0 2.5 -3 2.5`, stroke: '#8a8a8a', 'stroke-width': 1, fill: 'none' }, g);
+            el('path', { class: 'vapore-tazza', d: `M${cx} -44 q -2 -4 0 -7 q 2 -3 0 -6`, stroke: '#ffffff', 'stroke-width': 1.3, fill: 'none', opacity: 0.8, style: `animation-delay:${(i * 0.4).toFixed(1)}s` }, g);
+        });
+    } else {
+        [[-32, '#e74c3c'], [-22, '#f4d03f'], [-12, '#3498db'], [14, '#e84393'], [24, '#2ecc71'], [34, '#e67e22']].forEach(([cx, c]) => {
+            el('circle', { cx, cy: -37, r: 4, fill: c }, g);
+            el('circle', { cx: cx - 1.2, cy: -38.2, r: 1.2, fill: '#fff', opacity: 0.8 }, g);
+        });
+        // Palline appese al bordo del tetto
+        [-36, -20, -4, 12, 28].forEach((cx, i) => {
+            el('path', { d: `M${cx} -78 v${8 + (i % 2) * 6}`, stroke: '#c9a227', 'stroke-width': 0.8 }, g);
+            el('circle', { cx, cy: -68 + (i % 2) * 6, r: 3.4, fill: ['#e74c3c', '#f4d03f', '#3498db', '#e84393', '#2ecc71'][i] }, g);
+        });
+    }
+    // Tetto a punta innevato con l'insegna
+    el('path', { d: 'M-56 -76 L0 -108 L56 -76 Z', fill: b.tetto }, g);
+    el('path', { d: 'M-56 -76 L0 -108 L56 -76', stroke: scurisci(b.tetto, 0.35), 'stroke-width': 4, fill: 'none', 'stroke-linejoin': 'round' }, g);
+    el('path', { d: 'M-58 -78 L0 -111 L58 -78 q -10 -2 -14 3 q -8 -9 -18 -2 q -10 -8 -26 -14 q -16 6 -26 14 q -10 -7 -18 2 q -4 -5 -14 -3 Z', fill: '#fbfdff' }, g);
+    el('rect', { x: -32, y: -96, width: 64, height: 16, rx: 3, fill: '#fbf6ea', stroke: scurisci(b.tetto, 0.2), 'stroke-width': 1.5 }, g);
+    el('text', { x: 0, y: -84, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: scurisci(b.tetto, 0.1) }, g).textContent = b.nome;
+    // Lucine lungo il tetto
+    for (let i = 0; i <= 8; i++) {
+        const t = i / 8, lx = -52 + 104 * t, ly = -74 - 30 * (1 - Math.abs(2 * t - 1));
+        el('circle', { class: 'lucina-mercato', cx: lx.toFixed(1), cy: ly.toFixed(1), r: 2.4, fill: COLORI_FESTA[i % COLORI_FESTA.length], style: `animation-delay:${((i % 3) * 0.4).toFixed(1)}s` }, g);
+    }
+    return g;
+}
+
+function disegnaMercatino(mondo, x, y, scala) {
+    const m = el('g', { class: 'mercatino', transform: `translate(${x} ${y}) scale(${scala})`, 'pointer-events': 'none' }, mondo);
+    // Tre bancarelle sfalsate: quella in mezzo un po' più indietro
+    disegnaBancarella(m, 0, BANCARELLE[1]).setAttribute('transform', 'translate(0 -18) scale(0.94)');
+    disegnaBancarella(m, -96, BANCARELLE[0]);
+    disegnaBancarella(m, 96, BANCARELLE[2]);
+    return m;
+}
+
+// ---- La neve che cresce giorno dopo giorno ----
+// Cumuli e mucchi di neve in più: diventano sempre più visibili man mano che si va verso Natale
+function disegnaNeveCheCresce(mondo) {
+    const neve = el('g', { class: 'neve-extra', 'pointer-events': 'none' }, mondo);
+    [[220, 790], [470, 812], [700, 668], [1150, 800], [1390, 770], [2230, 812], [2460, 768], [2700, 800], [3060, 780], [3500, 800], [1320, 655], [2520, 650], [3240, 640]]
+        .forEach(([x, y], i) => {
+            const k = 0.8 + (i % 3) * 0.25;
+            el('path', { d: `M${x - 50 * k} ${y} q ${14 * k} -${16 * k} ${34 * k} -${9 * k} q ${18 * k} -${14 * k} ${38 * k} -${3 * k} q ${18 * k} -${8 * k} ${28 * k} ${12 * k} Z`, fill: '#fbfdff' }, neve);
+        });
+    return neve;
+}
+
 // Altezza della strada in ogni punto, per mettere le case ai suoi lati
 function profiloStrada(mondo) {
     const traccia = el('path', { d: STRADA, fill: 'none' }, mondo);
@@ -1147,6 +1401,7 @@ function profiloStrada(mondo) {
 
 function disegnaPaese(mondo) {
     disegnaTerreno(mondo);
+    disegnaNeveCheCresce(mondo);
     const yStrada = profiloStrada(mondo);
 
     const elementi = [];
@@ -1163,7 +1418,9 @@ function disegnaPaese(mondo) {
     elementi.push({ x: PIAZZA.x - 210, y: PIAZZA.y + 30, tipo: 'pupazzo' }, { x: 920, y: 640, tipo: 'pupazzo' });
     elementi.push({ x: PIAZZA.x - 60, y: PIAZZA.y + 118, tipo: 'cartello' });
     elementi.push({ x: PIAZZA.x + 180, y: PIAZZA.y + 66, tipo: 'coro' });
-    [[60, 640], [880, 600], [1680, 610], [2760, 600], [3000, 650], [3600, 640], [450, 880], [1880, 880], [2780, 885], [3300, 890]]
+    // Pattinatori sul laghetto, bambini con le palle di neve, mercatino vicino al ruscello
+    elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: 908, y: 846, tipo: 'palle' }, { x: 2764, y: 836, tipo: 'mercatino' });
+    [[60, 640], [880, 600], [1680, 610], [2760, 600], [3000, 650], [3600, 640], [450, 880], [1880, 880], [3060, 900], [3300, 890]]
         .forEach(([x, y]) => elementi.push({ x, y, tipo: 'abete' }));
     elementi.push({ x: STAZIONE.x, y: STAZIONE.y, tipo: 'stazione' }, { x: 0, y: BINARI_Y, tipo: 'treno' });
 
@@ -1192,6 +1449,9 @@ function disegnaPaese(mondo) {
         else if (tipo === 'pupazzo') disegnaPupazzo(mondo, x, y, scala);
         else if (tipo === 'stazione') disegnaStazione(mondo, x, y, 0.62);
         else if (tipo === 'treno') disegnaTrenino(mondo);
+        else if (tipo === 'pattinatori') disegnaPattinatori(mondo, x, y);
+        else if (tipo === 'palle') disegnaPalleDiNeve(mondo, x, y, scala * 1.05);
+        else if (tipo === 'mercatino') disegnaMercatino(mondo, x, y, 0.86);
         else if (tipo === 'coro') disegnaCoro(mondo, x, y, scala * 1.25);
         else if (tipo === 'cartello') disegnaCartelloNatale(mondo, x, y, scala * 0.9);
         else if (tipo === 'renna') disegnaRenna(mondo, x, y, scala * (elemento.piccola ? 0.55 : 0.82), elemento);
@@ -1203,7 +1463,7 @@ function disegnaPaese(mondo) {
 
 function avviaNeve(canvas) {
     const ctx = canvas.getContext('2d');
-    const fiocchi = Array.from({ length: 160 }, () => ({ x: Math.random(), y: Math.random(), r: 0.6 + Math.random() * 2.2, v: 0.0006 + Math.random() * 0.0012, o: Math.random() * Math.PI * 2 }));
+    const fiocchi = Array.from({ length: 240 }, () => ({ x: Math.random(), y: Math.random(), r: 0.6 + Math.random() * 2.2, v: 0.0006 + Math.random() * 0.0012, o: Math.random() * Math.PI * 2 }));
     const ferma = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function disegna(tempo) {
@@ -1211,7 +1471,8 @@ function avviaNeve(canvas) {
         if (canvas.width !== Math.round(width)) { canvas.width = width; canvas.height = height; }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        for (const f of fiocchi) {
+        const quanti = Math.round(70 + 170 * Number(canvas.dataset.quanta ?? 0.5));
+        for (const f of fiocchi.slice(0, quanti)) {
             if (!ferma) {
                 f.y += f.v;
                 f.x += Math.sin(tempo / 1500 + f.o) * 0.0003;
@@ -2738,9 +2999,12 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     // ---- Case ----
     function aggiornaStato() {
         // Il cartello in piazza conta i giorni che mancano a Natale
+        const giornoCartello = modifica ? (new Date().getMonth() === 11 ? new Date().getDate() : 0) : aperti;
+        const quantaNeve = Math.max(0.15, Math.min(1, giornoCartello / 24));
+        contenitore.style.setProperty('--neve', quantaNeve.toFixed(2));
+        neve.dataset.quanta = quantaNeve.toFixed(2);
         const cartello = mondo.querySelector('.cartello-natale');
         if (cartello) {
-            const giornoCartello = modifica ? (new Date().getMonth() === 11 ? new Date().getDate() : 0) : aperti;
             const [sopra, sotto] = testoAttesa(giornoCartello);
             cartello.querySelectorAll('text')[0].textContent = sopra;
             cartello.querySelectorAll('text')[1].textContent = sotto;
