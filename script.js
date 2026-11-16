@@ -244,6 +244,8 @@ function disegnaVillaggio() {
             modifica: true,
             benvenuto: calendario.benvenuto,
             lettere: calendario.lettere ?? [],
+            destinatario: calendario.destinatario,
+            letteraBabbo: calendario.letteraBabbo,
             piene: giorniPieni(),
             onTocco: suonoAperturaCasella,
             // Casa vuota: si prepara la sorpresa. Casa pronta: si vede com'è, con Modifica ed Elimina
@@ -261,6 +263,8 @@ function disegnaVillaggio() {
         aperti: calendario.aperti,
         viste,
         benvenuto: calendario.benvenuto,
+        destinatario: calendario.destinatario,
+        letteraBabbo: calendario.letteraBabbo,
         onTocco: suonoAperturaCasella,
         // La letterina a Babbo Natale arriva a chi ha preparato il calendario
         onLettera: (testo, firma) => chiamaApi('/api/calendario', {
@@ -555,6 +559,8 @@ async function salvaCalendario(modifiche = {}) {
             chiave: CHIAVE,
             titolo: $('titolo-modifica').value,
             benvenuto: $('benvenuto-modifica').value,
+            destinatario: $('destinatario-modifica').value,
+            letteraBabbo: $('lettera-babbo-modifica').value,
             modifiche
         })
     });
@@ -562,6 +568,7 @@ async function salvaCalendario(modifiche = {}) {
     $('titolo').textContent = calendario.titolo;
     villaggio?.impostaBenvenuto(calendario.benvenuto);
     villaggio?.impostaLettere(calendario.lettere ?? []);
+    villaggio?.impostaSacco(calendario.destinatario, calendario.letteraBabbo);
     mostraLettere();
     aggiornaVista();
 }
@@ -668,6 +675,8 @@ function preparaPannello() {
     $('pannello-modifica').hidden = false;
     $('titolo-modifica').value = calendario.titolo;
     $('benvenuto-modifica').value = calendario.benvenuto ?? '';
+    $('destinatario-modifica').value = calendario.destinatario ?? '';
+    $('lettera-babbo-modifica').value = calendario.letteraBabbo ?? '';
     mostraLettere();
     $('link-condivisione').value = linkPubblico;
     $('link-personale').value = linkPersonale;
@@ -696,6 +705,11 @@ function preparaPannello() {
             () => mostraMessaggio('Titolo salvato!', 'successo'),
             errore => mostraMessaggio(errore.message, 'errore'));
     });
+    ['destinatario-modifica', 'lettera-babbo-modifica'].forEach(campo => $(campo).addEventListener('change', () => {
+        salvaCalendario().then(
+            () => mostraMessaggio('Salvato! Lo trovi nel sacco dell\'ufficio postale.', 'successo'),
+            errore => mostraMessaggio(errore.message, 'errore'));
+    }));
     $('benvenuto-modifica').addEventListener('change', () => {
         salvaCalendario().then(
             () => mostraMessaggio('Benvenuto salvato! Entra in stazione per vederlo.', 'successo'),

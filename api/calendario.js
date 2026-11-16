@@ -16,10 +16,10 @@ async function crea(req, res, redis) {
 
 // L'editor manda solo le caselle cambiate (null = svuota)
 async function salva(req, res, redis) {
-    const { id, chiave, titolo, benvenuto, modifiche } = req.body ?? {};
+    const { id, chiave, titolo, benvenuto, destinatario, letteraBabbo, modifiche } = req.body ?? {};
     if (!chiaveValida(id, chiave)) return res.status(403).json({ errore: 'Link di modifica non valido.' });
 
-    const esito = await salvaModifiche(redis, id, { titolo, benvenuto, modifiche });
+    const esito = await salvaModifiche(redis, id, { titolo, benvenuto, destinatario, letteraBabbo, modifiche });
     if (esito.errore) return res.status(esito.stato).json({ errore: esito.errore });
     if (esito.daEliminare.length) await del(esito.daEliminare).catch(errore => console.error('Pulizia file:', errore));
     return res.status(200).json(esito.calendario);

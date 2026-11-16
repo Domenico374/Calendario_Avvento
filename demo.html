@@ -1360,6 +1360,118 @@ body::before {
 .letterina-ricevuta p { margin: 0 0 6px; white-space: pre-wrap; }
 .letterina-ricevuta .firma { margin: 0; font-style: italic; color: #a3242c; text-align: right; }
 
+/* ---- Il sacco della posta con il nome, e la letterina di Babbo Natale ---- */
+.scena .sacco-per-te {
+    position: absolute;
+    left: 3%;
+    bottom: 4%;
+    width: clamp(90px, 14vw, 170px);
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    animation: sacco 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 0 14px rgba(255, 211, 107, 0.55));
+}
+.scena .interno .sacco-per-te svg { position: static; inset: auto; width: 100%; height: auto; aspect-ratio: 160 / 190; display: block; }
+.scena .sacco-per-te:focus-visible { outline: 3px solid #ffd36b; outline-offset: 4px; border-radius: 12px; }
+.scena .avviso-sacco {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #c0392b;
+    color: #fffaf0;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(0.72rem, 1.4vw, 0.95rem);
+    white-space: nowrap;
+}
+.scena .sacco-per-te.aperto .avviso-sacco { background: #2e7d4a; }
+@keyframes sacco { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1.5deg); } }
+.scena .lettera-babbo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    width: min(560px, 90%);
+    max-height: 88%;
+    overflow-y: auto;
+    padding: 20px 26px 16px;
+    border: 3px solid #c9a227;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #fffdf4, #f6e9c8);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    color: #3a2416;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    display: grid;
+    gap: 8px;
+    transform: translate(-50%, 10%) scale(0.2) rotate(-10deg);
+    opacity: 0;
+    transition: transform 0.6s cubic-bezier(.2, 1.3, .4, 1), opacity 0.4s;
+}
+.scena .lettera-babbo.apre { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+.scena .lettera-babbo h3 {
+    margin: 0;
+    font-family: 'Mountains of Christmas', 'Brush Script MT', cursive;
+    font-size: 2rem;
+    color: #a3242c;
+}
+.scena .testo-lettera-babbo { margin: 0; font-size: 1.1rem; line-height: 1.55; white-space: pre-wrap; }
+.scena .firma-lettera-babbo {
+    margin: 4px 0 0;
+    text-align: right;
+    font-family: 'Mountains of Christmas', 'Brush Script MT', cursive;
+    font-size: 1.4rem;
+    color: #a3242c;
+}
+.scena .lettera-babbo .spedisci {
+    justify-self: center;
+    border: 2px solid #c9a227;
+    border-radius: 999px;
+    background: #2e7d4a;
+    color: #fffaf0;
+    font: inherit;
+    font-weight: 800;
+    padding: 8px 20px;
+    cursor: pointer;
+}
+@media (max-width: 899px) and (orientation: portrait) {
+    .scena .sacco-per-te { width: 84px; bottom: 70px; }
+    .scena .letterina { top: 44%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .sacco-per-te { animation: none; }
+    .scena .lettera-babbo { transition: none; }
+}
+
+/* ---- Il mercatino degli addobbi ---- */
+.scena .negozio { cursor: pointer; transition: filter 0.3s; }
+.scena .negozio:hover, .scena .negozio:focus-visible { filter: brightness(1.15) drop-shadow(0 0 6px rgba(255, 210, 120, 0.9)); outline: none; }
+.scena .negozio-dentro { background: #3a2416; }
+.scena .addobbo-vendita { cursor: pointer; transition: transform 0.2s; }
+.scena .addobbo-vendita:hover > g, .scena .addobbo-vendita:focus-visible > g { filter: drop-shadow(0 0 8px rgba(255, 220, 140, 0.95)); }
+.scena .addobbo-vendita:focus-visible { outline: none; }
+.scena .stella-alberello { transition: fill 0.6s; }
+.scena .stella-alberello.accesa { fill: #ffe066; filter: url(#bagliore); }
+.scena .negozio-dentro .ricomincia {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    border: 2px solid #ffd36b;
+    border-radius: 999px;
+    background: rgba(26, 13, 8, 0.75);
+    color: #ffe9a8;
+    font: inherit;
+    font-weight: bold;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+@media (max-width: 899px) {
+    .scena .negozio-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -2779,6 +2891,22 @@ function disegnaBancarella(genitore, x, b) {
             el('path', { d: `M${cx + 4} -39 q 3 0 3 2.5 q 0 2.5 -3 2.5`, stroke: '#8a8a8a', 'stroke-width': 1, fill: 'none' }, g);
             el('path', { class: 'vapore-tazza', d: `M${cx} -44 q -2 -4 0 -7 q 2 -3 0 -6`, stroke: '#ffffff', 'stroke-width': 1.3, fill: 'none', opacity: 0.8, style: `animation-delay:${(i * 0.4).toFixed(1)}s` }, g);
         });
+    } else if (b.banco === 'addobbi') {
+        [[-32, '#e74c3c'], [-20, '#f4d03f'], [-8, '#3498db'], [14, '#e84393'], [26, '#2ecc71'], [36, '#e67e22']].forEach(([cx, c]) => {
+            el('circle', { cx, cy: -37, r: 4, fill: c }, g);
+            el('circle', { cx: cx - 1.2, cy: -38.2, r: 1.2, fill: '#fff', opacity: 0.8 }, g);
+        });
+        [-36, -20, -4, 12, 28].forEach((cx, i) => {
+            el('path', { d: `M${cx} -78 v${8 + (i % 2) * 6}`, stroke: '#c9a227', 'stroke-width': 0.8 }, g);
+            el('circle', { cx, cy: -68 + (i % 2) * 6, r: 3.4, fill: ['#e74c3c', '#f4d03f', '#3498db', '#e84393', '#2ecc71'][i] }, g);
+        });
+    } else if (b.banco === 'candele') {
+        [-30, -18, -6, 18, 30].forEach((cx, i) => {
+            el('rect', { x: cx - 3, y: -44 + (i % 2) * 3, width: 6, height: 11 - (i % 2) * 3, fill: ['#fbf6ea', '#c0392b', '#f4d03f', '#2e7d4a', '#fbf6ea'][i] }, g);
+            el('path', { class: 'fiamma', d: `M${cx} ${-50 + (i % 2) * 3} q 3 3 0 6 q -3 -3 0 -6 Z`, fill: '#ffb347' }, g);
+        });
+        el('circle', { cx: 0, cy: -60, r: 8, fill: 'none', stroke: '#1f5c34', 'stroke-width': 4 }, g);
+        [0, 1, 2].forEach(i => el('circle', { cx: Math.cos(i * 2.1) * 8, cy: -60 + Math.sin(i * 2.1) * 8, r: 1.6, fill: '#e0262f' }, g));
     } else {
         // Padella di ferro sul fuoco e piatto di frittelle con lo zucchero
         el('path', { d: 'M-36 -33 l3 -6 h20 l3 6 Z', fill: '#2f2f33' }, g);
@@ -3328,14 +3456,77 @@ function disegnaPosta(mondo, x, y, scala) {
 }
 
 // Dentro l'ufficio postale: chi riceve il calendario scrive la letterina, chi lo prepara le legge
-function creaPosta({ onEsci, onSpedisci, modifica, lettere }) {
+// La letterina di Babbo Natale quando chi prepara il calendario non ne ha scritta una
+const LETTERA_BABBO = "Ho saputo che stai facendo un viaggio speciale nel mio villaggio! Ogni giorno si apre una casa con una sorpresa: aprile una alla volta, senza fretta. Gli elfi lavorano nel laboratorio, le renne si allenano per la grande notte… e il 24 dicembre ti aspetto nella mia casa in piazza. Sorridi tanto e fai il bravo!";
+
+function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', letteraBabbo = '' }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno posta-dentro', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid slice', role: 'img', 'aria-label': "Dentro l'ufficio postale di Babbo Natale" });
     const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
     const foglio = Object.assign(document.createElement('div'), { className: 'letterina' });
     nodo.append(svg, foglio, esci);
     esci.addEventListener('click', onEsci);
-    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+    nodo.addEventListener('keydown', evento => {
+        if (evento.key !== 'Escape') return;
+        if (!letteraAperta.hidden) chiudiLettera();
+        else onEsci();
+    });
+
+    // Il sacco della posta con il nome di chi riceve il calendario: dentro c'è la letterina di Babbo Natale per lui
+    const sacco = Object.assign(document.createElement('button'), { type: 'button', className: 'sacco-per-te' });
+    const avviso = Object.assign(document.createElement('span'), { className: 'avviso-sacco', textContent: "C'è posta per te!" });
+    const disegnoSacco = el('svg', { viewBox: '0 0 160 190', 'aria-hidden': 'true' });
+    el('ellipse', { cx: 80, cy: 182, rx: 62, ry: 7, fill: 'rgba(0,0,0,0.3)' }, disegnoSacco);
+    el('path', { d: 'M28 182 Q8 120 34 70 Q52 52 80 52 Q108 52 126 70 Q152 120 132 182 Z', fill: '#c9a27c' }, disegnoSacco);
+    el('path', { d: 'M40 176 Q26 124 44 84', stroke: '#e3c49a', 'stroke-width': 6, fill: 'none', opacity: 0.6, 'stroke-linecap': 'round' }, disegnoSacco);
+    el('path', { d: 'M120 176 Q134 124 116 84', stroke: '#a07c55', 'stroke-width': 6, fill: 'none', opacity: 0.6, 'stroke-linecap': 'round' }, disegnoSacco);
+    [[58, 40, -14, '#fffaf0'], [86, 34, 10, '#fde7c8'], [72, 46, 2, '#e8f1ff']].forEach(([bx, by, r, c]) => {
+        const busta = el('g', { transform: `rotate(${r} ${bx} ${by})` }, disegnoSacco);
+        el('rect', { x: bx - 20, y: by - 13, width: 40, height: 26, rx: 2, fill: c, stroke: '#c9a227', 'stroke-width': 1.5 }, busta);
+        el('path', { d: `M${bx - 20} ${by - 13} l20 14 l20 -14`, stroke: '#c9a227', 'stroke-width': 1.5, fill: 'none' }, busta);
+    });
+    el('path', { d: 'M40 70 Q80 84 120 70 Q80 64 40 70 Z', fill: '#a07c55' }, disegnoSacco);
+    el('path', { d: 'M44 72 Q80 88 116 72', stroke: '#c0392b', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round' }, disegnoSacco);
+    el('path', { d: 'M80 78 q -16 18 -22 30 M80 78 q 10 20 8 34', stroke: '#c0392b', 'stroke-width': 4, fill: 'none' }, disegnoSacco);
+    el('rect', { x: 46, y: 106, width: 70, height: 38, rx: 6, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 2.5, transform: 'rotate(-6 81 125)' }, disegnoSacco);
+    el('circle', { cx: 52, cy: 113, r: 3, fill: '#c9a227' }, disegnoSacco);
+    const perChi = el('text', { x: 81, y: 122, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#3a2416', transform: 'rotate(-6 81 125)' }, disegnoSacco);
+    const nomeSacco = el('text', { x: 81, y: 137, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#a3242c', transform: 'rotate(-6 81 125)' }, disegnoSacco);
+    perChi.textContent = 'PER';
+    el('text', { x: 80, y: 168, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', 'letter-spacing': 1, 'font-family': 'Georgia, serif', fill: '#7a2a2f' }, disegnoSacco).textContent = 'POLO NORD';
+    sacco.append(avviso, disegnoSacco);
+
+    const letteraAperta = Object.assign(document.createElement('div'), { className: 'lettera-babbo', hidden: true });
+    letteraAperta.setAttribute('role', 'dialog');
+    letteraAperta.setAttribute('aria-label', 'La letterina di Babbo Natale');
+    const saluto = document.createElement('h3');
+    const corpoLettera = Object.assign(document.createElement('p'), { className: 'testo-lettera-babbo' });
+    const firmaBabbo = Object.assign(document.createElement('p'), { className: 'firma-lettera-babbo', textContent: 'Con tanto affetto, Babbo Natale 🎅' });
+    const chiudi = Object.assign(document.createElement('button'), { type: 'button', className: 'spedisci', textContent: 'Chiudi la letterina' });
+    letteraAperta.append(saluto, corpoLettera, firmaBabbo, chiudi);
+    nodo.append(sacco, letteraAperta);
+
+    function aggiornaSacco() {
+        const nome = destinatario.trim();
+        nomeSacco.textContent = (nome || 'TE').toUpperCase().slice(0, 14);
+        sacco.setAttribute('aria-label', `Il sacco della posta per ${nome || 'te'}: tocca per aprire la letterina di Babbo Natale`);
+        saluto.textContent = nome ? `Caro ${nome},` : 'Ciao!';
+        corpoLettera.textContent = letteraBabbo.trim() || LETTERA_BABBO;
+    }
+    function chiudiLettera() {
+        letteraAperta.hidden = true;
+        letteraAperta.classList.remove('apre');
+        sacco.focus({ preventScroll: true });
+    }
+    sacco.addEventListener('click', () => {
+        aggiornaSacco();
+        sacco.classList.add('aperto');
+        letteraAperta.hidden = false;
+        requestAnimationFrame(() => letteraAperta.classList.add('apre'));
+        chiudi.focus({ preventScroll: true });
+    });
+    chiudi.addEventListener('click', chiudiLettera);
+    aggiornaSacco();
 
     // Lo sfondo: casellari pieni di lettere, sacchi del Polo Nord, finestra con la neve
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#4a2c1c' }, svg);
@@ -3436,11 +3627,18 @@ function creaPosta({ onEsci, onSpedisci, modifica, lettere }) {
             });
         },
         nascondi() {
+            letteraAperta.hidden = true;
+            letteraAperta.classList.remove('apre');
             nodo.classList.remove('visibile');
             nodo.hidden = true;
         },
         aggiornaLettere(nuove) {
             lettere = nuove ?? [];
+        },
+        impostaSacco(nome, lettera) {
+            destinatario = nome ?? '';
+            letteraBabbo = lettera ?? '';
+            aggiornaSacco();
         }
     };
 }
@@ -3836,6 +4034,204 @@ function creaStalla({ onEsci, onTocco }) {
     };
 }
 
+// ---------- Il mercatino degli addobbi ----------
+// Due bancarelle nel quartiere di Babbo Natale: dentro, gli addobbi si "pagano" con un sorriso
+// e si appendono all'alberello
+
+const ADDOBBI = [
+    { tipo: 'palla', colore: '#e0262f', prezzo: 'un sorriso 😊' },
+    { tipo: 'stella', colore: '#f4d03f', prezzo: 'un abbraccio 🤗' },
+    { tipo: 'campanella', colore: '#e8c766', prezzo: 'una canzone 🎵' },
+    { tipo: 'palla', colore: '#3f7fd6', prezzo: 'un bacio 😘' },
+    { tipo: 'bastoncino', colore: '#d62c2c', prezzo: 'una risata 😄' },
+    { tipo: 'fiocco', colore: '#dff3ff', prezzo: 'un grazie 🙏' },
+    { tipo: 'cuore', colore: '#e84393', prezzo: 'una carezza 🥰' },
+    { tipo: 'palla', colore: '#2e7d4a', prezzo: 'un sorriso 😊' }
+];
+
+// Un addobbo centrato in (0,0), alto circa 34
+function disegnaAddobbo(g, { tipo, colore }) {
+    if (tipo === 'palla') {
+        el('rect', { x: -4, y: -20, width: 8, height: 6, rx: 1, fill: '#c9a227' }, g);
+        el('path', { d: 'M0 -20 q -4 -6 0 -9 q 4 3 0 9', stroke: '#c9a227', 'stroke-width': 1.5, fill: 'none' }, g);
+        el('circle', { cx: 0, cy: 0, r: 15, fill: colore }, g);
+        el('path', { d: 'M-15 0 q 15 7 30 0', stroke: '#fff3c4', 'stroke-width': 2, fill: 'none', opacity: 0.7 }, g);
+        el('circle', { cx: -5, cy: -6, r: 4, fill: '#fff', opacity: 0.55 }, g);
+    } else if (tipo === 'stella') {
+        el('path', { d: stellaPiccola(0, 0, 17), fill: colore, stroke: '#c9a227', 'stroke-width': 1.5 }, g);
+        el('circle', { cx: -3, cy: -4, r: 3, fill: '#fff', opacity: 0.6 }, g);
+    } else if (tipo === 'campanella') {
+        el('path', { d: 'M-14 8 Q-14 -14 0 -16 Q14 -14 14 8 Q16 12 18 12 H-18 Q-16 12 -14 8 Z', fill: colore, stroke: '#b8860b', 'stroke-width': 1.5 }, g);
+        el('circle', { cx: 0, cy: 14, r: 4, fill: '#b8860b' }, g);
+        el('path', { d: 'M-6 -18 q 6 -8 12 0', stroke: '#c0392b', 'stroke-width': 4, fill: 'none' }, g);
+    } else if (tipo === 'bastoncino') {
+        el('path', { d: 'M4 18 V-6 q 0 -12 -10 -12 q -10 0 -10 10', stroke: '#fff', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round' }, g);
+        el('path', { d: 'M4 18 V-6 q 0 -12 -10 -12 q -10 0 -10 10', stroke: colore, 'stroke-width': 7, fill: 'none', 'stroke-dasharray': '5 6' }, g);
+    } else if (tipo === 'fiocco') {
+        const f = el('g', { stroke: colore, 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
+        for (let i = 0; i < 6; i++) el('path', { d: 'M0 0 V-16 M0 -10 l -5 -5 M0 -10 l 5 -5', transform: `rotate(${i * 60})`, fill: 'none' }, f);
+        el('circle', { r: 3, fill: '#bfe3ff' }, g);
+    } else {
+        el('path', { d: 'M0 14 C -22 0 -16 -18 0 -8 C 16 -18 22 0 0 14 Z', fill: colore, stroke: '#a3242c', 'stroke-width': 1.5 }, g);
+        el('circle', { cx: -6, cy: -6, r: 3, fill: '#fff', opacity: 0.55 }, g);
+    }
+}
+
+function disegnaMercatinoAddobbi(mondo, x, y, scala) {
+    const m = el('g', { class: 'mercatino-addobbi', transform: `translate(${x} ${y}) scale(${scala})` }, mondo);
+    [
+        { nome: 'Addobbi', tetto: '#7d4e9e', banco: 'addobbi', venditore: { giacca: '#2e7d5b', cappello: '#c0392b', pelle: '#f6c9a8' }, dx: -64, dy: 0 },
+        { nome: 'Candele', tetto: '#b5651d', banco: 'candele', venditore: { giacca: '#c0392b', cappello: '#2e7d4a', pelle: '#e3b393' }, dx: 64, dy: -10 }
+    ].forEach(b => {
+        const g = disegnaBancarella(m, 0, b);
+        g.setAttribute('transform', `translate(${b.dx} ${b.dy}) scale(0.92)`);
+        g.classList.add('negozio');
+        Object.assign(g.dataset, { cx: x + b.dx * scala, cy: y + (b.dy - 50) * scala, larghezza: 140 * scala });
+        g.setAttribute('tabindex', 0);
+        g.setAttribute('role', 'button');
+        g.setAttribute('aria-label', `Bancarella degli ${b.nome.toLowerCase()}: entra a scegliere gli addobbi per il tuo albero`);
+    });
+    return m;
+}
+
+// Dentro la bancarella degli addobbi: si sceglie un addobbo e lo si appende all'alberello
+function creaNegozio({ onEsci, onTocco }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno negozio-dentro', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': "Dentro la bancarella degli addobbi, con l'alberello da decorare" });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    const ricomincia = Object.assign(document.createElement('button'), { type: 'button', className: 'ricomincia', textContent: '🔄 Ricomincia l\'albero' });
+    nodo.append(svg, esci, ricomincia);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    // Pareti di legno, lucine, ghirlande appese e mensole piene di addobbi
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#4a2c1c' }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    el('circle', { cx: 700, cy: 400, r: 700, fill: 'url(#alone)', opacity: 0.35 }, svg);
+    el('path', { d: 'M-200 60 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0', fill: 'none', stroke: '#1f5c34', 'stroke-width': 14 }, svg);
+    for (let i = 0; i < 24; i++) el('circle', { class: 'pallina', cx: -170 + i * 75, cy: 70 + Math.sin(((i * 75 + 30) % 300) / 300 * Math.PI) * 24, r: 7, fill: COLORI_FESTA[i % 5], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.3) % 2).toFixed(1)}s` }, svg);
+    [[120, 150], [120, 280], [540, 150], [540, 280]].forEach(([mx, my], m) => {
+        el('rect', { x: mx - 20, y: my, width: 380, height: 12, fill: '#8a5a3c' }, svg);
+        for (let k = 0; k < 7; k++) {
+            const g = el('g', { transform: `translate(${mx + 10 + k * 52} ${my - 22}) scale(0.95)` }, svg);
+            disegnaAddobbo(g, ADDOBBI[(k + m * 3) % ADDOBBI.length]);
+        }
+    });
+    // Corone appese alla parete
+    [[1000, 190], [1540, 190]].forEach(([cx, cy]) => {
+        el('circle', { cx, cy, r: 46, fill: 'none', stroke: '#1f5c34', 'stroke-width': 22 }, svg);
+        for (let i = 0; i < 8; i++) {
+            const a = (i / 8) * Math.PI * 2;
+            el('circle', { cx: cx + Math.cos(a) * 46, cy: cy + Math.sin(a) * 46, r: 5, fill: i % 2 ? '#e0262f' : '#f4d03f' }, svg);
+        }
+        el('path', { d: `M${cx} ${cy + 46} l -16 22 l 10 2 Z M${cx} ${cy + 46} l 16 22 l -10 2 Z`, fill: '#c0392b' }, svg);
+    });
+    // La lavagnetta dei prezzi
+    el('rect', { x: 960, y: 270, width: 300, height: 120, rx: 8, fill: '#8a5a3c' }, svg);
+    el('rect', { x: 972, y: 282, width: 276, height: 96, rx: 4, fill: '#24302a' }, svg);
+    el('text', { x: 1110, y: 322, 'text-anchor': 'middle', 'font-size': 30, 'font-family': "'Brush Script MT', cursive", fill: '#fdf6dc' }, svg).textContent = 'Addobbi di Natale';
+    el('text', { x: 1110, y: 360, 'text-anchor': 'middle', 'font-size': 20, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#ffd36b' }, svg).textContent = 'si paga con un sorriso!';
+
+    // L'elfo venditore, con il fumetto
+    disegnaElfo(svg, 300, 600, 1.7, { giacca: '#2e7d5b', cappello: '#c0392b' }).braccio.classList.add('saluta');
+    const fumetto = el('g', {}, svg);
+    el('rect', { x: 380, y: 360, width: 360, height: 92, rx: 26, fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 3 }, fumetto);
+    el('path', { d: 'M400 440 L360 470 L430 446 Z', fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 3, 'stroke-linejoin': 'round' }, fumetto);
+    const righe = [0, 1].map(i => el('text', { x: 560, y: 398 + i * 32, 'text-anchor': 'middle', 'font-size': 22, 'font-family': 'Georgia, serif', fill: '#3b2416' }, fumetto));
+    const dice = (a, b) => { righe[0].textContent = a; righe[1].textContent = b; };
+
+    // Il bancone con la tovaglia e gli addobbi in vendita, ognuno con il cartellino del prezzo
+    el('rect', { x: -1400, y: 600, width: 4400, height: 900, fill: '#6d4630' }, svg);
+    el('rect', { x: -1400, y: 588, width: 4400, height: 26, fill: '#8a5a3c' }, svg);
+    el('rect', { x: -1400, y: 612, width: 4400, height: 70, fill: '#2e5b3f' }, svg);
+    el('path', { d: 'M-1400 682 H3000', stroke: '#e8c766', 'stroke-width': 4, 'stroke-dasharray': '14 10' }, svg);
+    // Candele accese sul bancone
+    [[60, 560], [1000, 560]].forEach(([cx, cy]) => {
+        el('circle', { class: 'luce-calda', cx, cy: cy - 40, r: 60, fill: 'url(#alone)', opacity: 0.7 }, svg);
+        el('rect', { x: cx - 10, y: cy - 30, width: 20, height: 58, rx: 3, fill: '#fbf6ea' }, svg);
+        el('path', { class: 'fiamma', d: `M${cx} ${cy - 54} q 9 12 0 24 q -9 -12 0 -24 Z`, fill: '#ffb347', filter: 'url(#bagliore)' }, svg);
+    });
+    const inVendita = ADDOBBI.map((addobbo, i) => {
+        const x = 150 + i * 106, y = 740;
+        const g = el('g', { class: 'addobbo-vendita', transform: `translate(${x} ${y})`, tabindex: 0, role: 'button', 'aria-label': `${addobbo.tipo}: costa ${addobbo.prezzo}. Tocca per appenderlo all'albero` }, svg);
+        el('circle', { r: 40, fill: '#ffffff', opacity: 0.08 }, g);
+        const figura = el('g', { transform: 'scale(1.6)' }, g);
+        disegnaAddobbo(figura, addobbo);
+        el('path', { d: 'M0 40 v14', stroke: '#c9a227', 'stroke-width': 1.5 }, g);
+        el('rect', { x: -48, y: 54, width: 96, height: 30, rx: 5, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 1.5 }, g);
+        el('text', { x: 0, y: 74, 'text-anchor': 'middle', 'font-size': 13, 'font-family': 'Georgia, serif', fill: '#3b2416' }, g).textContent = addobbo.prezzo;
+        return { g, addobbo, x, y };
+    });
+
+    // L'alberello da decorare, nel suo vaso
+    const ax = 1340, base = 840;
+    el('rect', { x: ax - 56, y: base - 70, width: 112, height: 80, rx: 10, fill: '#a3242c' }, svg);
+    el('rect', { x: ax - 64, y: base - 80, width: 128, height: 18, rx: 6, fill: '#c0392b' }, svg);
+    el('rect', { x: ax - 12, y: base - 110, width: 24, height: 34, fill: '#5d3a22' }, svg);
+    [[base - 100, 170, 160], [base - 210, 140, 150], [base - 310, 105, 140]].forEach(([yb, w, h]) => {
+        el('path', { d: `M${ax - w} ${yb} q ${w} 26 ${w * 2} 0 L${ax} ${yb - h} Z`, fill: '#1f6b3a' }, svg);
+        el('path', { d: `M${ax} ${yb + 12} q ${w * 0.6} -2 ${w} -12 L${ax} ${yb - h} Z`, fill: '#175a30' }, svg);
+    });
+    const stella = el('path', { class: 'stella-alberello', d: stellaPiccola(ax, base - 455, 30), fill: '#8d8d6a' }, svg);
+    const POSTI = [[-110, -130], [0, -112], [110, -130], [-60, -170], [60, -170], [-90, -235], [0, -222], [90, -235], [-50, -275], [50, -275], [-50, -330], [40, -340], [0, -380]]
+        .map(([dx, dy]) => [ax + dx, base + dy]);
+    const appesi = el('g', {}, svg);
+    let pieni = 0;
+
+    function appendi({ addobbo, x, y }) {
+        onTocco();
+        if (pieni >= POSTI.length) return dice('Il tuo albero è pieno!', 'Puoi ricominciare quando vuoi 🎄');
+        const [px, py] = POSTI[pieni++];
+        const g = el('g', { transform: `translate(${x} ${y - 30}) scale(1.6)` }, appesi);
+        disegnaAddobbo(g, addobbo);
+        dice('Grazie per ' + addobbo.prezzo.replace(/ \S+$/, '') + '!', pieni < POSTI.length ? 'Scegline un altro!' : 'Che albero meraviglioso! ✨');
+        // L'addobbo vola dal bancone al ramo
+        const inizio = performance.now();
+        const vola = adesso => {
+            const t = Math.min(1, (adesso - inizio) / 650);
+            const e = t * t * (3 - 2 * t);
+            const cx = x + (px - x) * e, cy = (y - 30) + (py - (y - 30)) * e - Math.sin(t * Math.PI) * 120;
+            const k = 1.6 + (1.1 - 1.6) * e;
+            g.setAttribute('transform', `translate(${cx.toFixed(1)} ${cy.toFixed(1)}) scale(${k.toFixed(2)})`);
+            if (t < 1) requestAnimationFrame(vola);
+        };
+        requestAnimationFrame(vola);
+        setTimeout(() => g.setAttribute('transform', `translate(${px} ${py}) scale(1.1)`), 900);
+        if (pieni === POSTI.length) stella.classList.add('accesa');
+    }
+    inVendita.forEach(voce => {
+        voce.g.addEventListener('click', () => appendi(voce));
+        voce.g.addEventListener('keydown', evento => {
+            if (evento.key === 'Enter' || evento.key === ' ') {
+                evento.preventDefault();
+                appendi(voce);
+            }
+        });
+    });
+    ricomincia.addEventListener('click', () => {
+        appesi.replaceChildren();
+        pieni = 0;
+        stella.classList.remove('accesa');
+        dice('Scegli un addobbo', "e appendilo al tuo albero!");
+    });
+    dice('Scegli un addobbo', "e appendilo al tuo albero!");
+
+    return {
+        nodo,
+        mostra() {
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
+}
+
 // Altezza della strada in ogni punto, per mettere le case ai suoi lati
 function profiloStrada(mondo) {
     const traccia = el('path', { d: STRADA, fill: 'none' }, mondo);
@@ -3870,6 +4266,7 @@ function disegnaPaese(mondo) {
     elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: sposta(2764), y: 836, tipo: 'mercatino' });
     // Il quartiere di Babbo Natale, subito dopo la stazione
     elementi.push({ x: 2265, y: 812, tipo: 'posta' }, { x: 2540, y: 648, tipo: 'laboratorio' }, { x: 2815, y: 818, tipo: 'stalla' });
+    elementi.push({ x: 2540, y: 840, tipo: 'addobbi' });
     // Il luna park d'inverno, in fondo al paese
     elementi.push({ x: sposta(3745), y: 768, tipo: 'insegnaLuna' }, { x: sposta(4120), y: 650, tipo: 'palaghiaccio' }, { x: sposta(3960), y: 832, tipo: 'giostra' });
     [[3860, 600], [4330, 630], [4380, 880], [3700, 900]].forEach(([x, y]) => elementi.push({ x: sposta(x), y, tipo: 'abete' }));
@@ -3906,6 +4303,7 @@ function disegnaPaese(mondo) {
         else if (tipo === 'mercatino') disegnaMercatino(mondo, x, y, 0.86);
         else if (tipo === 'giostra') disegnaGiostra(mondo, x, y, scala * 0.95);
         else if (tipo === 'posta') disegnaPosta(mondo, x, y, scala * 0.95);
+        else if (tipo === 'addobbi') disegnaMercatinoAddobbi(mondo, x, y, 0.8);
         else if (tipo === 'laboratorio') disegnaLaboratorio(mondo, x, y, scala * 1.1);
         else if (tipo === 'stalla') disegnaStalla(mondo, x, y, scala * 0.95);
         else if (tipo === 'palaghiaccio') disegnaPalaghiaccio(mondo, x, y, scala * 1.05);
@@ -5645,7 +6043,7 @@ function momentoDiAdesso(adesso = new Date()) {
 
 function creaVillaggio(contenitore, opzioni) {
     let { aperti } = opzioni;
-    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = "", lettere = [], onLettera = async () => {} } = opzioni;
+    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = "", lettere = [], onLettera = async () => {}, destinatario = "", letteraBabbo = "" } = opzioni;
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -5678,12 +6076,13 @@ function creaVillaggio(contenitore, opzioni) {
     const sala = creaSala({ onParti: () => parti(), benvenuto });
     const bancone = creaBancone({ onEsci: () => esciDalBancone() });
     const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
-    const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere });
+    const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
     const laboratorio = creaLaboratorio({ onEsci: () => esciDalQuartiere(laboratorio) });
     const stalla = creaStalla({ onEsci: () => esciDalQuartiere(stalla), onTocco: () => onTocco() });
+    const negozio = creaNegozio({ onEsci: () => esciDalQuartiere(negozio), onTocco: () => onTocco() });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
-    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo);
+    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {
@@ -5975,6 +6374,18 @@ function creaVillaggio(contenitore, opzioni) {
         inApertura = false;
     }
 
+    // Si entra nella bancarella degli addobbi
+    async function entraNelNegozio(banco) {
+        if (inApertura) return;
+        inApertura = true;
+        seguiTreno = false;
+        onTocco();
+        const { cx, cy, larghezza } = banco.dataset;
+        await avvicinaAlPunto(Number(cx), Number(cy), Number(larghezza), 800);
+        entraDentro(negozio);
+        inApertura = false;
+    }
+
     function esciDalQuartiere(stanza) {
         torna();
         stanza.nascondi();
@@ -6119,6 +6530,8 @@ function creaVillaggio(contenitore, opzioni) {
         if (palazzetto) return entraNelPalaghiaccio(palazzetto);
         const edificio = evento.target.closest('.posta, .laboratorio, .stalla');
         if (edificio) return entraNelQuartiere(edificio);
+        const negozioAddobbi = evento.target.closest('.negozio');
+        if (negozioAddobbi) return entraNelNegozio(negozioAddobbi);
         const casa = evento.target.closest('.casa');
         if (casa) apriCasa(casa);
     });
@@ -6186,9 +6599,11 @@ function creaVillaggio(contenitore, opzioni) {
         const giostra = evento.target.closest('.giostra');
         const palazzetto = evento.target.closest('.palaghiaccio');
         const edificio = evento.target.closest('.posta, .laboratorio, .stalla');
-        if ((casa || stazione || coro || banco || albero || giostra || palazzetto || edificio) && (evento.key === 'Enter' || evento.key === ' ')) {
+        const negozioAddobbi = evento.target.closest('.negozio');
+        if ((casa || stazione || coro || banco || albero || giostra || palazzetto || edificio || negozioAddobbi) && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
-            if (edificio) entraNelQuartiere(edificio);
+            if (negozioAddobbi) entraNelNegozio(negozioAddobbi);
+            else if (edificio) entraNelQuartiere(edificio);
             else if (giostra) suonaLaGiostra(giostra);
             else if (palazzetto) entraNelPalaghiaccio(palazzetto);
             else if (albero) ballaLoSchiaccianoci(albero);
@@ -6212,7 +6627,8 @@ function creaVillaggio(contenitore, opzioni) {
         { chiave: 'palaghiaccio', selettore: '.palaghiaccio', x: 0, y: -270, k: 1.6 },
         { chiave: 'posta', selettore: '.posta', x: 0, y: -215, k: 1.6 },
         { chiave: 'laboratorio', selettore: '.laboratorio', x: 0, y: -262, k: 1.6 },
-        { chiave: 'stalla', selettore: '.stalla', x: 0, y: -236, k: 1.6 }
+        { chiave: 'stalla', selettore: '.stalla', x: 0, y: -236, k: 1.6 },
+        { chiave: 'addobbi', selettore: '.negozio', x: 0, y: -134, k: 1.8 }
     ];
     const leggiToccati = () => {
         try { return JSON.parse(localStorage.getItem('villaggio_toccati') || '[]'); } catch { return []; }
@@ -6311,6 +6727,10 @@ function creaVillaggio(contenitore, opzioni) {
         // Le letterine arrivate all'ufficio postale (per chi prepara il calendario)
         impostaLettere(nuove) {
             posta.aggiornaLettere(nuove);
+        },
+        // Il nome di chi riceve il calendario e la letterina di Babbo Natale nel sacco
+        impostaSacco(nome, lettera) {
+            posta.impostaSacco(nome, lettera);
         },
         // Il benvenuto della stazione, cambiato da chi prepara il calendario
         impostaBenvenuto(testo) {

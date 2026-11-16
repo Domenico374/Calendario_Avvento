@@ -105,3 +105,21 @@ test('le letterine si salvano, si tengono le ultime 30 e non si vedono nel link 
     await salvaModifiche(redis, ID, { modifiche: { 2: { tipo: 'messaggio', testo: 'ciao' } } });
     assert.equal((await leggiCalendario(redis, ID)).lettere.length, MAX_LETTERE);
 });
+
+test('nome sul sacco e letterina di Babbo Natale: si salvano e si vedono nel link regalo', async () => {
+    const { vistaPubblica, MAX_DESTINATARIO } = await import('../lib/calendario.js');
+    const redis = redisFinto();
+    await creaCalendario(redis, ID, { titolo: 'Sacco', anno: 2026 });
+    await salvaModifiche(redis, ID, { destinatario: '  Oliver   ', letteraBabbo: '  Caro Oliver,\r\nti aspetto!  ', modifiche: {} });
+    let calendario = await leggiCalendario(redis, ID);
+    assert.equal(calendario.destinatario, 'Oliver');
+    assert.equal(calendario.letteraBabbo, 'Caro Oliver,\nti aspetto!');
+    await salvaModifiche(redis, ID, { titolo: 'Altro', modifiche: {} });
+    calendario = await leggiCalendario(redis, ID);
+    assert.equal(calendario.destinatario, 'Oliver');
+    const vista = vistaPubblica(calendario, new Date('2026-11-20T10:00:00Z'));
+    assert.equal(vista.destinatario, 'Oliver');
+    assert.equal(vista.letteraBabbo, 'Caro Oliver,\nti aspetto!');
+    await salvaModifiche(redis, ID, { destinatario: 'x'.repeat(80), modifiche: {} });
+    assert.equal((await leggiCalendario(redis, ID)).destinatario.length, MAX_DESTINATARIO);
+});
