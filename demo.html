@@ -1494,6 +1494,19 @@ body::before {
 .scena.momento-tramonto .buio-terra { opacity: 0.14; }
 .scena.momento-alba .buio-terra { opacity: 0.1; }
 
+/* ---- Profondità e atmosfera ---- */
+.scena .nebbia { animation: nebbia 22s ease-in-out infinite alternate; }
+.scena .nebbia:nth-of-type(2n) { animation-duration: 28s; animation-delay: -9s; }
+@keyframes nebbia { from { transform: translateX(-40px); } to { transform: translateX(50px); } }
+/* Di notte foschia e nebbia diventano blu; al tramonto rosate */
+.scena.momento-notte .stop-foschia { stop-color: #3c4f93; }
+.scena.momento-notte .stop-nebbia { stop-color: #7f92cf; }
+.scena.momento-tramonto .stop-foschia, .scena.momento-tramonto .stop-nebbia { stop-color: #f2c6c8; }
+.scena.momento-alba .stop-foschia, .scena.momento-alba .stop-nebbia { stop-color: #f6dccf; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .nebbia { animation: none; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -1629,6 +1642,17 @@ function disegnaDefinizioni(svg) {
     const unisci = el('feMerge', {}, bagliore);
     el('feMergeNode', { in: 'b' }, unisci);
     el('feMergeNode', { in: 'SourceGraphic' }, unisci);
+    // Foschia della lontananza: le cose lontane si fanno più chiare e azzurre
+    const foschia = el('linearGradient', { id: 'foschia', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el('stop', { class: 'stop-foschia', offset: '0%', 'stop-color': '#e3ebfb', 'stop-opacity': 0 }, foschia);
+    el('stop', { class: 'stop-foschia', offset: '100%', 'stop-color': '#e3ebfb', 'stop-opacity': 0.6 }, foschia);
+    const banco = el('radialGradient', { id: 'banco-nebbia' }, defs);
+    el('stop', { class: 'stop-nebbia', offset: '0%', 'stop-color': '#f2f6ff', 'stop-opacity': 0.5 }, banco);
+    el('stop', { class: 'stop-nebbia', offset: '100%', 'stop-color': '#f2f6ff', 'stop-opacity': 0 }, banco);
+    const duna = el('radialGradient', { id: 'duna', cx: '45%', cy: '35%', r: '60%' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': 0.95 }, duna);
+    el('stop', { offset: '65%', 'stop-color': '#ffffff', 'stop-opacity': 0.35 }, duna);
+    el('stop', { offset: '100%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, duna);
     // La luce arriva da sinistra (luna o sole): il lato sinistro è più chiaro, il destro in ombra
     const luce = el('linearGradient', { id: 'luce-facciata', x1: 0, y1: 0, x2: 1, y2: 0.25 }, defs);
     el('stop', { offset: '0%', 'stop-color': '#fff6e0', 'stop-opacity': 0.16 }, luce);
@@ -1791,12 +1815,16 @@ function disegnaMontagne(strato) {
         el('path', { d: `M${x} ${y} L${x - 38} ${y + 40} L${x - 12} ${y + 32} L${x + 8} ${y + 48} L${x + 26} ${y + 34} L${x + 44} ${y + 42} Z`, fill: '#f4f8ff' }, strato);
     });
     el('path', { d: `${vicine} L4300 620 L4300 660 L-100 660 Z`, fill: '#b9c8ea' }, strato);
+    // Velo di foschia ai piedi delle montagne
+    el('rect', { x: -100, y: 420, width: 4500, height: 250, fill: 'url(#foschia)', 'pointer-events': 'none' }, strato);
 }
 
 function disegnaBosco(strato) {
     for (let x = -100; x < 5000; x += 34 + caso() * 40) {
         disegnaAbete(strato, x, 585 + caso() * 25, 0.55 + caso() * 0.45, '#2f5a5c');
     }
+    // Il bosco lontano si perde un po' nella foschia
+    el('rect', { x: -100, y: 520, width: 5200, height: 110, fill: 'url(#foschia)', opacity: 0.75, 'pointer-events': 'none' }, strato);
 }
 
 // ========== IL PAESE ==========
@@ -1817,7 +1845,17 @@ function disegnaTerreno(mondo) {
     // Ruscello che scende verso il basso
     el('path', { transform: `translate(${QUARTIERE.largo} 0)`, d: 'M2860 560 C 2840 620, 2900 660, 2870 720 S 2930 820, 2900 920 L2960 920 C 2990 820, 2930 760, 2945 720 S 2900 620, 2905 560 Z', fill: 'url(#ghiaccio)' }, mondo);
 
-    // Strada e piazza
+    // La neve non è piatta: morbide ondulazioni con la parte alta illuminata e l'ombra sotto
+    let seme3 = 5;
+    const caso3 = () => (seme3 = (seme3 * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 46; i++) {
+        const x = caso3() * MONDO, y = 610 + caso3() * 280, rx = 60 + caso3() * 120, ry = 10 + caso3() * 12;
+        el('ellipse', { cx: (x + rx * 0.15).toFixed(1), cy: (y + ry * 0.7).toFixed(1), rx: rx.toFixed(1), ry: (ry * 0.8).toFixed(1), fill: '#9fb2dc', opacity: 0.22, filter: 'url(#ombra-morbida)' }, mondo);
+        el('ellipse', { cx: x.toFixed(1), cy: y.toFixed(1), rx: rx.toFixed(1), ry: ry.toFixed(1), fill: 'url(#duna)' }, mondo);
+    }
+    // Strada e piazza, con la neve spalata ammucchiata ai bordi
+    el('path', { d: STRADA, fill: 'none', stroke: '#f6f9ff', 'stroke-width': 108, 'stroke-linecap': 'round' }, mondo);
+    el('path', { d: STRADA, fill: 'none', stroke: '#c3cfea', 'stroke-width': 94, 'stroke-linecap': 'round', opacity: 0.7 }, mondo);
     el('path', { d: STRADA, fill: 'none', stroke: '#a3b3d6', 'stroke-width': 86, 'stroke-linecap': 'round' }, mondo);
     el('path', { d: STRADA, fill: 'none', stroke: '#cbd6ec', 'stroke-width': 70, 'stroke-linecap': 'round' }, mondo);
     el('path', { d: STRADA, fill: 'none', stroke: '#f2f6fd', 'stroke-width': 4, 'stroke-dasharray': '22 26' }, mondo);
@@ -3006,6 +3044,15 @@ function disegnaMercatino(mondo, x, y, scala) {
 
 // ---- La neve che cresce giorno dopo giorno ----
 // Cumuli e mucchi di neve in più: diventano sempre più visibili man mano che si va verso Natale
+// Una nebbiolina leggera tra le case di dietro e quelle davanti: dà profondità al paese
+function disegnaNebbia(mondo, y) {
+    for (let x = -200; x < MONDO + 200; x += 700) {
+        const g = el('g', { class: 'nebbia', 'pointer-events': 'none' }, mondo);
+        el('ellipse', { cx: x + 350, cy: y, rx: 520, ry: 26, fill: 'url(#banco-nebbia)' }, g);
+        el('ellipse', { cx: x + 120, cy: y - 14, rx: 300, ry: 16, fill: 'url(#banco-nebbia)', opacity: 0.7 }, g);
+    }
+}
+
 // Brillantini sulla neve che luccicano qua e là, divisi in gruppi lungo il paese
 function disegnaBrillantini(mondo) {
     let seme2 = 3;
@@ -4330,6 +4377,7 @@ function disegnaPaese(mondo) {
     }
     elementi.push({ x: PIAZZA.x - 210, y: PIAZZA.y + 30, tipo: 'pupazzo' }, { x: 920, y: 640, tipo: 'pupazzo' });
     elementi.push({ x: PIAZZA.x - 60, y: PIAZZA.y + 118, tipo: 'cartello' });
+    elementi.push({ x: 0, y: 692, tipo: 'nebbia' });
     elementi.push({ x: PIAZZA.x + 180, y: PIAZZA.y + 66, tipo: 'coro' });
     // Pattinatori sul laghetto e mercatino vicino al ruscello
     elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: sposta(2764), y: 836, tipo: 'mercatino' });
@@ -4368,6 +4416,7 @@ function disegnaPaese(mondo) {
         else if (tipo === 'pupazzo') disegnaPupazzo(mondo, x, y, scala);
         else if (tipo === 'stazione') disegnaStazione(mondo, x, y, 0.62);
         else if (tipo === 'treno') disegnaTrenino(mondo);
+        else if (tipo === 'nebbia') disegnaNebbia(mondo, y);
         else if (tipo === 'pattinatori') disegnaPattinatori(mondo, x, y);
         else if (tipo === 'mercatino') disegnaMercatino(mondo, x, y, 0.86);
         else if (tipo === 'giostra') disegnaGiostra(mondo, x, y, scala * 0.95);

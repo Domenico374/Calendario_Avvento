@@ -2083,3 +2083,16 @@ body::before {
 .scena.momento-notte .buio-terra { opacity: 0.32; }
 .scena.momento-tramonto .buio-terra { opacity: 0.14; }
 .scena.momento-alba .buio-terra { opacity: 0.1; }
+
+/* ---- Profondità e atmosfera ---- */
+.scena .nebbia { animation: nebbia 22s ease-in-out infinite alternate; }
+.scena .nebbia:nth-of-type(2n) { animation-duration: 28s; animation-delay: -9s; }
+@keyframes nebbia { from { transform: translateX(-40px); } to { transform: translateX(50px); } }
+/* Di notte foschia e nebbia diventano blu; al tramonto rosate */
+.scena.momento-notte .stop-foschia { stop-color: #3c4f93; }
+.scena.momento-notte .stop-nebbia { stop-color: #7f92cf; }
+.scena.momento-tramonto .stop-foschia, .scena.momento-tramonto .stop-nebbia { stop-color: #f2c6c8; }
+.scena.momento-alba .stop-foschia, .scena.momento-alba .stop-nebbia { stop-color: #f6dccf; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .nebbia { animation: none; }
+}
