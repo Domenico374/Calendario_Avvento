@@ -98,3 +98,17 @@ test('i link accettano solo indirizzi web veri', () => {
     assert.equal(pulisciContenuto({ tipo: 'link', url: 'https://x.it/' + 'a'.repeat(600) }, ID), null);
     assert.equal(pulisciContenuto({ tipo: 'link', url: 'https://x.it', testo: 'a'.repeat(200) }, ID).testo.length, 80);
 });
+
+test('il 1° dicembre chi riceve il link vede solo la prima sorpresa, il 2 anche la seconda', () => {
+    const calendario = {
+        titolo: 'Prova', anno: 2026,
+        giorni: { 1: { tipo: 'messaggio', testo: 'uno' }, 2: { tipo: 'messaggio', testo: 'due' }, 24: { tipo: 'messaggio', testo: 'vigilia' } }
+    };
+    const primo = vistaPubblica(calendario, new Date('2026-11-30T23:00:30Z')); // 00:00 del 1° dicembre in Italia
+    assert.equal(primo.aperti, 1);
+    assert.deepEqual(Object.keys(primo.giorni), ['1']);
+    const secondo = vistaPubblica(calendario, new Date('2026-12-02T08:00:00Z'));
+    assert.deepEqual(Object.keys(secondo.giorni), ['1', '2']);
+    assert.equal(vistaPubblica(calendario, new Date('2026-12-23T22:59:00Z')).giorni[24], undefined);
+    assert.equal(vistaPubblica(calendario, new Date('2026-12-23T23:00:00Z')).giorni[24].testo, 'vigilia');
+});

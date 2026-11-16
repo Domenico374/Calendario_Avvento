@@ -899,6 +899,22 @@ async function avvia() {
     else $('sottotitolo').textContent = testoAttesa();
     if (usaVillaggio()) disegnaVillaggio();
     else disegnaGriglia();
+    if (!calendario.modifica) controllaNuovoGiorno();
+}
+
+// Se la pagina resta aperta durante la notte (per esempio sulla LIM), a mezzanotte
+// il server sblocca la casa nuova: ogni 10 minuti si controlla e, se serve, si ricarica.
+// Non si ricarica mentre una sorpresa è aperta
+function controllaNuovoGiorno() {
+    setInterval(async () => {
+        if (document.hidden || $('modal').classList.contains('mostra') || document.querySelector('.scena.dentro')) return;
+        try {
+            const nuovo = await chiamaApi(`/api/calendario?id=${encodeURIComponent(ID)}`);
+            if (nuovo.aperti !== calendario.aperti) location.reload();
+        } catch {
+            // Senza rete si riprova al giro dopo
+        }
+    }, 10 * 60 * 1000);
 }
 
 avvia();
