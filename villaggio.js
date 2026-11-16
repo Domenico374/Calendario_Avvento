@@ -125,6 +125,23 @@ function disegnaDefinizioni(svg) {
     const cono = el('linearGradient', { id: 'cono-luce', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
     el('stop', { offset: '0%', 'stop-color': '#fff1b8', 'stop-opacity': 0.45 }, cono);
     el('stop', { offset: '100%', 'stop-color': '#fff1b8', 'stop-opacity': 0 }, cono);
+    const monteVicino = el('linearGradient', { id: 'monte-vicino', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el('stop', { class: 'stop-monte-alto', offset: '0%', 'stop-color': '#d3def5' }, monteVicino);
+    el('stop', { class: 'stop-monte-basso', offset: '100%', 'stop-color': '#a8b9df' }, monteVicino);
+    const monteRemoto = el('linearGradient', { id: 'monte-remoto', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el('stop', { class: 'stop-remoto-alto', offset: '0%', 'stop-color': '#dfe7f8' }, monteRemoto);
+    el('stop', { class: 'stop-remoto-basso', offset: '100%', 'stop-color': '#c3d0ee' }, monteRemoto);
+    const cumulo = el('linearGradient', { id: 'cumulo-davanti', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffffff' }, cumulo);
+    el('stop', { offset: '100%', 'stop-color': '#c9d6f0' }, cumulo);
+    const bokeh = el('radialGradient', { id: 'bokeh' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffe2a0', 'stop-opacity': 0.55 }, bokeh);
+    el('stop', { offset: '70%', 'stop-color': '#ffd27a', 'stop-opacity': 0.25 }, bokeh);
+    el('stop', { offset: '100%', 'stop-color': '#ffd27a', 'stop-opacity': 0 }, bokeh);
+    const viaLattea = el('linearGradient', { id: 'via-lattea', x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#b8c4ff', 'stop-opacity': 0 }, viaLattea);
+    el('stop', { offset: '50%', 'stop-color': '#dfe4ff', 'stop-opacity': 0.5 }, viaLattea);
+    el('stop', { offset: '100%', 'stop-color': '#b8c4ff', 'stop-opacity': 0 }, viaLattea);
     const alone = el('radialGradient', { id: 'alone' }, defs);
     el('stop', { offset: '0%', 'stop-color': '#ffe08a', 'stop-opacity': 0.9 }, alone);
     el('stop', { offset: '100%', 'stop-color': '#ffe08a', 'stop-opacity': 0 }, alone);
@@ -190,8 +207,21 @@ function disegnaCielo(strato) {
             fill: '#fff', style: `animation-delay:${(caso() * 3).toFixed(2)}s`
         }, strato);
     }
+    // Numeri a parte, così il resto del paese resta disegnato com'era
+    let semeCielo = 11;
+    const casoCielo = () => (semeCielo = (semeCielo * 16807) % 2147483647) / 2147483647;
+    const notturno = el('g', { class: 'cielo-notte', 'pointer-events': 'none' }, strato);
+    el('path', { d: 'M-100 470 C 500 330, 1200 300, 1800 360 S 2900 300, 3300 340 L3300 400 C 2800 360, 2200 430, 1700 410 S 500 390, -100 540 Z', fill: 'url(#via-lattea)', filter: 'url(#sfoca)', opacity: 0.55 }, notturno);
+    let polvere = '';
+    for (let i = 0; i < 260; i++) {
+        const x = casoCielo() * 3300, y = 300 + casoCielo() * 260, k = 0.5 + casoCielo() * 0.7;
+        polvere += `M${x.toFixed(1)} ${y.toFixed(1)}h${k.toFixed(1)}v${k.toFixed(1)}h-${k.toFixed(1)}Z`;
+    }
+    el('path', { d: polvere, fill: '#ffffff', opacity: 0.65 }, notturno);
     const luna = el('g', { class: 'luna' }, strato);
+    el('circle', { cx: 1500, cy: 370, r: 130, fill: 'url(#alone-sole)', opacity: 0.35 }, luna);
     el('circle', { cx: 1500, cy: 370, r: 40, fill: '#fdf6d8', filter: 'url(#bagliore)' }, luna);
+    [[1488, 360, 7], [1506, 384, 5], [1484, 384, 3.5]].forEach(([cx, cy, rr]) => el('circle', { cx, cy, r: rr, fill: '#e6dcb4', opacity: 0.55 }, luna));
     el('circle', { cx: 1516, cy: 360, r: 36, fill: '#1d2b6b', opacity: 0.25 }, luna);
     disegnaSlitta(strato);
 }
@@ -258,19 +288,65 @@ function disegnaMontagne(strato) {
     let lontane = 'M-100 600';
     let vicine = 'M-100 620';
     const cime = [];
+    const colli = [];
     for (let x = -100; x <= 4200; x += 180 + caso() * 160) {
         const y = 345 + caso() * 120;
-        lontane += ` L${x} ${y} L${x + 120} ${y + 90 + caso() * 60}`;
-        cime.push([x, y]);
-        vicine += ` L${x + 60} ${495 + caso() * 45} L${x + 170} ${560 + caso() * 30}`;
+        const valle = y + 90 + caso() * 60;
+        lontane += ` L${x} ${y} L${x + 120} ${valle}`;
+        cime.push([x, y, valle]);
+        const [cy, vy] = [495 + caso() * 45, 560 + caso() * 30];
+        vicine += ` L${x + 60} ${cy} L${x + 170} ${vy}`;
+        colli.push([x + 60, cy, x + 170, vy]);
     }
-    el('path', { d: `${lontane} L4300 600 L4300 640 L-100 640 Z`, fill: '#8fa6d8' }, strato);
-    cime.forEach(([x, y]) => {
-        el('path', { d: `M${x} ${y} L${x - 38} ${y + 40} L${x - 12} ${y + 32} L${x + 8} ${y + 48} L${x + 26} ${y + 34} L${x + 44} ${y + 42} Z`, fill: '#f4f8ff' }, strato);
+    // Numeri a parte per i dettagli nuovi: il resto del paese non cambia
+    let semeMonti = 23;
+    const casoMonti = () => (semeMonti = (semeMonti * 16807) % 2147483647) / 2147483647;
+    // La catena più lontana, chiara e velata dall'aria
+    let remote = 'M-100 600';
+    for (let x = -40; x <= 4300; x += 230 + casoMonti() * 170) {
+        const y = 330 + casoMonti() * 70;
+        remote += ` Q${x - 40} ${y + 30} ${x} ${y} Q${x + 50} ${y + 40} ${x + 130} ${y + 110 + casoMonti() * 40}`;
+    }
+    el('path', { class: 'monti-remoti', d: `${remote} L4300 600 L4300 640 L-100 640 Z`, fill: 'url(#monte-remoto)', opacity: 0.85 }, strato);
+
+    el('path', { class: 'monte-medio', d: `${lontane} L4300 600 L4300 640 L-100 640 Z`, fill: '#8fa6d8' }, strato);
+    let valleSinistra = [-100, 600];
+    cime.forEach(([x, y, valle]) => {
+        // Versante a destra in ombra, versante a sinistra appena illuminato
+        el('path', { class: 'ombra-monte', d: `M${x} ${y} L${x + 120} ${valle} L${x + 160} 640 L${x + 18} 640 Z`, fill: '#4f63a3', opacity: 0.28 }, strato);
+        el('path', { d: `M${x} ${y} L${valleSinistra[0]} ${valleSinistra[1]} L${x - 10} 640 Z`, fill: '#ffffff', opacity: 0.1 }, strato);
+        // Canaloni: righe di neve che scendono dalla cima
+        el('path', { d: `M${x + 4} ${y + 30} l 14 46 M${x - 14} ${y + 44} l -6 38 M${x + 30} ${y + 40} l 22 40`, stroke: '#eef3ff', 'stroke-width': 2.2, 'stroke-linecap': 'round', opacity: 0.45 }, strato);
+        // La cima innevata: frastagliata, con la parte destra più in ombra
+        el('path', { d: `M${x} ${y} L${x - 40} ${y + 42} L${x - 24} ${y + 36} L${x - 14} ${y + 50} L${x - 2} ${y + 38} L${x + 10} ${y + 54} L${x + 22} ${y + 38} L${x + 34} ${y + 50} L${x + 48} ${y + 40} Z`, class: 'cima-neve', fill: '#f6f9ff' }, strato);
+        el('path', { d: `M${x} ${y} L${x + 48} ${y + 40} L${x + 34} ${y + 50} L${x + 22} ${y + 38} L${x + 10} ${y + 54} L${x + 4} ${y + 30} Z`, fill: '#c9d6f2' }, strato);
+        valleSinistra = [x + 120, valle];
     });
-    el('path', { d: `${vicine} L4300 620 L4300 660 L-100 660 Z`, fill: '#b9c8ea' }, strato);
+    el('path', { d: `${vicine} L4300 620 L4300 660 L-100 660 Z`, fill: 'url(#monte-vicino)' }, strato);
+    // Le colline davanti: un filo di neve illuminata sul crinale e il fianco destro in ombra
+    colli.forEach(([cx, cy, vx, vy]) => {
+        el('path', { class: 'ombra-monte', d: `M${cx} ${cy} L${vx} ${vy} L${vx} 660 L${cx + 20} 660 Z`, fill: '#5a6fae', opacity: 0.16 }, strato);
+        el('path', { d: `M${cx - 50} ${cy + 26} L${cx} ${cy} L${cx + 40} ${cy + 22}`, stroke: '#ffffff', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0.7 }, strato);
+    });
     // Velo di foschia ai piedi delle montagne
     el('rect', { x: -100, y: 420, width: 4500, height: 250, fill: 'url(#foschia)', 'pointer-events': 'none' }, strato);
+}
+
+function disegnaPrimoPiano(strato) {
+    let semeDavanti = 31;
+    const casoDavanti = () => (semeDavanti = (semeDavanti * 16807) % 2147483647) / 2147483647;
+    const g = el('g', { class: 'primo-piano', 'pointer-events': 'none' }, strato);
+    let bordo = `M-200 ${ALTEZZA + 40} L-200 ${ALTEZZA - 6}`;
+    for (let x = -200; x < 7400; x += 160 + casoDavanti() * 140) {
+        bordo += ` Q${(x + 80).toFixed(0)} ${(ALTEZZA - 26 - casoDavanti() * 18).toFixed(0)} ${(x + 200).toFixed(0)} ${(ALTEZZA - 4 - casoDavanti() * 6).toFixed(0)}`;
+    }
+    el('path', { d: `${bordo} L7600 ${ALTEZZA + 40} Z`, fill: 'url(#cumulo-davanti)' }, g);
+    // Luci calde fuori fuoco, come viste attraverso un vetro: solo di sera e di notte
+    const luci = el('g', { class: 'bokeh' }, g);
+    for (let i = 0; i < 34; i++) {
+        const x = casoDavanti() * 7200, y = 360 + casoDavanti() * 520, raggio = 14 + casoDavanti() * 26;
+        el('circle', { cx: x.toFixed(0), cy: y.toFixed(0), r: raggio.toFixed(0), fill: 'url(#bokeh)', style: `animation-delay:-${(casoDavanti() * 6).toFixed(2)}s` }, luci);
+    }
 }
 
 function disegnaBosco(strato) {
@@ -5658,15 +5734,17 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         { fattore: 0.1, disegna: disegnaCielo },
         { fattore: 0.35, disegna: disegnaMontagne },
         { fattore: 0.65, disegna: disegnaBosco },
-        { fattore: 1, disegna: disegnaPaese }
+        { fattore: 1, disegna: disegnaPaese },
+        { fattore: 1.3, disegna: disegnaPrimoPiano }
     ].map(strato => {
         const g = el('g', {}, svg);
         strato.disegna(g);
         return { ...strato, g };
     });
-    const mondo = strati[strati.length - 1].g;
+    const mondo = strati[3].g;
 
     const neve = document.createElement('canvas');
+    const vignetta = Object.assign(document.createElement('div'), { className: 'vignetta' });
     const indietro = Object.assign(document.createElement('button'), { type: 'button', className: 'freccia freccia-sinistra', textContent: '‹', ariaLabel: 'Vai a sinistra' });
     const avanti = Object.assign(document.createElement('button'), { type: 'button', className: 'freccia freccia-destra', textContent: '›', ariaLabel: 'Vai a destra' });
     const suggerimento = Object.assign(document.createElement('p'), { className: 'suggerimento', textContent: modifica ? `↔ Trascina il villaggio e ${matchMedia('(pointer: coarse)').matches ? 'tocca' : 'clicca'} una casa per preparare la sorpresa` : '↔ Trascina per esplorare il villaggio' });
@@ -5706,7 +5784,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const negozio = creaNegozio({ onEsci: () => esciDalQuartiere(negozio), onTocco: () => onTocco() });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
-    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo);
+    contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {

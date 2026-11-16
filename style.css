@@ -2420,3 +2420,37 @@ body::before {
 .scena .slitta-mia:focus-visible { outline: none; filter: drop-shadow(0 0 8px rgba(255, 220, 140, 0.95)); }
 .scena .slitta-mia .passeggero { opacity: 0; transition: opacity 0.5s; }
 .scena .slitta-mia.a-bordo .passeggero { opacity: 1; }
+
+/* ---- Grafica più ricca: cielo, montagne, profondità ---- */
+.scena .vignetta {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 75% 70% at 50% 48%, transparent 60%, rgba(10, 14, 48, 0.28) 100%);
+}
+.scena.momento-notte .vignetta { background: radial-gradient(ellipse 75% 70% at 50% 48%, transparent 52%, rgba(4, 6, 26, 0.5) 100%); }
+.scena .cielo-notte { transition: opacity 1.5s; }
+.scena:is(.momento-giorno) .cielo-notte { opacity: 0; }
+.scena:is(.momento-alba, .momento-tramonto) .cielo-notte { opacity: 0.25; }
+.scena .bokeh { opacity: 0; transition: opacity 1.5s; }
+.scena.momento-notte .bokeh { opacity: 0.7; }
+.scena.momento-tramonto .bokeh { opacity: 0.35; }
+.scena.momento-notte .bokeh circle { animation: bokeh 6s ease-in-out infinite alternate; }
+@keyframes bokeh { from { opacity: 0.45; } to { opacity: 1; } }
+.scena.momento-notte .stop-monte-alto { stop-color: #8e9fd0; }
+.scena.momento-notte .stop-monte-basso { stop-color: #6c7fb8; }
+.scena.momento-notte .stop-remoto-alto { stop-color: #7d8dc4; }
+.scena.momento-notte .stop-remoto-basso { stop-color: #6a7bb6; }
+.scena.momento-tramonto .stop-remoto-alto { stop-color: #e9c3cf; }
+.scena.momento-alba .stop-remoto-alto { stop-color: #f1d5d6; }
+.scena.momento-notte .ombra-monte { opacity: 0.4; }
+@media (prefers-reduced-motion: reduce) {
+    .scena.momento-notte .bokeh circle { animation: none; }
+}
+
+.scena .monte-medio, .scena .cima-neve { transition: fill 1.5s; }
+.scena.momento-notte .monte-medio { fill: #5d6ea8; }
+.scena.momento-notte .cima-neve { fill: #dfe6fa; }
+.scena.momento-tramonto .monte-medio { fill: #8a86bd; }
+.scena.momento-tramonto .cima-neve { fill: #ffe3d6; }
+.scena.momento-alba .cima-neve { fill: #ffeae2; }
