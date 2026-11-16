@@ -3902,7 +3902,8 @@ function disegnaPaese(mondo) {
     elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: sposta(2764), y: 836, tipo: 'mercatino' });
     // Il quartiere di Babbo Natale, subito dopo la stazione
     elementi.push({ x: 2265, y: 812, tipo: 'posta' }, { x: 2540, y: 648, tipo: 'laboratorio' }, { x: 2815, y: 818, tipo: 'stalla' });
-    elementi.push({ x: 2540, y: 840, tipo: 'addobbi' });
+    // I negozietti di addobbi e candele, accanto al mercatino
+    elementi.push({ x: sposta(2764) - 300, y: 840, tipo: 'addobbi' });
     // Il luna park d'inverno, in fondo al paese
     elementi.push({ x: sposta(3745), y: 768, tipo: 'insegnaLuna' }, { x: sposta(4120), y: 650, tipo: 'palaghiaccio' }, { x: sposta(3960), y: 832, tipo: 'giostra' });
     [[3860, 600], [4330, 630], [4380, 880], [3700, 900]].forEach(([x, y]) => elementi.push({ x: sposta(x), y, tipo: 'abete' }));
@@ -6491,7 +6492,7 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, onSlitta = () => {}, sta
         speciale(bancarella(nome, colore, merce), `.bancarella[data-tipo="${nome.toLowerCase()}"]`, 0, 50, A(4) + (i - 1) * 0.1, { distanza: 11, alto: 1.8 });
     });
     [['Addobbi', '#7d4e9e', ['#e0262f', '#f4d03f', '#3f7fd6', '#e84393', '#2e7d4a']], ['Candele', '#b5651d', ['#fff4dc', '#ffd36b', '#fff4dc', '#ffd36b', '#fff4dc']]].forEach(([nome, colore, merce], i) => {
-        speciale(bancarella(nome, colore, merce), '.negozio', i, 50, A(5) + (i - 0.5) * 0.1, { distanza: 11, alto: 1.8 });
+        speciale(bancarella(nome, colore, merce), '.negozio', i, 50, A(4) + (i ? 0.2 : -0.2), { distanza: 11, alto: 1.8 });
     });
 
     // La giostra con i cavalli che salgono e scendono
@@ -7109,9 +7110,10 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, onSlitta = () => {}, sta
             if (vicinoA) panorama(vicinoA);
         },
         // Il villaggio porta lo sguardo su un edificio o una casa (il tour, il finale del 24…)
-        guarda(elemento) {
+        guarda(elemento, { distanza } = {}) {
             if (!attivo || !elemento) return;
             const sp = speciali.find(k => k.elemento === elemento);
+            if (sp && distanza) return avvicina(sp.gruppo, { distanza, alto: sp.alto + 2.5, alzo: 0.4 });
             if (sp) return avvicinaSpeciale(sp);
             const c = case3D.find(k => k.giorno === Number(elemento.dataset?.giorno));
             if (c) avvicinaCasa(c);
@@ -7894,7 +7896,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const TAPPE_SLITTA = [
         { edificio: '.posta', testo: "Ecco l'ufficio postale di Babbo Natale! Qui puoi scrivere la tua letterina… e c'è anche un sacco della posta con il tuo nome." },
         { edificio: '.laboratorio', testo: "Questo è il laboratorio degli elfi: qui nascono tutti i regali. Dentro c'è anche un tour in minibus!" },
-        { edificio: '.bancarella[data-tipo="cioccolata"]', testo: "Facciamo una sosta ai mercatini! Le nonne preparano castagne, cioccolata calda e frittelle: entra a vederle cucinare, oppure tocca una bancarella che preferisci." },
+        { edificio: '.bancarella[data-tipo="cioccolata"]', testo: "Facciamo una sosta ai mercatini! Le nonne preparano castagne, cioccolata calda e frittelle, e nei negozietti accanto trovi addobbi e candele per il tuo albero. Entra a vedere le nonne che cucinano, oppure tocca la bancarella che preferisci!", largo: true },
         { edificio: '.stalla', testo: "Ed ecco la stalla delle renne! Ora scegli chi tirerà la tua slitta per andare di casa in casa: Cometa, la più veloce, o Rudolph, col naso che illumina la notte?", scelta: true }
     ];
 
@@ -7918,7 +7920,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         fumettoGuida.classList.add('nascosto');
         if (tappaTour < TAPPE_SLITTA.length) {
             const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour].edificio);
-            paese3D?.guarda(edificio);
+            // Ai mercatini la vista si allarga per far vedere anche i negozietti degli addobbi
+            paese3D?.guarda(edificio, TAPPE_SLITTA[tappaTour].largo ? { distanza: 23 } : {});
             const arrivo = (edificio.dataset.cx ? Number(edificio.dataset.cx) : Number(edificio.getAttribute('transform').match(/translate\(([\d.-]+)/)[1])) - 90;
             await viaggioSlitta(arrivo, Math.min(5200, Math.max(2600, Math.abs(arrivo - xSlitta) * 3)));
             parla(TAPPE_SLITTA[tappaTour].testo, { entra: true, scelta: Boolean(TAPPE_SLITTA[tappaTour].scelta) });
