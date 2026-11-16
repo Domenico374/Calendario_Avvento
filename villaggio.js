@@ -156,6 +156,32 @@ function disegnaDefinizioni(svg) {
     trama('tex-intonaco', 30, 30, 'M4 6 l2 1 M18 20 l3 -1 M25 9 l1 2', 'rgba(0,0,0,0.08)');
     trama('tex-pietra', 18, 12, 'M0 5.5 H18 M0 11.5 H18 M6 0 V5.5 M14 5.5 V11.5 M2 5.5 q2 -3 4 0', 'rgba(0,0,0,0.3)');
     trama('tex-tegole', 14, 18, 'M-7 9 Q-3.5 3 0 9 Q3.5 3 7 9 Q10.5 3 14 9 Q17.5 3 21 9 M-7 18 Q-3.5 12 0 18 Q3.5 12 7 18 Q10.5 12 14 18 Q17.5 12 21 18', 'rgba(0,0,0,0.25)');
+    // Tavole verticali sulle pareti: tre assi di tono diverso, fessure, venature e qualche nodo
+    const tavole = el('pattern', { id: 'tavole-parete', width: 168, height: 420, patternUnits: 'userSpaceOnUse' }, defs);
+    el('rect', { x: 0, y: 0, width: 56, height: 420, fill: '#000', opacity: 0.07 }, tavole);
+    el('rect', { x: 112, y: 0, width: 56, height: 420, fill: '#ffd9a8', opacity: 0.05 }, tavole);
+    [0, 56, 112].forEach((tx, i) => {
+        el('rect', { x: tx, y: 0, width: 3, height: 420, fill: '#000', opacity: 0.38 }, tavole);
+        el('rect', { x: tx + 3, y: 0, width: 1.5, height: 420, fill: '#fff', opacity: 0.07 }, tavole);
+        el('path', { d: `M${tx + 16} 0 C ${tx + 22} 120, ${tx + 10} 240, ${tx + 18} 420 M${tx + 38} 0 C ${tx + 32} 140, ${tx + 44} 280, ${tx + 36} 420`, stroke: '#000', 'stroke-width': 1.2, fill: 'none', opacity: 0.12 }, tavole);
+        const ny = [90, 300, 200][i];
+        el('ellipse', { cx: tx + 28, cy: ny, rx: 5, ry: 9, fill: 'none', stroke: '#000', 'stroke-width': 1.5, opacity: 0.2 }, tavole);
+        el('ellipse', { cx: tx + 28, cy: ny, rx: 2, ry: 4, fill: '#000', opacity: 0.18 }, tavole);
+    });
+    // Assi del pavimento orizzontali, con le giunture sfalsate
+    const pavimento = el('pattern', { id: 'tavole-pavimento', width: 360, height: 72, patternUnits: 'userSpaceOnUse' }, defs);
+    el('rect', { x: 0, y: 36, width: 360, height: 36, fill: '#000', opacity: 0.06 }, pavimento);
+    el('path', { d: 'M0 35 H360 M0 71 H360 M120 0 V35 M300 36 V71', stroke: '#000', 'stroke-width': 2.5, opacity: 0.35 }, pavimento);
+    el('path', { d: 'M0 2 H360 M0 38 H360', stroke: '#fff', 'stroke-width': 1.2, opacity: 0.07 }, pavimento);
+    el('path', { d: 'M10 18 C 80 14, 160 22, 240 17 M140 54 C 210 50, 280 58, 350 53', stroke: '#000', 'stroke-width': 1, fill: 'none', opacity: 0.12 }, pavimento);
+    // La luce delle stanze: centro illuminato, angoli in penombra
+    const penombra = el('radialGradient', { id: 'penombra-stanza', gradientUnits: 'userSpaceOnUse', cx: 800, cy: 400, r: 1050 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#120804', 'stop-opacity': 0 }, penombra);
+    el('stop', { offset: '50%', 'stop-color': '#120804', 'stop-opacity': 0 }, penombra);
+    el('stop', { offset: '100%', 'stop-color': '#120804', 'stop-opacity': 0.6 }, penombra);
+    const lucePalco = el('radialGradient', { id: 'luce-stanza' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffd99a', 'stop-opacity': 0.22 }, lucePalco);
+    el('stop', { offset: '100%', 'stop-color': '#ffd99a', 'stop-opacity': 0 }, lucePalco);
     // Ombra sotto la gronda e verso terra
     const ombra = el('linearGradient', { id: 'ombra-muro', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
     el('stop', { offset: '0%', 'stop-color': '#000', 'stop-opacity': 0.3 }, ombra);
@@ -2196,6 +2222,7 @@ function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', l
     // Lo sfondo: casellari pieni di lettere, sacchi del Polo Nord, finestra con la neve
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#4a2c1c' }, svg);
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.6 }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tavole-parete)' }, svg);
     el('circle', { cx: 800, cy: 380, r: 640, fill: 'url(#alone)', opacity: 0.35 }, svg);
     [[60, 120], [1200, 120]].forEach(([cx, cy]) => {
         el('rect', { x: cx - 10, y: cy - 10, width: 360, height: 400, rx: 6, fill: '#6d4630' }, svg);
@@ -2220,6 +2247,7 @@ function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', l
         for (let b = 0; b < 3; b++) el('rect', { x: sx - 40 + b * 26, y: sy - 168 - (b % 2) * 8, width: 30, height: 20, rx: 2, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 1.5, transform: `rotate(${b * 12 - 12} ${sx - 25 + b * 26} ${sy - 158})` }, svg);
     });
     el('rect', { x: -1400, y: 820, width: 4400, height: 700, fill: '#5d3a22' }, svg);
+    el('rect', { x: -1400, y: 820, width: 4400, height: 700, fill: 'url(#tavole-pavimento)' }, svg);
     el('rect', { x: -1400, y: 812, width: 4400, height: 14, fill: '#8a5a3c' }, svg);
     // Allo sportello c'è un elfo che accoglie chi entra
     disegnaElfo(svg, 1400, 700, 1.7, { giacca: '#a3242c', cappello: '#2e7d4a', capelli: '#c9984a' }).braccio.classList.add('saluta');
@@ -2450,6 +2478,7 @@ function creaLaboratorio({ onEsci }) {
     // Pareti di legno, finestra con la neve, mensole piene di giocattoli, lucine
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#6d4630' }, svg);
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tavole-parete)' }, svg);
     el('circle', { cx: 800, cy: 400, r: 700, fill: 'url(#alone)', opacity: 0.3 }, svg);
     el('rect', { x: 620, y: 70, width: 360, height: 180, rx: 8, fill: '#efe6d2' }, svg);
     el('rect', { x: 634, y: 84, width: 332, height: 152, fill: '#16245c' }, svg);
@@ -2470,6 +2499,7 @@ function creaLaboratorio({ onEsci }) {
     // Pavimento
     el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: '#5d3a22' }, svg);
     el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: 'url(#tex-assi)', opacity: 0.5 }, svg);
+    el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: 'url(#tavole-pavimento)' }, svg);
 
     // Il nastro trasportatore: i giocattoli entrano nell'impacchettatrice ed escono incartati
     el('rect', { x: -400, y: 560, width: 2400, height: 26, rx: 13, fill: '#3a3a44' }, svg);
@@ -2652,6 +2682,7 @@ function creaStalla({ onEsci, onTocco, onScegliRenna = () => {} }) {
     // Travi di legno, lanterne, finimenti con i campanelli, la slitta di Babbo Natale in un angolo
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#5d3a22' }, svg);
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.8 }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tavole-parete)' }, svg);
     el('path', { d: 'M-200 90 H1800 M-200 160 H1800', stroke: '#3a2416', 'stroke-width': 22 }, svg);
     for (let x = 0; x <= 1600; x += 400) el('path', { d: `M${x} 90 V620`, stroke: '#3a2416', 'stroke-width': 26 }, svg);
     [200, 800, 1400].forEach(lx => {
@@ -2849,6 +2880,7 @@ function creaNegozio({ onEsci, onTocco }) {
     // Pareti di legno, lucine, ghirlande appese e mensole piene di addobbi
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#4a2c1c' }, svg);
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tavole-parete)' }, svg);
     el('circle', { cx: 700, cy: 400, r: 700, fill: 'url(#alone)', opacity: 0.35 }, svg);
     el('path', { d: 'M-200 60 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0', fill: 'none', stroke: '#1f5c34', 'stroke-width': 14 }, svg);
     for (let i = 0; i < 24; i++) el('circle', { class: 'pallina', cx: -170 + i * 75, cy: 70 + Math.sin(((i * 75 + 30) % 300) / 300 * Math.PI) * 24, r: 7, fill: COLORI_FESTA[i % 5], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.3) % 2).toFixed(1)}s` }, svg);
@@ -2884,6 +2916,7 @@ function creaNegozio({ onEsci, onTocco }) {
 
     // Il bancone con la tovaglia e gli addobbi in vendita, ognuno con il cartellino del prezzo
     el('rect', { x: -1400, y: 600, width: 4400, height: 900, fill: '#6d4630' }, svg);
+    el('rect', { x: -1400, y: 600, width: 4400, height: 900, fill: 'url(#tavole-pavimento)' }, svg);
     el('rect', { x: -1400, y: 588, width: 4400, height: 26, fill: '#8a5a3c' }, svg);
     el('rect', { x: -1400, y: 612, width: 4400, height: 70, fill: '#2e5b3f' }, svg);
     el('path', { d: 'M-1400 682 H3000', stroke: '#e8c766', 'stroke-width': 4, 'stroke-dasharray': '14 10' }, svg);
@@ -3749,6 +3782,7 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
     // Il pavimento e la porta da cui entrerà Babbo Natale
     el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: '#5d3a22' }, svg);
     el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: 'url(#tex-assi)', opacity: 0.5 }, svg);
+    el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: 'url(#tavole-pavimento)' }, svg);
     el('rect', { x: 1360, y: 330, width: 200, height: 370, rx: 10, fill: '#efe6d2' }, svg);
     const porta = el('rect', { class: 'porta-cucina', x: 1374, y: 344, width: 172, height: 356, rx: 6, fill: '#6d4630' }, svg);
     el('circle', { cx: 1400, cy: 530, r: 7, fill: '#e2b93b' }, svg);
@@ -5451,6 +5485,7 @@ function creaBancone({ onEsci }) {
     // ---- Il fondo della casetta: assi di legno, mensole con i vasetti, lucine ----
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#3b2416' }, svg);
     el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tavole-parete)' }, svg);
     for (let x = -1400; x < 3000; x += 120) p(`M${x} -600 V1500`, { stroke: '#2a180e', 'stroke-width': 4 });
     el('circle', { cx: 800, cy: 420, r: 700, fill: 'url(#alone)', opacity: 0.35 }, svg);
     [[80, 400, 330], [1200, 1520, 330], [80, 400, 470], [1200, 1520, 470]].forEach(([x1, x2, y], i) => {
@@ -5713,6 +5748,24 @@ function creaBancone({ onEsci }) {
 
 const MOMENTI = ['alba', 'giorno', 'tramonto', 'notte'];
 
+// Luce calda dall'alto, angoli in penombra e un pulviscolo dorato che fluttua nell'aria
+function atmosfera(nodo, { polvere = true } = {}) {
+    const svg = nodo.querySelector(':scope > svg');
+    if (!svg) return;
+    const g = el('g', { class: 'atmosfera', 'pointer-events': 'none' }, svg);
+    el('ellipse', { class: 'luce-stanza', cx: 800, cy: 160, rx: 760, ry: 420, fill: 'url(#luce-stanza)' }, g);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#penombra-stanza)' }, g);
+    if (!polvere) return;
+    let semePolvere = 41;
+    const casoPolvere = () => (semePolvere = (semePolvere * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 26; i++) {
+        el('circle', {
+            class: 'granello', cx: (120 + casoPolvere() * 1360).toFixed(0), cy: (80 + casoPolvere() * 640).toFixed(0), r: (1.4 + casoPolvere() * 2.4).toFixed(1),
+            fill: '#ffe9b8', style: `animation-duration:${(9 + casoPolvere() * 9).toFixed(1)}s;animation-delay:-${(casoPolvere() * 18).toFixed(1)}s`
+        }, g);
+    }
+}
+
 function momentoDiAdesso(adesso = new Date()) {
     const parti = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(adesso);
     const valore = tipo => Number(parti.find(p => p.type === tipo)?.value ?? 0);
@@ -5782,6 +5835,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         }
     });
     const negozio = creaNegozio({ onEsci: () => esciDalQuartiere(negozio), onTocco: () => onTocco() });
+    [interno, sala, posta, laboratorio, stalla, negozio, cucina].forEach(stanza => atmosfera(stanza.nodo));
+    atmosfera(pista.nodo, { polvere: false });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
     contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo);
