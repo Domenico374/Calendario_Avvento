@@ -7511,6 +7511,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     function esciDalBancone() {
         torna();
         bancone.nascondi();
+        if (slittaTour) setTimeout(() => {
+            posizionaSlitta(xSlitta);
+            fumettoGuida.classList.remove('nascosto');
+        }, 50);
         adattaVista();
     }
 
@@ -7749,10 +7753,13 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         return g;
     }
 
+    let versoSlitta = 1;
     function posizionaSlitta(x) {
-        xSlitta = x;
         const y = yStrada(x) + 10;
-        slittaTour?.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(scalaPer(y) * 1.3).toFixed(3)})`);
+        if (Math.abs(x - xSlitta) > 0.5) versoSlitta = x < xSlitta ? -1 : 1;
+        const k = scalaPer(y) * 1.3;
+        xSlitta = x;
+        slittaTour?.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(k * versoSlitta).toFixed(3)} ${k.toFixed(3)})`);
         posizione = limita(x - larghezzaVista * 0.38);
         applica();
     }
@@ -7784,6 +7791,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const TAPPE_SLITTA = [
         { edificio: '.posta', testo: "Ecco l'ufficio postale di Babbo Natale! Qui puoi scrivere la tua letterina… e c'è anche un sacco della posta con il tuo nome." },
         { edificio: '.laboratorio', testo: "Questo è il laboratorio degli elfi: qui nascono tutti i regali. Dentro c'è anche un tour in minibus!" },
+        { edificio: '.bancarella[data-tipo="cioccolata"]', testo: "Facciamo una sosta ai mercatini! Le nonne preparano castagne, cioccolata calda e frittelle: entra a vederle cucinare, oppure tocca una bancarella che preferisci." },
         { edificio: '.stalla', testo: "Ed ecco la stalla delle renne! Ora scegli chi tirerà la tua slitta per andare di casa in casa: Cometa, la più veloce, o Rudolph, col naso che illumina la notte?", scelta: true }
     ];
 
@@ -7808,7 +7816,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (tappaTour < TAPPE_SLITTA.length) {
             const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour].edificio);
             paese3D?.guarda(edificio);
-            await viaggioSlitta(Number(edificio.getAttribute('transform').match(/translate\(([\d.-]+)/)[1]) - 90);
+            const arrivo = (edificio.dataset.cx ? Number(edificio.dataset.cx) : Number(edificio.getAttribute('transform').match(/translate\(([\d.-]+)/)[1])) - 90;
+            await viaggioSlitta(arrivo, Math.min(5200, Math.max(2600, Math.abs(arrivo - xSlitta) * 3)));
             parla(TAPPE_SLITTA[tappaTour].testo, { entra: true, scelta: Boolean(TAPPE_SLITTA[tappaTour].scelta) });
             return;
         }
@@ -7877,7 +7886,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour]?.edificio);
         if (!edificio) return;
         fumettoGuida.classList.add('nascosto');
-        entraNelQuartiere(edificio);
+        if (edificio.classList.contains('bancarella')) entraNellaBancarella(edificio);
+        else entraNelQuartiere(edificio);
     });
 
     // Dalla stazione: con la guida parte il tour in slitta, da soli si va davanti alla casa di oggi
