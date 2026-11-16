@@ -733,7 +733,7 @@ function mostraLettere() {
         ? [...lettere].reverse().map(l => crea('article', { className: 'letterina-ricevuta' },
             crea('p', { textContent: l.testo }),
             crea('p', { className: 'firma', textContent: `${l.firma || 'Senza firma'} · ${new Date(l.data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}` })))
-        : [crea('p', { className: 'upload-info', textContent: "Quando il bambino scriverà a Babbo Natale dall'ufficio postale del villaggio, la letterina arriverà qui." })]));
+        : [crea('p', { className: 'upload-info', textContent: "Quando chi riceve il calendario scriverà a Babbo Natale dall'ufficio postale del villaggio, la letterina arriverà qui." })]));
 }
 
 // Elimina il calendario intero e passa al prossimo ricordato su questo dispositivo, o a uno nuovo

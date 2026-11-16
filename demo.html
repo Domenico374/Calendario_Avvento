@@ -3594,7 +3594,7 @@ function disegnaPosta(mondo, x, y, scala) {
 
 // Dentro l'ufficio postale: chi riceve il calendario scrive la letterina, chi lo prepara le legge
 // La letterina di Babbo Natale quando chi prepara il calendario non ne ha scritta una
-const LETTERA_BABBO = "Ho saputo che stai facendo un viaggio speciale nel mio villaggio! Ogni giorno si apre una casa con una sorpresa: aprile una alla volta, senza fretta. Gli elfi lavorano nel laboratorio, le renne si allenano per la grande notte… e il 24 dicembre ti aspetto nella mia casa in piazza. Sorridi tanto e fai il bravo!";
+const LETTERA_BABBO = "Ho saputo che stai facendo un viaggio speciale nel mio villaggio! Ogni giorno si apre una casa con una sorpresa: aprile una alla volta, senza fretta. Gli elfi lavorano nel laboratorio, le renne si allenano per la grande notte… e il 24 dicembre ti aspetto nella mia casa in piazza. Ti auguro un Natale pieno di sorrisi!";
 
 function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', letteraBabbo = '' }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno posta-dentro', hidden: true });
@@ -3647,7 +3647,7 @@ function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', l
         const nome = destinatario.trim();
         nomeSacco.textContent = (nome || 'TE').toUpperCase().slice(0, 14);
         sacco.setAttribute('aria-label', `Il sacco della posta per ${nome || 'te'}: tocca per aprire la letterina di Babbo Natale`);
-        saluto.textContent = nome ? `Caro ${nome},` : 'Ciao!';
+        saluto.textContent = nome ? `Ciao ${nome}!` : 'Ciao!';
         corpoLettera.textContent = letteraBabbo.trim() || LETTERA_BABBO;
     }
     function chiudiLettera() {
