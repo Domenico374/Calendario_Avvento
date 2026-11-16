@@ -2205,3 +2205,22 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .bollino-ricetta, .scena .tour .sega, .scena .tour .segatura, .scena .tour .palla-rimbalza > *, .scena .tour.in-viaggio .ruota-bus { animation: none; }
 }
+
+/* ---- Il tour del palaghiaccio ---- */
+.scena .pista .bottone-tour-ghiaccio { top: 62px; }
+.scena .pista .tour { background: #141c40; }
+.scena .tour .traballa { transform-box: fill-box; transform-origin: 50% 100%; animation: traballa 1.4s ease-in-out infinite alternate; }
+@keyframes traballa { from { rotate: -5deg; } to { rotate: 6deg; } }
+.scena .tour .piroetta-tour { transform-box: fill-box; transform-origin: center; animation: piroetta-tour 1.2s linear infinite; }
+@keyframes piroetta-tour { 0%, 100% { scale: 1 1; } 50% { scale: -1 1; } }
+.scena .tour .disco-hockey { animation: disco-hockey 2.4s ease-in infinite; }
+@keyframes disco-hockey { 0% { translate: 0 0; } 70% { translate: 380px 0; opacity: 1; } 100% { translate: 400px 0; opacity: 0; } }
+.scena .tour .coriandolo { animation: coriandolo 3s linear infinite; }
+@keyframes coriandolo { from { translate: 0 0; rotate: 0deg; } to { translate: 20px 420px; rotate: 360deg; } }
+.scena .tour .scintilla-ghiaccio { animation: luce-tetto 1.6s ease-in-out infinite; }
+@media (max-width: 899px) {
+    .scena .pista .bottone-tour-ghiaccio { top: 52px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .tour .traballa, .scena .tour .piroetta-tour, .scena .tour .disco-hockey, .scena .tour .coriandolo, .scena .tour .scintilla-ghiaccio { animation: none; }
+}

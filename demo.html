@@ -1616,6 +1616,25 @@ body::before {
     .scena .bollino-ricetta, .scena .tour .sega, .scena .tour .segatura, .scena .tour .palla-rimbalza > *, .scena .tour.in-viaggio .ruota-bus { animation: none; }
 }
 
+/* ---- Il tour del palaghiaccio ---- */
+.scena .pista .bottone-tour-ghiaccio { top: 62px; }
+.scena .pista .tour { background: #141c40; }
+.scena .tour .traballa { transform-box: fill-box; transform-origin: 50% 100%; animation: traballa 1.4s ease-in-out infinite alternate; }
+@keyframes traballa { from { rotate: -5deg; } to { rotate: 6deg; } }
+.scena .tour .piroetta-tour { transform-box: fill-box; transform-origin: center; animation: piroetta-tour 1.2s linear infinite; }
+@keyframes piroetta-tour { 0%, 100% { scale: 1 1; } 50% { scale: -1 1; } }
+.scena .tour .disco-hockey { animation: disco-hockey 2.4s ease-in infinite; }
+@keyframes disco-hockey { 0% { translate: 0 0; } 70% { translate: 380px 0; opacity: 1; } 100% { translate: 400px 0; opacity: 0; } }
+.scena .tour .coriandolo { animation: coriandolo 3s linear infinite; }
+@keyframes coriandolo { from { translate: 0 0; rotate: 0deg; } to { translate: 20px 420px; rotate: 360deg; } }
+.scena .tour .scintilla-ghiaccio { animation: luce-tetto 1.6s ease-in-out infinite; }
+@media (max-width: 899px) {
+    .scena .pista .bottone-tour-ghiaccio { top: 52px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .tour .traballa, .scena .tour .piroetta-tour, .scena .tour .disco-hockey, .scena .tour .coriandolo, .scena .tour .scintilla-ghiaccio { animation: none; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -3566,6 +3585,11 @@ function creaPalaghiaccio({ onEsci }) {
         musica.textContent = '🎵 Accendi la musica';
     };
     musica.addEventListener('click', () => (ferma ? spegni() : accendi()));
+    // Il tour del palazzetto con Brina, l'elfa istruttrice
+    const tour = creaTourGhiaccio(nodo);
+    const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-tour-ghiaccio', textContent: '⛸ Fai il tour con l\'elfa' });
+    nodo.append(bottoneTour);
+    bottoneTour.addEventListener('click', () => tour.apri());
 
     return {
         nodo,
@@ -3583,6 +3607,7 @@ function creaPalaghiaccio({ onEsci }) {
         },
         nascondi() {
             spegni();
+            tour.chiudi();
             cancelAnimationFrame(giro);
             nodo.classList.remove('visibile');
             nodo.hidden = true;
@@ -4715,24 +4740,8 @@ const TAPPE_TOUR = [
     { titolo: '7 · La slitta', testo: 'Infine i pacchi vanno nei sacchi, città per città, e salgono sulla slitta di Babbo Natale. Il tour è finito: grazie per essere saliti!' }
 ];
 
-function creaTour(contenitore) {
-    const nodo = Object.assign(document.createElement('div'), { className: 'tour', hidden: true });
-    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Il tour del laboratorio in minibus' });
-    const pannello = Object.assign(document.createElement('div'), { className: 'tour-pannello' });
-    const titolo = Object.assign(document.createElement('p'), { className: 'tour-titolo' });
-    const testo = Object.assign(document.createElement('p'), { className: 'tour-testo' });
-    const comandi = Object.assign(document.createElement('div'), { className: 'tour-comandi' });
-    const indietro = Object.assign(document.createElement('button'), { type: 'button', textContent: '◀ Indietro' });
-    const avanti = Object.assign(document.createElement('button'), { type: 'button', className: 'tour-avanti', textContent: 'Avanti ▶' });
-    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '✕ Esci dal tour' });
-    comandi.append(indietro, avanti);
-    pannello.append(titolo, testo, comandi);
-    nodo.append(svg, pannello, esci);
-    contenitore.append(nodo);
-
-    const PASSO = 1000, LUNGO = PASSO * TAPPE_TOUR.length + 1200;
-    const centro = i => 600 + i * PASSO;
-
+// La fabbrica del tour del laboratorio, con il minibus di Fiocco
+function disegnaFabbrica(svg, { centro, LUNGO, tappe }) {
     // La fabbrica lunghissima: pareti di legno, lucine, pavimento e la strada del minibus
     el('rect', { x: -400, y: -400, width: LUNGO + 800, height: 1700, fill: '#6d4630' }, svg);
     el('rect', { x: -400, y: -400, width: LUNGO + 800, height: 1700, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
@@ -4745,7 +4754,7 @@ function creaTour(contenitore) {
     el('path', { d: `M-400 780 H${LUNGO + 400}`, stroke: '#f4d03f', 'stroke-width': 5, 'stroke-dasharray': '40 30' }, svg);
 
     // I cartelli delle tappe
-    TAPPE_TOUR.forEach((tappa, i) => {
+    tappe.forEach((tappa, i) => {
         const cx = centro(i) + 150;
         el('rect', { x: cx - 170, y: 110, width: 340, height: 54, rx: 10, fill: '#a3242c', stroke: '#e8c766', 'stroke-width': 3 }, svg);
         el('text', { x: cx, y: 146, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fffaf0' }, svg).textContent = tappa.titolo;
@@ -4910,6 +4919,31 @@ function creaTour(contenitore) {
         return r;
     });
 
+    return bus;
+}
+
+function creaTour(contenitore, opzioni = {}) {
+    const tappe = opzioni.tappe ?? TAPPE_TOUR;
+    const nodo = Object.assign(document.createElement('div'), { className: 'tour', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': opzioni.etichetta ?? 'Il tour del laboratorio in minibus' });
+    const pannello = Object.assign(document.createElement('div'), { className: 'tour-pannello' });
+    const titolo = Object.assign(document.createElement('p'), { className: 'tour-titolo' });
+    const testo = Object.assign(document.createElement('p'), { className: 'tour-testo' });
+    const comandi = Object.assign(document.createElement('div'), { className: 'tour-comandi' });
+    const indietro = Object.assign(document.createElement('button'), { type: 'button', textContent: '◀ Indietro' });
+    const avanti = Object.assign(document.createElement('button'), { type: 'button', className: 'tour-avanti', textContent: 'Avanti ▶' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '✕ Esci dal tour' });
+    comandi.append(indietro, avanti);
+    pannello.append(titolo, testo, comandi);
+    nodo.append(svg, pannello, esci);
+    contenitore.append(nodo);
+
+    const PASSO = 1000, LUNGO = PASSO * tappe.length + 1200;
+    const centro = i => 600 + i * PASSO;
+
+    // La scena e il mezzo (minibus, rasaghiaccio…) li disegna chi usa il tour
+    const bus = (opzioni.disegna ?? disegnaFabbrica)(svg, { centro, LUNGO, tappe });
+
     // Il viaggio: la vista e il minibus avanzano insieme da una tappa all'altra
     let tappa = 0, vista = centro(0) - 600, animazione = null;
     const posiziona = () => {
@@ -4917,13 +4951,13 @@ function creaTour(contenitore) {
         bus.setAttribute('transform', `translate(${(vista + 330).toFixed(1)} 772)`);
     };
     const racconta = () => {
-        titolo.textContent = TAPPE_TOUR[tappa].titolo;
-        testo.textContent = TAPPE_TOUR[tappa].testo;
+        titolo.textContent = tappe[tappa].titolo;
+        testo.textContent = tappe[tappa].testo;
         indietro.disabled = tappa === 0;
-        avanti.textContent = tappa === TAPPE_TOUR.length - 1 ? 'Fine del tour 🎉' : 'Avanti ▶';
+        avanti.textContent = tappa === tappe.length - 1 ? 'Fine del tour 🎉' : 'Avanti ▶';
     };
     const vai = nuova => {
-        tappa = Math.max(0, Math.min(TAPPE_TOUR.length - 1, nuova));
+        tappa = Math.max(0, Math.min(tappe.length - 1, nuova));
         racconta();
         cancelAnimationFrame(animazione);
         const da = vista, a = centro(tappa) - 600;
@@ -4942,7 +4976,7 @@ function creaTour(contenitore) {
         };
         animazione = requestAnimationFrame(passo);
     };
-    avanti.addEventListener('click', () => (tappa === TAPPE_TOUR.length - 1 ? chiudi() : vai(tappa + 1)));
+    avanti.addEventListener('click', () => (tappa === tappe.length - 1 ? chiudi() : vai(tappa + 1)));
     indietro.addEventListener('click', () => vai(tappa - 1));
     const chiudi = () => {
         cancelAnimationFrame(animazione);
@@ -4970,6 +5004,202 @@ function creaTour(contenitore) {
         chiudi,
         aperto: () => !nodo.hidden
     };
+}
+
+// ---------- Il tour del palaghiaccio ----------
+// Brina, l'elfa istruttrice, guida la rasaghiaccio attraverso il palazzetto
+
+const TAPPE_GHIACCIO = [
+    { titolo: 'Benvenuti!', testo: 'Ciao, sono Brina, l\'elfa istruttrice! Salite sulla mia rasaghiaccio: vi faccio scoprire tutti i segreti del palazzetto del ghiaccio.' },
+    { titolo: '1 · Il noleggio pattini', testo: 'Prima di tutto i pattini! Qui si sceglie il numero giusto e si allacciano ben stretti, così la caviglia sta dritta.' },
+    { titolo: '2 · La scuola', testo: 'Chi è alle prime armi impara qui, appoggiandosi al pinguino: ginocchia piegate, piccoli passi e… si scivola!' },
+    { titolo: '3 · La rasaghiaccio', testo: 'Questa macchina che guido lima il ghiaccio rovinato dai pattini e stende un velo d\'acqua che gela subito. Guardate: la pista torna liscia come uno specchio!' },
+    { titolo: '4 · Il pattinaggio artistico', testo: 'I campioni fanno salti e piroette a tempo di musica. I giudici alzano i cartellini con i voti: che giravolta!' },
+    { titolo: '5 · L\'hockey', testo: 'Qui si gioca a hockey: con il bastone si colpisce il disco, che scivola velocissimo sul ghiaccio verso la porta. Gooool!' },
+    { titolo: '6 · Il bar del palazzetto', testo: 'Dopo tanto pattinare ci vuole una pausa: cioccolata calda, biscotti e una sciarpa per scaldarsi.' },
+    { titolo: '7 · La premiazione', testo: 'E per finire, la premiazione: oggi una medaglia per tutti quelli che hanno fatto il giro con me. Grazie e alla prossima pattinata!' }
+];
+
+function disegnaPalazzettoTour(svg, { centro, LUNGO, tappe }) {
+    // Il palazzetto: spalti pieni di gente, fari, balaustra e una pista lunghissima
+    el('rect', { x: -400, y: -400, width: LUNGO + 800, height: 1700, fill: '#141c40' }, svg);
+    for (let x = -400; x < LUNGO + 400; x += 220) el('path', { d: `M${x} -20 L${x + 140} 220`, stroke: '#26346a', 'stroke-width': 8 }, svg);
+    for (let fila = 0; fila < 5; fila++) {
+        const y = 250 + fila * 40;
+        el('rect', { x: -400, y, width: LUNGO + 800, height: 40, fill: fila % 2 ? '#2a3a7a' : '#324690' }, svg);
+        for (let x = -380 + (fila % 2) * 18, k = 0; x < LUNGO + 400; x += 36, k++) {
+            el('circle', { cx: x, cy: y + 13, r: 9, fill: ['#f2d2bd', '#e3b393', '#c48a66', '#f5dccb'][(k + fila) % 4] }, svg);
+            el('path', { d: `M${x - 11} ${y + 40} q 11 -20 22 0 Z`, fill: COLORI_FESTA[(k + fila * 2) % 5] }, svg);
+        }
+    }
+    let festone = 'M-400 210';
+    for (let x = -400; x < LUNGO + 400; x += 300) festone += ' q 150 40 300 0';
+    el('path', { d: festone, stroke: '#e8c766', 'stroke-width': 2, fill: 'none' }, svg);
+    for (let x = -390, i = 0; x < LUNGO + 400; x += 60, i++) el('path', { d: `M${x - 12} ${214 + Math.sin(((x + 400) % 300) / 300 * Math.PI) * 18} l 12 22 l 12 -22 Z`, fill: COLORI_FESTA[i % 5] }, svg);
+    el('rect', { x: -400, y: 450, width: LUNGO + 800, height: 50, fill: '#f4f7fd' }, svg);
+    el('rect', { x: -400, y: 474, width: LUNGO + 800, height: 7, fill: '#c0392b' }, svg);
+    el('rect', { x: -400, y: 500, width: LUNGO + 800, height: 900, fill: '#dcecf9' }, svg);
+    for (let x = -400; x < LUNGO + 400; x += 260) el('path', { d: `M${x} 560 q 130 -14 260 0`, stroke: '#ffffff', 'stroke-width': 3, fill: 'none', opacity: 0.7 }, svg);
+
+    // I cartelli delle tappe
+    tappe.forEach((tappa, i) => {
+        const cx = centro(i) + 150;
+        el('rect', { x: cx - 190, y: 110, width: 380, height: 54, rx: 10, fill: '#2d4f8a', stroke: '#e8c766', 'stroke-width': 3 }, svg);
+        el('text', { x: cx, y: 146, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fffaf0' }, svg).textContent = tappa.titolo;
+    });
+
+    const pattinatore = (x, y, k, verso, colori, classe = '') => {
+        const g = disegnaPattinatore(colori);
+        if (classe) g.classList.add(classe);
+        svg.append(g);
+        giraFigura(g, x, y, k, verso);
+        return g;
+    };
+    const P = PATTINATORI_PISTA;
+
+    // 0 · L'ingresso
+    {
+        const cx = centro(0) + 150;
+        el('path', { d: `M${cx - 230} 700 V420 Q${cx} 260 ${cx + 230} 420 V700 H${cx + 180} V440 Q${cx} 320 ${cx - 180} 440 V700 Z`, fill: '#2d4f8a', stroke: '#e8c766', 'stroke-width': 4 }, svg);
+        el('text', { x: cx, y: 400, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = '⛸ PALAGHIACCIO ⛸';
+        for (let k = 0; k < 9; k++) el('circle', { class: 'pallina', cx: cx - 210 + k * 52, cy: 432 - Math.sin((k / 8) * Math.PI) * 110, r: 8, fill: COLORI_FESTA[k % 5] }, svg);
+        pattinatore(cx + 280, 700, 3, 1, P[0]);
+    }
+    // 1 · Il noleggio pattini: bancone, scaffale con i pattini e i numeri
+    {
+        const cx = centro(1) + 150;
+        el('rect', { x: cx - 230, y: 340, width: 300, height: 220, rx: 8, fill: '#6d4630' }, svg);
+        for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+            const sx = cx - 210 + c * 72, sy = 360 + r * 66;
+            el('rect', { x: sx, y: sy, width: 64, height: 56, fill: '#3b2416' }, svg);
+            el('path', { d: `M${sx + 10} ${sy + 40} v-22 h18 v14 h20 q 6 0 6 8 Z`, fill: ['#fbfdff', '#c0392b', '#2d4f8a'][(r + c) % 3] }, svg);
+            el('path', { d: `M${sx + 8} ${sy + 46} h46`, stroke: '#b8c2d8', 'stroke-width': 3 }, svg);
+            el('text', { x: sx + 52, y: sy + 16, 'text-anchor': 'end', 'font-size': 12, 'font-weight': 'bold', fill: '#ffe9a8' }, svg).textContent = String(28 + r * 4 + c);
+        }
+        el('rect', { x: cx - 260, y: 560, width: 420, height: 140, fill: '#8a5a3c' }, svg);
+        el('rect', { x: cx - 270, y: 548, width: 440, height: 18, rx: 4, fill: '#a0663a' }, svg);
+        el('rect', { x: cx - 170, y: 600, width: 240, height: 40, rx: 8, fill: '#2d4f8a', stroke: '#e8c766', 'stroke-width': 2 }, svg);
+        el('text', { x: cx - 50, y: 627, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 'bold', fill: '#fffaf0', 'font-family': 'Georgia, serif' }, svg).textContent = 'NOLEGGIO PATTINI';
+        disegnaElfo(svg, cx + 280, 700, 1.5, { giacca: '#2d4f8a', cappello: '#c0392b' }).braccio.classList.add('saluta');
+    }
+    // 2 · La scuola: i principianti con il pinguino d'appoggio
+    {
+        const cx = centro(2) + 150;
+        const pinguino = (x, y) => {
+            const g = el('g', { transform: `translate(${x} ${y})` }, svg);
+            el('path', { d: 'M-16 -60 h32', stroke: '#c0392b', 'stroke-width': 5, 'stroke-linecap': 'round' }, g);
+            el('path', { d: 'M-12 -58 v14 M12 -58 v14', stroke: '#c0392b', 'stroke-width': 4 }, g);
+            el('ellipse', { cx: 0, cy: -24, rx: 22, ry: 26, fill: '#1d1d24' }, g);
+            el('ellipse', { cx: 0, cy: -18, rx: 14, ry: 19, fill: '#fbfdff' }, g);
+            el('circle', { cx: -6, cy: -38, r: 3, fill: '#fff' }, g);
+            el('circle', { cx: 6, cy: -38, r: 3, fill: '#fff' }, g);
+            el('circle', { cx: -6, cy: -38, r: 1.5, fill: '#111' }, g);
+            el('circle', { cx: 6, cy: -38, r: 1.5, fill: '#111' }, g);
+            el('path', { d: 'M-4 -32 h8 l-4 6 Z', fill: '#f39c12' }, g);
+            el('path', { d: 'M-12 2 h10 M2 2 h10', stroke: '#f39c12', 'stroke-width': 4, 'stroke-linecap': 'round' }, g);
+        };
+        pinguino(cx - 150, 690);
+        pattinatore(cx - 110, 700, 2.4, 1, P[5], 'traballa');
+        pinguino(cx + 60, 690);
+        pattinatore(cx + 100, 700, 2.4, 1, P[2], 'traballa');
+        disegnaElfo(svg, cx + 300, 700, 1.5, { giacca: '#16a085', cappello: '#f4d03f' }).braccio.classList.add('saluta');
+    }
+    // 3 · La rasaghiaccio: ghiaccio rovinato da una parte, a specchio dall'altra
+    {
+        const cx = centro(3) + 150;
+        for (let k = 0; k < 14; k++) el('path', { d: `M${cx - 300 + (k * 37) % 260} ${600 + (k * 23) % 90} l ${30 + (k % 3) * 10} ${(k % 2 ? 6 : -6)}`, stroke: '#a9c3df', 'stroke-width': 2.5 }, svg);
+        el('text', { x: cx - 170, y: 590, 'text-anchor': 'middle', 'font-size': 18, 'font-style': 'italic', fill: '#5a7aa8', 'font-family': 'Georgia, serif' }, svg).textContent = 'prima: tutto graffiato';
+        el('rect', { x: cx + 20, y: 560, width: 320, height: 140, rx: 10, fill: '#f4fbff' }, svg);
+        el('path', { d: `M${cx + 40} 590 l 120 -20 M${cx + 70} 620 l 160 -26 M${cx + 200} 660 l 110 -18`, stroke: '#ffffff', 'stroke-width': 7, 'stroke-linecap': 'round', opacity: 0.95 }, svg);
+        el('text', { x: cx + 180, y: 600, 'text-anchor': 'middle', 'font-size': 18, 'font-style': 'italic', fill: '#2d4f8a', 'font-family': 'Georgia, serif' }, svg).textContent = 'dopo: uno specchio!';
+        for (let k = 0; k < 5; k++) el('path', { class: 'scintilla-ghiaccio', d: stellaPiccola(cx + 60 + k * 60, 640 + (k % 2) * 30, 9), fill: '#ffffff', style: `animation-delay:${(k * 0.4).toFixed(1)}s` }, svg);
+    }
+    // 4 · Il pattinaggio artistico: la campionessa fa la piroetta, i giudici votano
+    {
+        const cx = centro(4) + 150;
+        el('circle', { class: 'luce-calda', cx: cx - 60, cy: 600, r: 160, fill: 'url(#alone)', opacity: 0.7 }, svg);
+        const g = el('g', { class: 'piroetta-tour' }, el('g', { transform: `translate(${cx - 60} 700)` }, svg));
+        const figura = disegnaPattinatore(P[4]);
+        g.append(figura);
+        giraFigura(figura, 0, 0, 3, 1);
+        el('rect', { x: cx + 140, y: 600, width: 240, height: 70, rx: 6, fill: '#8a5a3c' }, svg);
+        ['6.0', '5.9', '6.0'].forEach((voto, k) => {
+            el('rect', { x: cx + 158 + k * 74, y: 540, width: 56, height: 46, rx: 4, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 2 }, svg);
+            el('text', { x: cx + 186 + k * 74, y: 572, 'text-anchor': 'middle', 'font-size': 24, 'font-weight': 'bold', fill: '#a3242c', 'font-family': 'Georgia, serif' }, svg).textContent = voto;
+        });
+    }
+    // 5 · L'hockey: due giocatori, il disco e la porta
+    {
+        const cx = centro(5) + 150;
+        el('path', { d: `M${cx + 260} 700 v-90 h90 v90`, stroke: '#c0392b', 'stroke-width': 8, fill: 'none' }, svg);
+        for (let k = 0; k < 5; k++) el('path', { d: `M${cx + 268 + k * 18} 616 v80 M${cx + 266} ${630 + k * 16} h80`, stroke: '#ffffff', 'stroke-width': 1.5, opacity: 0.7 }, svg);
+        const giocatore = (x, verso, colori) => {
+            const g = pattinatore(x, 700, 2.6, verso, colori);
+            el('path', { d: 'M-18 -40 L-34 -6 l -14 2', stroke: '#6d4630', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' }, g);
+        };
+        giocatore(cx - 200, -1, P[1]);
+        giocatore(cx + 40, 1, P[7]);
+        el('ellipse', { class: 'disco-hockey', cx: cx - 90, cy: 694, rx: 12, ry: 5, fill: '#1d1d24' }, svg);
+    }
+    // 6 · Il bar del palazzetto
+    {
+        const cx = centro(6) + 150;
+        el('rect', { x: cx - 260, y: 420, width: 520, height: 70, rx: 10, fill: '#a3242c', stroke: '#e8c766', 'stroke-width': 3 }, svg);
+        el('text', { x: cx, y: 467, 'text-anchor': 'middle', 'font-size': 32, 'font-weight': 'bold', 'letter-spacing': 3, fill: '#fffaf0', 'font-family': 'Georgia, serif' }, svg).textContent = '☕ BAR DEL GHIACCIO';
+        el('rect', { x: cx - 250, y: 600, width: 500, height: 100, fill: '#8a5a3c' }, svg);
+        el('rect', { x: cx - 260, y: 588, width: 520, height: 18, rx: 4, fill: '#a0663a' }, svg);
+        [-180, -90, 0].forEach((dx, k) => {
+            const tx = cx + dx;
+            el('path', { d: `M${tx - 26} 588 l 4 -44 h44 l 4 44 Z`, fill: ['#c0392b', '#fbf6ea', '#2e7d4a'][k] }, svg);
+            el('ellipse', { cx: tx, cy: 544, rx: 26, ry: 7, fill: '#fffdf6' }, svg);
+            el('path', { class: 'vapore-tazza', d: `M${tx - 6} 530 q -6 -12 0 -24 q 6 -12 0 -24`, stroke: '#ffffff', 'stroke-width': 4, fill: 'none', opacity: 0.8, style: `animation-delay:${k * 0.5}s` }, svg);
+        });
+        [[90, 580], [130, 580], [110, 566]].forEach(([dx, y]) => el('circle', { cx: cx + dx, cy: y, r: 14, fill: '#d9a066', stroke: '#b8803f', 'stroke-width': 2 }, svg));
+        disegnaElfo(svg, cx + 210, 600, 1.4, { giacca: '#7d4e9e', cappello: '#c0392b' }).braccio.classList.add('saluta');
+    }
+    // 7 · La premiazione: il podio, le medaglie e i coriandoli
+    {
+        const cx = centro(7) + 150;
+        [[0, 140, '1', '#f4d03f'], [-150, 100, '2', '#d9dde8'], [150, 70, '3', '#d9a066']].forEach(([dx, h, n, oro]) => {
+            el('rect', { x: cx + dx - 70, y: 700 - h, width: 140, height: h, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 3 }, svg);
+            el('text', { x: cx + dx, y: 700 - h + 50, 'text-anchor': 'middle', 'font-size': 40, 'font-weight': 'bold', fill: '#a3242c', 'font-family': 'Georgia, serif' }, svg).textContent = n;
+            const g = pattinatore(cx + dx, 700 - h, 2.2, 1, P[{ 1: 3, 2: 6, 3: 0 }[n]]);
+            el('circle', { cx: -6, cy: -38, r: 5, fill: oro, stroke: '#b8860b', 'stroke-width': 1 }, g);
+        });
+        for (let k = 0; k < 24; k++) el('rect', { class: 'coriandolo', x: cx - 300 + (k * 53) % 600, y: 260, width: 10, height: 6, fill: COLORI_FESTA[k % 5], style: `animation-delay:-${((k * 0.37) % 3).toFixed(2)}s` }, svg);
+    }
+
+    // La rasaghiaccio di Brina: una macchina bianca e blu che lascia la scia lucida
+    const mezzo = el('g', {}, svg);
+    el('rect', { x: -420, y: -24, width: 230, height: 30, rx: 12, fill: '#ffffff', opacity: 0.75 }, mezzo);
+    el('ellipse', { cx: 0, cy: 8, rx: 190, ry: 14, fill: 'rgba(0,0,0,0.25)' }, mezzo);
+    el('path', { d: 'M-190 -14 V-90 Q-190 -110 -170 -110 H60 V-150 Q60 -168 80 -168 H140 Q166 -168 172 -140 L186 -60 V-14 Z', fill: '#fbfdff', stroke: '#2d4f8a', 'stroke-width': 4 }, mezzo);
+    el('rect', { x: -190, y: -56, width: 376, height: 22, fill: '#2d4f8a' }, mezzo);
+    el('rect', { x: -170, y: -96, width: 200, height: 34, rx: 6, fill: '#bfe3ff', stroke: '#2d4f8a', 'stroke-width': 2 }, mezzo);
+    el('text', { x: -70, y: -73, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#2d4f8a' }, mezzo).textContent = 'RASAGHIACCIO';
+    el('path', { d: 'M76 -156 H136 Q156 -156 162 -134 L170 -100 H76 Z', fill: '#bfe3ff', stroke: '#2d4f8a', 'stroke-width': 3 }, mezzo);
+    // Brina alla guida: capelli castani raccolti, berretto azzurro col pompon
+    el('circle', { cx: 116, cy: -120, r: 15, fill: '#f2d2bd' }, mezzo);
+    el('path', { d: 'M100 -124 Q102 -140 116 -140 Q132 -140 132 -124 Q124 -132 116 -131 Q106 -132 100 -124 Z', fill: '#8a5a2b' }, mezzo);
+    el('path', { d: 'M100 -128 L114 -158 L132 -128 Z', fill: '#6fd3ff' }, mezzo);
+    el('rect', { x: 98, y: -132, width: 36, height: 6, rx: 3, fill: '#fbfdff' }, mezzo);
+    el('circle', { cx: 114, cy: -160, r: 5, fill: '#fbfdff' }, mezzo);
+    el('circle', { cx: 122, cy: -121, r: 2, fill: '#3b2412' }, mezzo);
+    el('path', { d: 'M117 -113 q 5 4 10 0', stroke: '#7a3c12', 'stroke-width': 1.6, fill: 'none' }, mezzo);
+    el('circle', { cx: 150, cy: -104, r: 10, fill: 'none', stroke: '#3a3a44', 'stroke-width': 3 }, mezzo);
+    el('rect', { x: -200, y: -20, width: 30, height: 14, rx: 4, fill: '#8d98b8' }, mezzo);
+    el('circle', { cx: 180, cy: -30, r: 7, fill: '#fff3b0' }, mezzo);
+    [-110, 110].forEach(rx => {
+        const r = el('g', { class: 'ruota-bus' }, el('g', { transform: `translate(${rx} -6)` }, mezzo));
+        el('circle', { r: 26, fill: '#2a2a2e' }, r);
+        el('circle', { r: 12, fill: '#b8c2d8' }, r);
+        el('path', { d: 'M-12 0 H12 M0 -12 V12', stroke: '#5d6280', 'stroke-width': 3 }, r);
+    });
+    return mezzo;
+}
+
+function creaTourGhiaccio(contenitore) {
+    return creaTour(contenitore, { tappe: TAPPE_GHIACCIO, etichetta: 'Il tour del palaghiaccio sulla rasaghiaccio', disegna: disegnaPalazzettoTour });
 }
 
 // Altezza della strada in ogni punto, per mettere le case ai suoi lati
