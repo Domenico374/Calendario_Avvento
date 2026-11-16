@@ -1830,3 +1830,122 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .lucina-giostra, .scena .bandierina, .scena .sagome-pattinatori path, .scena .pista .faro-pista { animation: none; }
 }
+
+/* ---- Il quartiere di Babbo Natale ---- */
+.scena .posta, .scena .laboratorio, .scena .stalla { cursor: pointer; }
+.scena .posta:hover, .scena .laboratorio:hover, .scena .stalla:hover { filter: brightness(1.1); }
+.scena .posta:focus-visible, .scena .laboratorio:focus-visible, .scena .stalla:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+.scena .busta-vola { opacity: 0; animation: busta-vola 6.4s ease-in infinite; }
+@keyframes busta-vola {
+    0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+    10% { opacity: 1; }
+    100% { opacity: 0; transform: translate(120px, -260px) rotate(25deg); }
+}
+.scena .fumo-colorato circle { animation: fumo 3.6s linear infinite; }
+.scena .ingranaggio { transform-box: fill-box; transform-origin: center; animation: gira 4s linear infinite; }
+.scena .ingranaggio.inverso { animation-direction: reverse; animation-duration: 3s; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.scena .pacco-nastro { animation: pacco-nastro 4.2s linear infinite; }
+@keyframes pacco-nastro { from { transform: translateX(-10px); } to { transform: translateX(120px); } }
+.scena .renna-affacciata { transform-box: fill-box; transform-origin: 50% 100%; animation: affaccia 3.2s ease-in-out infinite alternate; }
+@keyframes affaccia { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+/* Dentro il laboratorio */
+.scena .laboratorio-dentro { background: #3a2416; }
+.scena .su-nastro { animation: su-nastro 10s linear infinite; }
+@keyframes su-nastro { from { transform: translateX(0); } to { transform: translateX(1100px); } }
+.scena .su-nastro-uscita { animation: su-nastro-uscita 10s linear infinite; }
+@keyframes su-nastro-uscita { from { transform: translateX(1100px); } to { transform: translateX(2200px); } }
+.scena .rullo { transform-box: fill-box; transform-origin: center; animation: gira 1s linear infinite; }
+.scena .braccio-elfo.martella { transform-box: fill-box; transform-origin: 0% 0%; animation: martella 0.6s ease-in-out infinite alternate; }
+@keyframes martella { from { transform: rotate(-30deg); } to { transform: rotate(14deg); } }
+.scena .braccio-elfo.saluta { transform-box: fill-box; transform-origin: 0% 0%; animation: martella 1.6s ease-in-out infinite alternate; }
+/* Dentro la stalla */
+.scena .stalla-dentro { background: #3a2416; }
+.scena .renna-box { cursor: pointer; }
+.scena .renna-box:focus-visible { outline: none; }
+.scena .testa-renna { transform-box: fill-box; transform-origin: 50% 100%; animation: respira 3s ease-in-out infinite alternate; }
+@keyframes respira { from { transform: rotate(-2deg); } to { transform: rotate(2deg) translateY(-3px); } }
+.scena .renna-box:nth-of-type(2n) .testa-renna { animation-delay: -1.5s; }
+.scena .occhi-renna { transform-box: fill-box; transform-origin: center; animation: sbatte 4.5s infinite; }
+@keyframes sbatte { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+.scena .fieno-bocca { transform-box: fill-box; transform-origin: 0% 50%; animation: mastica 0.5s ease-in-out infinite alternate; }
+@keyframes mastica { from { transform: rotate(-6deg); } to { transform: rotate(8deg); } }
+.scena .naso-rudolph { animation: naso-rudolph 1.4s ease-in-out infinite; }
+@keyframes naso-rudolph { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.scena .cuore-renna { opacity: 0; pointer-events: none; }
+.scena .renna-box.saluta .testa-renna { animation: annuisce 0.4s ease-in-out 3; }
+@keyframes annuisce { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(8deg) translateY(8px); } }
+.scena .renna-box.saluta .cuore-renna { animation: cuore-sale 1.2s ease-out; }
+@keyframes cuore-sale { 0% { opacity: 0; transform: translateY(20px) scale(0.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-50px) scale(1.2); } }
+/* Dentro l'ufficio postale: la letterina */
+.scena .posta-dentro { background: #4a2c1c; }
+.scena .letterina {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%) rotate(-1deg);
+    width: min(520px, 88%);
+    max-height: 86%;
+    overflow-y: auto;
+    padding: 14px 22px 12px;
+    border-radius: 6px;
+    background:
+        repeating-linear-gradient(transparent 0 27px, rgba(80, 120, 190, 0.25) 27px 28px),
+        #fffaf0;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+    color: #3a2416;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    display: grid;
+    gap: 6px;
+    transition: transform 1s ease-in, opacity 1s ease-in;
+}
+.scena .letterina.spedita { transform: translate(-50%, -160%) rotate(14deg) scale(0.3); opacity: 0; }
+.scena .letterina h3 {
+    margin: 0;
+    font-family: 'Mountains of Christmas', 'Brush Script MT', cursive;
+    font-size: 1.7rem;
+    color: #a3242c;
+}
+.scena .letterina textarea,
+.scena .letterina input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px dashed rgba(163, 36, 44, 0.4);
+    background: transparent;
+    color: #2a1d14;
+    font: inherit;
+    font-size: 1.05rem;
+    line-height: 28px;
+    resize: vertical;
+    outline: none;
+}
+.scena .letterina .spedisci {
+    justify-self: center;
+    border: 2px solid #c9a227;
+    border-radius: 999px;
+    background: #c0392b;
+    color: #fffaf0;
+    font: inherit;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 8px 20px;
+    cursor: pointer;
+}
+.scena .letterina .spedisci:disabled { opacity: 0.6; cursor: default; }
+.scena .letterina .nota-letterina { margin: 0; font-size: 0.95rem; color: #6b4a2f; text-align: center; }
+.scena .elenco-letterine { display: grid; gap: 12px; }
+.scena .elenco-letterine article { padding: 10px 12px; border-left: 4px solid #c0392b; background: rgba(255, 255, 255, 0.6); border-radius: 4px; }
+.scena .testo-letterina { margin: 0 0 6px; white-space: pre-wrap; }
+.scena .firma-letterina { margin: 0; font-style: italic; color: #a3242c; text-align: right; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .busta-vola, .scena .fumo-colorato circle, .scena .ingranaggio, .scena .pacco-nastro, .scena .renna-affacciata,
+    .scena .su-nastro, .scena .su-nastro-uscita, .scena .rullo, .scena .braccio-elfo, .scena .testa-renna,
+    .scena .occhi-renna, .scena .fieno-bocca, .scena .naso-rudolph { animation: none; }
+}
+
+/* Le letterine ricevute, nel pannello di chi prepara */
+.lettere-ricevute { margin: 12px 0; }
+.lettere-ricevute summary { cursor: pointer; font-weight: bold; color: #a3242c; }
+.letterina-ricevuta { margin-top: 10px; padding: 10px 12px; border-left: 4px solid #c0392b; background: #fffaf0; border-radius: 4px; }
+.letterina-ricevuta p { margin: 0 0 6px; white-space: pre-wrap; }
+.letterina-ricevuta .firma { margin: 0; font-style: italic; color: #a3242c; text-align: right; }

@@ -1241,6 +1241,125 @@ body::before {
     .scena .lucina-giostra, .scena .bandierina, .scena .sagome-pattinatori path, .scena .pista .faro-pista { animation: none; }
 }
 
+/* ---- Il quartiere di Babbo Natale ---- */
+.scena .posta, .scena .laboratorio, .scena .stalla { cursor: pointer; }
+.scena .posta:hover, .scena .laboratorio:hover, .scena .stalla:hover { filter: brightness(1.1); }
+.scena .posta:focus-visible, .scena .laboratorio:focus-visible, .scena .stalla:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+.scena .busta-vola { opacity: 0; animation: busta-vola 6.4s ease-in infinite; }
+@keyframes busta-vola {
+    0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+    10% { opacity: 1; }
+    100% { opacity: 0; transform: translate(120px, -260px) rotate(25deg); }
+}
+.scena .fumo-colorato circle { animation: fumo 3.6s linear infinite; }
+.scena .ingranaggio { transform-box: fill-box; transform-origin: center; animation: gira 4s linear infinite; }
+.scena .ingranaggio.inverso { animation-direction: reverse; animation-duration: 3s; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.scena .pacco-nastro { animation: pacco-nastro 4.2s linear infinite; }
+@keyframes pacco-nastro { from { transform: translateX(-10px); } to { transform: translateX(120px); } }
+.scena .renna-affacciata { transform-box: fill-box; transform-origin: 50% 100%; animation: affaccia 3.2s ease-in-out infinite alternate; }
+@keyframes affaccia { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+/* Dentro il laboratorio */
+.scena .laboratorio-dentro { background: #3a2416; }
+.scena .su-nastro { animation: su-nastro 10s linear infinite; }
+@keyframes su-nastro { from { transform: translateX(0); } to { transform: translateX(1100px); } }
+.scena .su-nastro-uscita { animation: su-nastro-uscita 10s linear infinite; }
+@keyframes su-nastro-uscita { from { transform: translateX(1100px); } to { transform: translateX(2200px); } }
+.scena .rullo { transform-box: fill-box; transform-origin: center; animation: gira 1s linear infinite; }
+.scena .braccio-elfo.martella { transform-box: fill-box; transform-origin: 0% 0%; animation: martella 0.6s ease-in-out infinite alternate; }
+@keyframes martella { from { transform: rotate(-30deg); } to { transform: rotate(14deg); } }
+.scena .braccio-elfo.saluta { transform-box: fill-box; transform-origin: 0% 0%; animation: martella 1.6s ease-in-out infinite alternate; }
+/* Dentro la stalla */
+.scena .stalla-dentro { background: #3a2416; }
+.scena .renna-box { cursor: pointer; }
+.scena .renna-box:focus-visible { outline: none; }
+.scena .testa-renna { transform-box: fill-box; transform-origin: 50% 100%; animation: respira 3s ease-in-out infinite alternate; }
+@keyframes respira { from { transform: rotate(-2deg); } to { transform: rotate(2deg) translateY(-3px); } }
+.scena .renna-box:nth-of-type(2n) .testa-renna { animation-delay: -1.5s; }
+.scena .occhi-renna { transform-box: fill-box; transform-origin: center; animation: sbatte 4.5s infinite; }
+@keyframes sbatte { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+.scena .fieno-bocca { transform-box: fill-box; transform-origin: 0% 50%; animation: mastica 0.5s ease-in-out infinite alternate; }
+@keyframes mastica { from { transform: rotate(-6deg); } to { transform: rotate(8deg); } }
+.scena .naso-rudolph { animation: naso-rudolph 1.4s ease-in-out infinite; }
+@keyframes naso-rudolph { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.scena .cuore-renna { opacity: 0; pointer-events: none; }
+.scena .renna-box.saluta .testa-renna { animation: annuisce 0.4s ease-in-out 3; }
+@keyframes annuisce { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(8deg) translateY(8px); } }
+.scena .renna-box.saluta .cuore-renna { animation: cuore-sale 1.2s ease-out; }
+@keyframes cuore-sale { 0% { opacity: 0; transform: translateY(20px) scale(0.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-50px) scale(1.2); } }
+/* Dentro l'ufficio postale: la letterina */
+.scena .posta-dentro { background: #4a2c1c; }
+.scena .letterina {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%) rotate(-1deg);
+    width: min(520px, 88%);
+    max-height: 86%;
+    overflow-y: auto;
+    padding: 14px 22px 12px;
+    border-radius: 6px;
+    background:
+        repeating-linear-gradient(transparent 0 27px, rgba(80, 120, 190, 0.25) 27px 28px),
+        #fffaf0;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+    color: #3a2416;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    display: grid;
+    gap: 6px;
+    transition: transform 1s ease-in, opacity 1s ease-in;
+}
+.scena .letterina.spedita { transform: translate(-50%, -160%) rotate(14deg) scale(0.3); opacity: 0; }
+.scena .letterina h3 {
+    margin: 0;
+    font-family: 'Mountains of Christmas', 'Brush Script MT', cursive;
+    font-size: 1.7rem;
+    color: #a3242c;
+}
+.scena .letterina textarea,
+.scena .letterina input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px dashed rgba(163, 36, 44, 0.4);
+    background: transparent;
+    color: #2a1d14;
+    font: inherit;
+    font-size: 1.05rem;
+    line-height: 28px;
+    resize: vertical;
+    outline: none;
+}
+.scena .letterina .spedisci {
+    justify-self: center;
+    border: 2px solid #c9a227;
+    border-radius: 999px;
+    background: #c0392b;
+    color: #fffaf0;
+    font: inherit;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 8px 20px;
+    cursor: pointer;
+}
+.scena .letterina .spedisci:disabled { opacity: 0.6; cursor: default; }
+.scena .letterina .nota-letterina { margin: 0; font-size: 0.95rem; color: #6b4a2f; text-align: center; }
+.scena .elenco-letterine { display: grid; gap: 12px; }
+.scena .elenco-letterine article { padding: 10px 12px; border-left: 4px solid #c0392b; background: rgba(255, 255, 255, 0.6); border-radius: 4px; }
+.scena .testo-letterina { margin: 0 0 6px; white-space: pre-wrap; }
+.scena .firma-letterina { margin: 0; font-style: italic; color: #a3242c; text-align: right; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .busta-vola, .scena .fumo-colorato circle, .scena .ingranaggio, .scena .pacco-nastro, .scena .renna-affacciata,
+    .scena .su-nastro, .scena .su-nastro-uscita, .scena .rullo, .scena .braccio-elfo, .scena .testa-renna,
+    .scena .occhi-renna, .scena .fieno-bocca, .scena .naso-rudolph { animation: none; }
+}
+
+/* Le letterine ricevute, nel pannello di chi prepara */
+.lettere-ricevute { margin: 12px 0; }
+.lettere-ricevute summary { cursor: pointer; font-weight: bold; color: #a3242c; }
+.letterina-ricevuta { margin-top: 10px; padding: 10px 12px; border-left: 4px solid #c0392b; background: #fffaf0; border-radius: 4px; }
+.letterina-ricevuta p { margin: 0 0 6px; white-space: pre-wrap; }
+.letterina-ricevuta .firma { margin: 0; font-style: italic; color: #a3242c; text-align: right; }
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -1294,22 +1413,26 @@ const ALTEZZA = 900;
 // Si inquadra solo la parte bassa del cielo, così le case sono più grandi
 const VISTA_Y = 300;
 const VISTA_H = 600;
-const MONDO = 4400; // Larghezza del paese: in fondo, dopo le case, c'è il luna park d'inverno
+const MONDO = 5300; // Larghezza del paese: dopo la stazione il quartiere di Babbo Natale, in fondo il luna park
+// Subito dopo la stazione c'è il quartiere di Babbo Natale (posta, laboratorio, stalla):
+// tutto quello che veniva dopo è spostato più in là
+const QUARTIERE = { da: 2060, largo: 900 };
+const sposta = x => (x > QUARTIERE.da ? x + QUARTIERE.largo : x);
 const PIAZZA = { x: 1800, y: 705 };
 const BINARI_Y = 580;
 // Il treno si ferma con la locomotiva davanti alla stazione
 const STAZIONE = { x: 2010, y: 572, fermata: 1990 };
 
 // La strada principale: le case si dispongono ai suoi lati
-const STRADA = 'M-50 720 C 300 660, 600 780, 1000 720 S 1500 640, 1800 700 S 2300 780, 2700 710 S 3300 650, 3700 720 S 4200 690, 4600 720';
+const STRADA = 'M-50 720 C 300 660, 600 780, 1000 720 S 1500 640, 1800 700 C 2100 760, 2400 640, 2700 700 C 3000 760, 3200 780, 3600 710 S 4200 650, 4600 720 S 5100 690, 5500 720';
 
 // Le case sono in ordine di giorno, da sinistra a destra lungo la strada: il 24 è l'albero in piazza.
 // Il tipo di casa dipende dalla fila: le torri, alte, stanno solo dietro per non coprire i numeri
 const TIPI_DIETRO = ['punta', 'torre', 'punta', 'piatto'];
 const TIPI_DAVANTI = ['punta', 'piatto', 'punta'];
 // Lato della strada: dietro (più lontane e piccole) o davanti
-const DIETRO = [180, 380, 1000, 1230, 1460, 2150, 2380, 2610, 3080, 3300, 3500];
-const DAVANTI = [120, 330, 560, 790, 1030, 1270, 1520, 2080, 2330, 2580, 3150, 3420];
+const DIETRO = [180, 380, 1000, 1230, 1460, 2150, 2380, 2610, 3080, 3300, 3500].map(sposta);
+const DAVANTI = [120, 330, 560, 790, 1030, 1270, 1520, 2080, 2330, 2580, 3150, 3420].map(sposta);
 
 function el(tag, attributi = {}, genitore = null) {
     const nodo = document.createElementNS(NS, tag);
@@ -1527,12 +1650,12 @@ function disegnaBosco(strato) {
 // ========== IL PAESE ==========
 
 function disegnaTerreno(mondo) {
-    el('path', { d: `M-200 560 C 600 540, 1400 575, 2200 550 S 3400 560, 3800 555 S 4400 560, 4700 555 L4700 ${ALTEZZA} L-200 ${ALTEZZA} Z`, fill: 'url(#terra)' }, mondo);
+    el('path', { d: `M-200 560 C 600 540, 1400 575, 2200 550 S 3400 560, 3800 555 S 4400 560, 5600 555 L5600 ${ALTEZZA} L-200 ${ALTEZZA} Z`, fill: 'url(#terra)' }, mondo);
 
     // Binari del trenino, in fondo al paese
-    el('path', { d: 'M-200 575 L4700 575', stroke: '#8d98b8', 'stroke-width': 3 }, mondo);
-    el('path', { d: 'M-200 583 L4700 583', stroke: '#8d98b8', 'stroke-width': 3 }, mondo);
-    for (let x = -200; x < 4700; x += 18) el('rect', { x, y: 573, width: 6, height: 13, fill: '#7a6a5a', opacity: 0.6 }, mondo);
+    el('path', { d: 'M-200 575 L5600 575', stroke: '#8d98b8', 'stroke-width': 3 }, mondo);
+    el('path', { d: 'M-200 583 L5600 583', stroke: '#8d98b8', 'stroke-width': 3 }, mondo);
+    for (let x = -200; x < 5600; x += 18) el('rect', { x, y: 573, width: 6, height: 13, fill: '#7a6a5a', opacity: 0.6 }, mondo);
 
     // Laghetto ghiacciato
     el('ellipse', { cx: 700, cy: 615, rx: 190, ry: 42, fill: '#c3d1ec' }, mondo);
@@ -1540,7 +1663,7 @@ function disegnaTerreno(mondo) {
     el('path', { d: 'M600 605 q 40 -8 80 0 M720 620 q 50 -6 90 2', stroke: '#fff', 'stroke-width': 3, fill: 'none', opacity: 0.8 }, mondo);
 
     // Ruscello che scende verso il basso
-    el('path', { d: 'M2860 560 C 2840 620, 2900 660, 2870 720 S 2930 820, 2900 920 L2960 920 C 2990 820, 2930 760, 2945 720 S 2900 620, 2905 560 Z', fill: 'url(#ghiaccio)' }, mondo);
+    el('path', { transform: `translate(${QUARTIERE.largo} 0)`, d: 'M2860 560 C 2840 620, 2900 660, 2870 720 S 2930 820, 2900 920 L2960 920 C 2990 820, 2930 760, 2945 720 S 2900 620, 2905 560 Z', fill: 'url(#ghiaccio)' }, mondo);
 
     // Strada e piazza
     el('path', { d: STRADA, fill: 'none', stroke: '#a3b3d6', 'stroke-width': 86, 'stroke-linecap': 'round' }, mondo);
@@ -1551,7 +1674,7 @@ function disegnaTerreno(mondo) {
     el('ellipse', { cx: PIAZZA.x, cy: PIAZZA.y, rx: 150, ry: 42, fill: 'none', stroke: '#c3cfe8', 'stroke-width': 3, 'stroke-dasharray': '10 12' }, mondo);
 
     // Ponte dove la strada passa sul ruscello
-    const ponte = el('g', { transform: 'translate(2905 690)' }, mondo);
+    const ponte = el('g', { transform: `translate(${sposta(2905)} 690)` }, mondo);
     el('path', { d: 'M-70 -28 Q 0 -48 70 -28', fill: 'none', stroke: '#8a5a3c', 'stroke-width': 7 }, ponte);
     el('path', { d: 'M-70 32 Q 0 12 70 32', fill: 'none', stroke: '#8a5a3c', 'stroke-width': 7 }, ponte);
     for (let x = -60; x <= 60; x += 20) {
@@ -2705,7 +2828,8 @@ function disegnaMercatino(mondo, x, y, scala) {
 function disegnaNeveCheCresce(mondo) {
     const neve = el('g', { class: 'neve-extra', 'pointer-events': 'none' }, mondo);
     [[220, 790], [470, 812], [700, 668], [1150, 800], [1390, 770], [2230, 812], [2460, 768], [2700, 800], [3060, 780], [3500, 800], [1320, 655], [2520, 650], [3240, 640]]
-        .forEach(([x, y], i) => {
+        .forEach(([x0, y], i) => {
+            const x = sposta(x0);
             const k = 0.8 + (i % 3) * 0.25;
             el('path', { d: `M${x - 50 * k} ${y} q ${14 * k} -${16 * k} ${34 * k} -${9 * k} q ${18 * k} -${14 * k} ${38 * k} -${3 * k} q ${18 * k} -${8 * k} ${28 * k} ${12 * k} Z`, fill: '#fbfdff' }, neve);
         });
@@ -3119,6 +3243,599 @@ function disegnaInsegnaLuna(mondo, x, y, scala) {
     return g;
 }
 
+// ========== IL QUARTIERE DI BABBO NATALE ==========
+// Subito dopo la stazione: l'ufficio postale (con la letterina), il laboratorio degli elfi e la stalla delle renne
+
+// Un elfo in piedi, visto di fronte: giacchetta, cappello a punta col sonaglio, orecchie a punta.
+// Restituisce il braccio destro, che le animazioni fanno lavorare
+function disegnaElfo(genitore, x, y, k, { giacca = '#2e7d5b', cappello = '#c0392b', pelle = '#f6c9a8', capelli = '#c9984a' } = {}) {
+    const g = el('g', { transform: `translate(${x} ${y}) scale(${k})` }, genitore);
+    el('ellipse', { cx: 0, cy: 2, rx: 22, ry: 5, fill: 'rgba(0,0,0,0.25)' }, g);
+    el('path', { d: 'M-12 -30 v26 h-8 q -6 0 -4 4 h14 Z M12 -30 v26 h8 q 6 0 4 4 h-14 Z', fill: '#7a3c12' }, g);
+    el('path', { d: 'M-10 -34 h8 v28 h-8 Z M2 -34 h8 v28 h-8 Z', fill: '#fbfdff' }, g);
+    el('path', { d: 'M-10 -26 h8 M-10 -18 h8 M2 -26 h8 M2 -18 h8', stroke: '#d63031', 'stroke-width': 3 }, g);
+    el('path', { d: 'M-20 -32 q -4 -30 6 -44 h28 q 10 14 6 44 Z', fill: giacca }, g);
+    el('path', { d: 'M-20 -34 l5 6 5 -6 5 6 5 -6 5 6 5 -6 5 6 5 -6', stroke: '#d63031', 'stroke-width': 3, fill: 'none' }, g);
+    el('rect', { x: -19, y: -48, width: 38, height: 6, fill: '#3a2a22' }, g);
+    el('rect', { x: -4, y: -49, width: 8, height: 8, fill: 'none', stroke: '#e2b93b', 'stroke-width': 2 }, g);
+    el('path', { d: 'M-16 -74 q -10 14 -8 30', stroke: giacca, 'stroke-width': 9, fill: 'none', 'stroke-linecap': 'round' }, g);
+    el('circle', { cx: -24, cy: -42, r: 5, fill: pelle }, g);
+    const braccio = el('g', { class: 'braccio-elfo' }, g);
+    el('path', { d: 'M16 -74 q 12 8 14 24', stroke: giacca, 'stroke-width': 9, fill: 'none', 'stroke-linecap': 'round' }, braccio);
+    el('circle', { cx: 30, cy: -48, r: 5, fill: pelle }, braccio);
+    el('path', { d: 'M-16 -78 q 16 10 32 0 l -4 -6 h-24 Z', fill: '#d63031' }, g);
+    el('circle', { cx: 0, cy: -96, r: 17, fill: pelle }, g);
+    el('path', { d: 'M-16 -98 l -14 -10 8 16 Z M16 -98 l 14 -10 -8 16 Z', fill: pelle }, g);
+    el('path', { d: 'M-15 -104 q 15 -10 30 0 q -4 -6 -15 -6 q -11 0 -15 6 Z', fill: capelli }, g);
+    el('circle', { cx: -6, cy: -97, r: 2.2, fill: '#3b2412' }, g);
+    el('circle', { cx: 6, cy: -97, r: 2.2, fill: '#3b2412' }, g);
+    el('circle', { cx: -10, cy: -90, r: 3, fill: '#f4a0a0', opacity: 0.6 }, g);
+    el('circle', { cx: 10, cy: -90, r: 3, fill: '#f4a0a0', opacity: 0.6 }, g);
+    el('path', { d: 'M-5 -88 q 5 5 10 0', stroke: '#7a3c12', 'stroke-width': 1.8, fill: 'none', 'stroke-linecap': 'round' }, g);
+    el('path', { d: 'M-18 -106 L8 -150 L18 -106 Z', fill: cappello }, g);
+    el('rect', { x: -19, y: -110, width: 38, height: 7, rx: 3.5, fill: '#fbfdff' }, g);
+    el('circle', { cx: 8, cy: -152, r: 5, fill: '#e2b93b' }, g);
+    return { g, braccio };
+}
+
+// ---------- L'ufficio postale di Babbo Natale ----------
+function disegnaPosta(mondo, x, y, scala) {
+    const p = el('g', {
+        class: 'posta', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
+        'aria-label': "L'ufficio postale di Babbo Natale: entra a scrivere la letterina"
+    }, mondo);
+    el('ellipse', { class: 'alone', cx: 0, cy: -70, rx: 190, ry: 130, fill: 'url(#alone)', opacity: 0.55 }, p);
+    el('ellipse', { cx: 0, cy: 4, rx: 140, ry: 13, fill: 'rgba(60,90,140,0.3)' }, p);
+    el('rect', { x: -110, y: -118, width: 220, height: 118, fill: '#a3242c' }, p);
+    el('rect', { x: -110, y: -118, width: 220, height: 118, fill: 'url(#tex-mattoni)' }, p);
+    el('rect', { x: -110, y: -118, width: 220, height: 118, fill: 'url(#ombra-muro)' }, p);
+    el('rect', { x: -110, y: -14, width: 220, height: 14, fill: '#8b8e9e' }, p);
+    // Tetto con la neve e l'insegna
+    el('path', { d: 'M-126 -116 L0 -186 L126 -116 Z', fill: '#2e5b3f' }, p);
+    el('path', { d: 'M-130 -114 L0 -190 L130 -114', stroke: '#fbfdff', 'stroke-width': 9, fill: 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, p);
+    el('rect', { x: -94, y: -150, width: 188, height: 30, rx: 5, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 3 }, p);
+    el('text', { x: 0, y: -137, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', 'letter-spacing': 1.5, 'font-family': 'Georgia, serif', fill: '#a3242c' }, p).textContent = 'UFFICIO POSTALE';
+    el('text', { x: 0, y: -124, 'text-anchor': 'middle', 'font-size': 10, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#2e5b3f' }, p).textContent = 'di Babbo Natale';
+    // Vetrine accese e porta
+    [-86, 46].forEach(fx => {
+        el('rect', { x: fx - 4, y: -102, width: 48, height: 56, rx: 4, fill: '#fbf6ea' }, p);
+        el('rect', { x: fx, y: -98, width: 40, height: 48, fill: 'url(#vetro-acceso)' }, p);
+        el('path', { d: `M${fx + 20} -98 v48 M${fx} -74 h40`, stroke: '#fbf6ea', 'stroke-width': 3 }, p);
+        el('path', { d: `M${fx - 2} -48 q 22 -8 44 0`, stroke: '#2e6b3f', 'stroke-width': 5, fill: 'none' }, p);
+    });
+    el('rect', { x: -20, y: -66, width: 40, height: 66, rx: 16, fill: '#fbf6ea' }, p);
+    el('rect', { x: -16, y: -62, width: 32, height: 62, rx: 14, fill: '#5d3a22' }, p);
+    el('rect', { class: 'luce-porta', x: -16, y: -62, width: 32, height: 62, rx: 14, filter: 'url(#bagliore)', opacity: 0.6 }, p);
+    // Un'enorme busta sopra la porta
+    el('rect', { x: -16, y: -88, width: 32, height: 20, rx: 2, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 1.5 }, p);
+    el('path', { d: 'M-16 -88 l16 11 l16 -11', stroke: '#c9a227', 'stroke-width': 1.5, fill: 'none' }, p);
+    el('circle', { cx: 0, cy: -77, r: 3, fill: '#c0392b' }, p);
+    // La cassetta rossa delle letterine, con le buste che volano verso il Polo Nord
+    const cassetta = el('g', { transform: 'translate(-150 0)' }, p);
+    el('rect', { x: -4, y: -40, width: 8, height: 40, fill: '#2a2a2e' }, cassetta);
+    el('path', { d: 'M-22 -40 v-44 q 22 -20 44 0 v44 Z', fill: '#d62c2c', stroke: '#8a1d22', 'stroke-width': 2 }, cassetta);
+    el('rect', { x: -14, y: -78, width: 28, height: 5, rx: 2, fill: '#2a2a2e' }, cassetta);
+    el('text', { x: 0, y: -56, 'text-anchor': 'middle', 'font-size': 8, 'font-weight': 'bold', fill: '#fffaf0', 'font-family': 'Georgia, serif' }, cassetta).textContent = 'LETTERE';
+    el('path', { d: 'M-24 -86 q 24 -24 48 0', stroke: '#fbfdff', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, cassetta);
+    for (let i = 0; i < 4; i++) {
+        const busta = el('g', { class: 'busta-vola', style: `animation-delay:${(i * 1.6).toFixed(1)}s` }, cassetta);
+        el('rect', { x: -8, y: -96, width: 16, height: 11, rx: 1.5, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 1 }, busta);
+        el('path', { d: 'M-8 -96 l8 6 l8 -6', stroke: '#c9a227', 'stroke-width': 1, fill: 'none' }, busta);
+        el('circle', { cx: 0, cy: -90, r: 1.6, fill: '#c0392b' }, busta);
+    }
+    el('path', { d: 'M-120 2 q 16 -12 32 -4 q 16 -8 30 2 Z M80 2 q 16 -10 30 -4 q 16 -8 30 2 Z', fill: '#fbfdff' }, p);
+    return p;
+}
+
+// Dentro l'ufficio postale: chi riceve il calendario scrive la letterina, chi lo prepara le legge
+function creaPosta({ onEsci, onSpedisci, modifica, lettere }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno posta-dentro', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid slice', role: 'img', 'aria-label': "Dentro l'ufficio postale di Babbo Natale" });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    const foglio = Object.assign(document.createElement('div'), { className: 'letterina' });
+    nodo.append(svg, foglio, esci);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    // Lo sfondo: casellari pieni di lettere, sacchi del Polo Nord, finestra con la neve
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#4a2c1c' }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.6 }, svg);
+    el('circle', { cx: 800, cy: 380, r: 640, fill: 'url(#alone)', opacity: 0.35 }, svg);
+    [[60, 120], [1200, 120]].forEach(([cx, cy]) => {
+        el('rect', { x: cx - 10, y: cy - 10, width: 360, height: 400, rx: 6, fill: '#6d4630' }, svg);
+        for (let r = 0; r < 5; r++) for (let c = 0; c < 4; c++) {
+            const bx = cx + c * 85, by = cy + r * 76;
+            el('rect', { x: bx, y: by, width: 76, height: 66, fill: '#2a180e' }, svg);
+            if ((r * 4 + c) % 3 !== 1) {
+                el('rect', { x: bx + 10, y: by + 26, width: 56, height: 36, rx: 2, fill: ['#fffaf0', '#fde7c8', '#e8f1ff'][(r + c) % 3], transform: `rotate(${(r * 7 + c * 5) % 9 - 4} ${bx + 38} ${by + 44})` }, svg);
+                el('path', { d: `M${bx + 10} ${by + 26} l28 16 l28 -16`, stroke: '#c9a227', 'stroke-width': 2, fill: 'none', transform: `rotate(${(r * 7 + c * 5) % 9 - 4} ${bx + 38} ${by + 44})` }, svg);
+            }
+        }
+    });
+    el('path', { d: 'M560 60 h480 v220 h-480 Z', fill: '#efe6d2' }, svg);
+    el('rect', { x: 574, y: 74, width: 452, height: 192, fill: '#16245c' }, svg);
+    for (let i = 0; i < 22; i++) el('circle', { class: 'fiocco-finestra', cx: 580 + ((i * 97) % 440), cy: 80, r: 2 + (i % 3), fill: '#fff', style: `animation-delay:-${(i * 0.37 % 5).toFixed(2)}s;animation-duration:${(4 + (i % 4)).toFixed(1)}s` }, svg);
+    el('path', { d: 'M800 74 v192 M574 170 h452', stroke: '#efe6d2', 'stroke-width': 8 }, svg);
+    el('text', { x: 800, y: 330, 'text-anchor': 'middle', 'font-size': 40, 'font-family': "'Brush Script MT', cursive", fill: '#ffd36b' }, svg).textContent = 'Posta per il Polo Nord';
+    [[150, 780, '#c9a27c'], [340, 800, '#b8925f'], [1260, 790, '#c9a27c'], [1450, 805, '#b8925f']].forEach(([sx, sy, colore]) => {
+        el('path', { d: `M${sx - 80} ${sy} q -10 -120 40 -150 q 40 -14 80 0 q 50 30 40 150 Z`, fill: colore }, svg);
+        el('path', { d: `M${sx - 26} ${sy - 150} q 26 -20 52 0`, stroke: '#8a5a2b', 'stroke-width': 6, fill: 'none' }, svg);
+        el('text', { x: sx, y: sy - 60, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#7a2a2f' }, svg).textContent = 'POLO NORD';
+        for (let b = 0; b < 3; b++) el('rect', { x: sx - 40 + b * 26, y: sy - 168 - (b % 2) * 8, width: 30, height: 20, rx: 2, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 1.5, transform: `rotate(${b * 12 - 12} ${sx - 25 + b * 26} ${sy - 158})` }, svg);
+    });
+    el('rect', { x: -1400, y: 820, width: 4400, height: 700, fill: '#5d3a22' }, svg);
+    el('rect', { x: -1400, y: 812, width: 4400, height: 14, fill: '#8a5a3c' }, svg);
+
+    const scrivi = () => {
+        foglio.replaceChildren();
+        foglio.classList.remove('spedita');
+        if (modifica) {
+            foglio.append(
+                Object.assign(document.createElement('h3'), { textContent: '✉️ Le letterine a Babbo Natale' }),
+                Object.assign(document.createElement('p'), { className: 'nota-letterina', textContent: 'Qui chi riceve il calendario può scrivere la sua letterina. Le letterine arrivano a te: le trovi qui e nel pannello.' })
+            );
+            const elenco = document.createElement('div');
+            elenco.className = 'elenco-letterine';
+            if (!lettere.length) elenco.append(Object.assign(document.createElement('p'), { className: 'nota-letterina', textContent: 'Ancora nessuna letterina.' }));
+            [...lettere].reverse().forEach(l => {
+                const voce = document.createElement('article');
+                voce.append(
+                    Object.assign(document.createElement('p'), { className: 'testo-letterina', textContent: l.testo }),
+                    Object.assign(document.createElement('p'), { className: 'firma-letterina', textContent: `${l.firma || 'Senza firma'} · ${new Date(l.data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}` })
+                );
+                elenco.append(voce);
+            });
+            foglio.append(elenco);
+            return;
+        }
+        const titolo = Object.assign(document.createElement('h3'), { textContent: 'Caro Babbo Natale,' });
+        const testo = Object.assign(document.createElement('textarea'), { rows: 4, maxLength: 1000, placeholder: 'Scrivi qui la tua letterina...' });
+        testo.setAttribute('aria-label', 'La tua letterina');
+        const firma = Object.assign(document.createElement('input'), { maxLength: 40, placeholder: 'La tua firma' });
+        firma.setAttribute('aria-label', 'La tua firma');
+        const spedisci = Object.assign(document.createElement('button'), { type: 'button', className: 'spedisci', textContent: '📮 Spedisci la letterina' });
+        const stato = Object.assign(document.createElement('p'), { className: 'nota-letterina' });
+        spedisci.addEventListener('click', async () => {
+            if (!testo.value.trim()) {
+                stato.textContent = 'Scrivi qualcosa prima di spedire!';
+                testo.focus();
+                return;
+            }
+            spedisci.disabled = true;
+            spedisci.textContent = 'Spedisco...';
+            try {
+                await onSpedisci(testo.value.trim(), firma.value.trim());
+                foglio.classList.add('spedita');
+                setTimeout(() => {
+                    foglio.classList.remove('spedita');
+                    foglio.replaceChildren(
+                        Object.assign(document.createElement('h3'), { textContent: '✉️ Letterina spedita!' }),
+                        Object.assign(document.createElement('p'), { className: 'nota-letterina', textContent: 'È già in viaggio verso il Polo Nord. Babbo Natale la leggerà davanti al camino! ✨' })
+                    );
+                    const ancora = Object.assign(document.createElement('button'), { type: 'button', className: 'spedisci', textContent: "Scrivi un'altra letterina" });
+                    ancora.addEventListener('click', scrivi);
+                    foglio.append(ancora);
+                }, 1100);
+            } catch (errore) {
+                stato.textContent = errore.message || 'La letterina non è partita: riprova.';
+                spedisci.disabled = false;
+                spedisci.textContent = '📮 Spedisci la letterina';
+            }
+        });
+        foglio.append(titolo, testo, firma, spedisci, stato);
+    };
+
+    return {
+        nodo,
+        mostra() {
+            scrivi();
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                (foglio.querySelector('textarea') ?? esci).focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        },
+        aggiornaLettere(nuove) {
+            lettere = nuove ?? [];
+        }
+    };
+}
+
+// ---------- Il laboratorio degli elfi ----------
+const GIOCATTOLI = [
+    // Orsacchiotto
+    g => {
+        el('circle', { cx: 0, cy: -22, r: 16, fill: '#a0663a' }, g);
+        el('circle', { cx: 0, cy: -46, r: 12, fill: '#a0663a' }, g);
+        [-10, 10].forEach(ox => el('circle', { cx: ox, cy: -56, r: 5, fill: '#a0663a' }, g));
+        el('ellipse', { cx: 0, cy: -42, rx: 5, ry: 4, fill: '#e3c49a' }, g);
+        el('circle', { cx: -4, cy: -48, r: 1.6, fill: '#2a1d14' }, g);
+        el('circle', { cx: 4, cy: -48, r: 1.6, fill: '#2a1d14' }, g);
+        el('path', { d: 'M-8 -36 l8 4 8 -4 v4 l-8 -2 -8 2 Z', fill: '#c0392b' }, g);
+    },
+    // Trenino
+    g => {
+        el('rect', { x: -26, y: -32, width: 30, height: 22, rx: 3, fill: '#c0392b' }, g);
+        el('rect', { x: 4, y: -24, width: 22, height: 14, rx: 3, fill: '#2d4f8a' }, g);
+        el('rect', { x: -22, y: -44, width: 10, height: 12, fill: '#2a2a2e' }, g);
+        [-18, -2, 16].forEach(cx => el('circle', { cx, cy: -8, r: 6, fill: '#2a2a2e', stroke: '#e8c766', 'stroke-width': 2 }, g));
+    },
+    // Palla a spicchi
+    g => {
+        el('circle', { cx: 0, cy: -20, r: 18, fill: '#f4d03f' }, g);
+        el('path', { d: 'M-18 -20 h36 M0 -38 v36', stroke: '#c0392b', 'stroke-width': 5 }, g);
+        el('circle', { cx: -6, cy: -27, r: 4, fill: '#fff', opacity: 0.6 }, g);
+    },
+    // Tamburo
+    g => {
+        el('rect', { x: -18, y: -36, width: 36, height: 30, fill: '#c0392b' }, g);
+        el('path', { d: 'M-18 -36 l12 30 l12 -30 l12 30', stroke: '#e8c766', 'stroke-width': 2, fill: 'none' }, g);
+        el('ellipse', { cx: 0, cy: -36, rx: 18, ry: 6, fill: '#fbf6ea', stroke: '#8a5a3c', 'stroke-width': 2 }, g);
+        el('path', { d: 'M-12 -50 l10 12 M14 -52 l-8 14', stroke: '#8a5a3c', 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
+    },
+    // Cavallo a dondolo
+    g => {
+        el('path', { d: 'M-28 -4 q 28 12 56 0', stroke: '#8a5a3c', 'stroke-width': 5, fill: 'none' }, g);
+        el('path', { d: 'M-14 -8 v-12 M14 -8 v-12', stroke: '#8a5a3c', 'stroke-width': 4 }, g);
+        el('ellipse', { cx: 0, cy: -26, rx: 20, ry: 9, fill: '#fbf6ea' }, g);
+        el('path', { d: 'M-14 -30 l-8 -18 l10 -2 l6 16 Z', fill: '#fbf6ea' }, g);
+        el('path', { d: 'M-20 -48 q 8 10 6 18', stroke: '#c0392b', 'stroke-width': 4, fill: 'none' }, g);
+    }
+];
+const CARTE_PACCHI = [['#c0392b', '#f4d03f'], ['#2e7d4a', '#fbf6ea'], ['#2d4f8a', '#e84393'], ['#f4d03f', '#c0392b'], ['#7d4e9e', '#7dff9a']];
+
+function pacco(g, [carta, nastro], w = 40, h = 32) {
+    el('rect', { x: -w / 2, y: -h, width: w, height: h, rx: 3, fill: carta }, g);
+    el('rect', { x: -4, y: -h, width: 8, height: h, fill: nastro }, g);
+    el('rect', { x: -w / 2, y: -h / 2 - 4, width: w, height: 8, fill: nastro }, g);
+    el('path', { d: `M0 ${-h} q -14 -14 -16 -2 q 2 6 16 2 q 14 4 16 -2 q -2 -12 -16 2 Z`, fill: nastro }, g);
+}
+
+function disegnaLaboratorio(mondo, x, y, scala) {
+    const l = el('g', {
+        class: 'laboratorio', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
+        'aria-label': 'Il laboratorio degli elfi: entra a vedere come nascono i regali'
+    }, mondo);
+    el('ellipse', { class: 'alone', cx: 0, cy: -90, rx: 260, ry: 160, fill: 'url(#alone)', opacity: 0.55 }, l);
+    el('ellipse', { cx: 0, cy: 4, rx: 200, ry: 16, fill: 'rgba(60,90,140,0.3)' }, l);
+    el('rect', { x: -170, y: -140, width: 340, height: 140, fill: '#8a5a3c' }, l);
+    el('rect', { x: -170, y: -140, width: 340, height: 140, fill: 'url(#tex-assi)' }, l);
+    el('rect', { x: -170, y: -140, width: 340, height: 140, fill: 'url(#ombra-muro)' }, l);
+    // Tetto con due comignoli che fanno fumo colorato
+    el('path', { d: 'M-190 -136 L0 -232 L190 -136 Z', fill: '#2d4f8a' }, l);
+    el('path', { d: 'M-190 -136 L0 -232 L190 -136 Z', fill: 'url(#tex-tegole)' }, l);
+    el('path', { d: 'M-196 -132 L0 -236 L196 -132', stroke: '#fbfdff', 'stroke-width': 10, fill: 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, l);
+    [[-110, '#ff9de2'], [100, '#7dd3ff']].forEach(([cx, colore], i) => {
+        el('rect', { x: cx - 12, y: -210 + Math.abs(cx) * 0.2, width: 24, height: 50, fill: '#a3242c' }, l);
+        el('rect', { x: cx - 15, y: -214 + Math.abs(cx) * 0.2, width: 30, height: 8, fill: '#fbfdff' }, l);
+        const fumo = el('g', { class: 'fumo-colorato' }, l);
+        for (let k = 0; k < 3; k++) el('circle', { cx, cy: -222 + Math.abs(cx) * 0.2, r: 9, fill: colore, opacity: 0.8, style: `animation-delay:${(k * 1.1 + i * 0.5).toFixed(1)}s` }, fumo);
+    });
+    // Insegna con la ruota dentata
+    el('rect', { x: -120, y: -176, width: 240, height: 32, rx: 6, fill: '#2e7d4a', stroke: '#e8c766', 'stroke-width': 3 }, l);
+    el('text', { x: 0, y: -154, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 'bold', 'letter-spacing': 1, 'font-family': 'Georgia, serif', fill: '#fffaf0' }, l).textContent = 'LABORATORIO DEGLI ELFI';
+    const ruota = el('g', { class: 'ingranaggio' }, el('g', { transform: 'translate(0 -200)' }, l));
+    el('circle', { r: 14, fill: '#e8c766' }, ruota);
+    for (let i = 0; i < 8; i++) el('rect', { x: -3, y: -19, width: 6, height: 8, fill: '#e8c766', transform: `rotate(${i * 45})` }, ruota);
+    el('circle', { r: 5, fill: '#2d4f8a' }, ruota);
+    // Finestre accese con le sagome degli elfi al lavoro e il portone
+    [-140, -80, 50, 110].forEach((fx, i) => {
+        el('rect', { x: fx - 3, y: -122, width: 36, height: 46, rx: 3, fill: '#fbf6ea' }, l);
+        el('rect', { x: fx, y: -119, width: 30, height: 40, fill: 'url(#vetro-acceso)' }, l);
+        el('path', { d: `M${fx + 8} -79 q 7 -18 14 0 Z M${fx + 15} -98 l -6 -12 l 12 0 Z`, fill: '#2e7d4a', opacity: 0.55, class: i % 2 ? 'sagoma-elfo' : '' }, l);
+    });
+    el('path', { d: 'M-36 0 V-70 Q0 -100 36 -70 V0 Z', fill: '#fbf6ea' }, l);
+    el('path', { d: 'M-30 0 V-68 Q0 -94 30 -68 V0 Z', fill: '#5d3a22' }, l);
+    el('path', { d: 'M0 -90 V0 M-30 -40 h60', stroke: '#3a2416', 'stroke-width': 3 }, l);
+    // Il nastro trasportatore che esce di lato, con i pacchi che scorrono
+    el('rect', { x: 170, y: -40, width: 110, height: 12, rx: 6, fill: '#3a3a44' }, l);
+    [182, 206, 230, 254, 270].forEach(cx => el('circle', { cx, cy: -34, r: 5, fill: '#8d98b8' }, l));
+    const fila = el('g', { 'clip-path': 'url(#nastro-fuori)' }, l);
+    const clip = el('clipPath', { id: 'nastro-fuori' }, l);
+    el('rect', { x: 170, y: -100, width: 120, height: 70 }, clip);
+    for (let i = 0; i < 3; i++) {
+        const g = el('g', { class: 'pacco-nastro', style: `animation-delay:-${(i * 1.4).toFixed(1)}s` }, fila);
+        const dentro = el('g', { transform: 'translate(170 -40) scale(0.6)' }, g);
+        pacco(dentro, CARTE_PACCHI[i]);
+    }
+    [[300, 2, 0], [330, 2, 1], [316, -24, 2], [350, 2, 3]].forEach(([px, py, i]) => pacco(el('g', { transform: `translate(${px} ${py}) scale(0.7)` }, l), CARTE_PACCHI[i]));
+    // Bastoncini di zucchero ai lati del portone
+    [-50, 50].forEach(px => {
+        el('path', { d: `M${px} 0 V-60 a8 8 0 0 ${px < 0 ? 0 : 1} ${px < 0 ? -16 : 16} 0`, stroke: '#fff', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round' }, l);
+        el('path', { d: `M${px} 0 V-60 a8 8 0 0 ${px < 0 ? 0 : 1} ${px < 0 ? -16 : 16} 0`, stroke: '#d62c2c', 'stroke-width': 7, fill: 'none', 'stroke-dasharray': '6 6' }, l);
+    });
+    el('path', { d: 'M-180 2 q 20 -14 40 -6 q 20 -10 40 2 Z', fill: '#fbfdff' }, l);
+    return l;
+}
+
+function creaLaboratorio({ onEsci }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno laboratorio-dentro', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro il laboratorio degli elfi: i giocattoli diventano regali' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    nodo.append(svg, esci);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    const defs = el('defs', {}, svg);
+    const sinistra = el('clipPath', { id: 'nastro-entrata' }, defs);
+    el('rect', { x: -400, y: 300, width: 1110, height: 400 }, sinistra);
+    const destra = el('clipPath', { id: 'nastro-uscita' }, defs);
+    el('rect', { x: 890, y: 300, width: 1200, height: 400 }, destra);
+
+    // Pareti di legno, finestra con la neve, mensole piene di giocattoli, lucine
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#6d4630' }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    el('circle', { cx: 800, cy: 400, r: 700, fill: 'url(#alone)', opacity: 0.3 }, svg);
+    el('rect', { x: 620, y: 70, width: 360, height: 180, rx: 8, fill: '#efe6d2' }, svg);
+    el('rect', { x: 634, y: 84, width: 332, height: 152, fill: '#16245c' }, svg);
+    for (let i = 0; i < 16; i++) el('circle', { class: 'fiocco-finestra', cx: 640 + ((i * 71) % 320), cy: 90, r: 2 + (i % 3), fill: '#fff', style: `animation-delay:-${(i * 0.41 % 5).toFixed(2)}s;animation-duration:${(4 + (i % 3)).toFixed(1)}s` }, svg);
+    el('path', { d: 'M800 84 v152 M634 160 h332', stroke: '#efe6d2', 'stroke-width': 7 }, svg);
+    el('rect', { x: 560, y: 262, width: 480, height: 44, rx: 8, fill: '#a3242c', stroke: '#e8c766', 'stroke-width': 3 }, svg);
+    el('text', { x: 800, y: 293, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 'bold', 'letter-spacing': 2, 'font-family': 'Georgia, serif', fill: '#fffaf0' }, svg).textContent = 'LABORATORIO DEGLI ELFI';
+    [[60, 160], [60, 290], [1180, 160], [1180, 290]].forEach(([mx, my], i) => {
+        el('rect', { x: mx, y: my, width: 360, height: 12, fill: '#8a5a3c' }, svg);
+        for (let k = 0; k < 4; k++) {
+            const g = el('g', { transform: `translate(${mx + 50 + k * 86} ${my}) scale(1.1)` }, svg);
+            if ((k + i) % 2) GIOCATTOLI[(k + i) % GIOCATTOLI.length](g);
+            else pacco(g, CARTE_PACCHI[(k + i) % CARTE_PACCHI.length], 44, 40);
+        }
+    });
+    el('path', { d: 'M-200 40 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0', fill: 'none', stroke: '#1f5c34', 'stroke-width': 14 }, svg);
+    for (let i = 0; i < 24; i++) el('circle', { class: 'pallina', cx: -170 + i * 75, cy: 50 + Math.sin(((i * 75 + 30) % 300) / 300 * Math.PI) * 24, r: 7, fill: COLORI_FESTA[i % 5], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.3) % 2).toFixed(1)}s` }, svg);
+    // Pavimento
+    el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: '#5d3a22' }, svg);
+    el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: 'url(#tex-assi)', opacity: 0.5 }, svg);
+
+    // Il nastro trasportatore: i giocattoli entrano nell'impacchettatrice ed escono incartati
+    el('rect', { x: -400, y: 560, width: 2400, height: 26, rx: 13, fill: '#3a3a44' }, svg);
+    for (let x = -380; x < 2000; x += 46) el('circle', { class: 'rullo', cx: x, cy: 573, r: 9, fill: '#8d98b8', stroke: '#5d6280', 'stroke-width': 2 }, svg);
+    el('path', { d: 'M-400 586 H2000 V610 H-400 Z', fill: '#26262b' }, svg);
+    [0, 400, 1200, 1600].forEach(gx => el('rect', { x: gx - 8, y: 586, width: 16, height: 120, fill: '#26262b' }, svg));
+    const entrata = el('g', { 'clip-path': 'url(#nastro-entrata)' }, svg);
+    for (let i = 0; i < 5; i++) {
+        const g = el('g', { class: 'su-nastro', style: `animation-delay:-${(i * 2).toFixed(1)}s` }, entrata);
+        GIOCATTOLI[i](el('g', { transform: 'translate(-200 560) scale(1.6)' }, g));
+    }
+    const uscita = el('g', { 'clip-path': 'url(#nastro-uscita)' }, svg);
+    for (let i = 0; i < 5; i++) {
+        const g = el('g', { class: 'su-nastro-uscita', style: `animation-delay:-${(i * 2 + 1).toFixed(1)}s` }, uscita);
+        pacco(el('g', { transform: 'translate(-200 560) scale(1.3)' }, g), CARTE_PACCHI[i]);
+    }
+    // L'impacchettatrice, con gli ingranaggi che girano
+    el('rect', { x: 700, y: 400, width: 200, height: 200, rx: 14, fill: '#c0392b', stroke: '#8a1d22', 'stroke-width': 4 }, svg);
+    el('rect', { x: 716, y: 520, width: 168, height: 56, rx: 6, fill: '#2a180e' }, svg);
+    el('text', { x: 800, y: 440, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = 'IMPACCHETTATRICE';
+    [[760, 480, 22], [830, 476, 16]].forEach(([gx, gy, r], i) => {
+        const ingranaggio = el('g', { class: i ? 'ingranaggio inverso' : 'ingranaggio' }, el('g', { transform: `translate(${gx} ${gy})` }, svg));
+        el('circle', { r, fill: '#e8c766' }, ingranaggio);
+        for (let k = 0; k < 8; k++) el('rect', { x: -4, y: -r - 6, width: 8, height: 10, fill: '#e8c766', transform: `rotate(${k * 45})` }, ingranaggio);
+        el('circle', { r: r * 0.35, fill: '#8a1d22' }, ingranaggio);
+    });
+    el('circle', { class: 'lucina-mercato', cx: 880, cy: 418, r: 7, fill: '#7dff9a' }, svg);
+    el('circle', { class: 'lucina-mercato', cx: 860, cy: 418, r: 7, fill: '#ff5a4f', style: 'animation-delay:0.4s' }, svg);
+
+    // Gli elfi al lavoro
+    const banco = (bx, by, w) => {
+        el('rect', { x: bx - w / 2, y: by - 70, width: w, height: 14, fill: '#a0663a' }, svg);
+        el('path', { d: `M${bx - w / 2 + 10} ${by - 56} v56 M${bx + w / 2 - 10} ${by - 56} v56`, stroke: '#6d4630', 'stroke-width': 10 }, svg);
+    };
+    banco(230, 820, 240);
+    GIOCATTOLI[4](el('g', { transform: 'translate(190 750) scale(1.5)' }, svg));
+    const martello = disegnaElfo(svg, 300, 830, 1.5, { giacca: '#2e7d5b', cappello: '#c0392b' });
+    el('path', { d: 'M30 -48 l 18 -18 M42 -72 l 14 12', stroke: '#6d4630', 'stroke-width': 4, 'stroke-linecap': 'round' }, martello.braccio);
+    el('rect', { x: 38, y: -80, width: 22, height: 10, rx: 2, fill: '#5d6280', transform: 'rotate(40 49 -75)' }, martello.braccio);
+    martello.braccio.classList.add('martella');
+    // Elfo che legge la lista dei bambini buoni
+    const lettore = disegnaElfo(svg, 1360, 830, 1.5, { giacca: '#c0392b', cappello: '#2e7d5b', capelli: '#5a3b2a' });
+    el('path', { d: 'M1388 755 h70 v120 q -36 10 -70 0 Z', fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 2 }, svg);
+    el('text', { x: 1423, y: 778, 'text-anchor': 'middle', 'font-size': 8.5, 'font-weight': 'bold', fill: '#a3242c', 'font-family': 'Georgia, serif' }, svg).textContent = 'BAMBINI BUONI';
+    for (let k = 0; k < 7; k++) el('path', { d: `M1396 ${792 + k * 11} h54`, stroke: '#7a6a5a', 'stroke-width': 2 }, svg);
+    for (let k = 0; k < 7; k++) el('path', { d: `M1398 ${789 + k * 11} l3 3 l5 -6`, stroke: '#2e7d4a', 'stroke-width': 2, fill: 'none' }, svg);
+    lettore.braccio.classList.add('saluta');
+    // Elfo che mette il fiocco ai pacchi appena usciti
+    const fiocco = disegnaElfo(svg, 1050, 830, 1.4, { giacca: '#7d4e9e', cappello: '#f4d03f', capelli: '#2b1d14' });
+    fiocco.braccio.classList.add('martella');
+    pacco(el('g', { transform: 'translate(1110 780) scale(1.2)' }, svg), CARTE_PACCHI[3]);
+    // Pila di regali finiti
+    [[1500, 860, 0], [1560, 860, 1], [1530, 808, 2], [1460, 860, 4]].forEach(([px, py, i]) => pacco(el('g', { transform: `translate(${px} ${py}) scale(1.6)` }, svg), CARTE_PACCHI[i]));
+
+    return {
+        nodo,
+        mostra() {
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
+}
+
+// ---------- La stalla delle renne ----------
+const RENNE_STALLA = [
+    { nome: 'Cometa', pelo: '#8a5a36', collare: '#c0392b' },
+    { nome: 'Ballerino', pelo: '#a0703f', collare: '#2d4f8a' },
+    { nome: 'Rudolph', pelo: '#7a4b2e', collare: '#2e7d4a', naso: true },
+    { nome: 'Fulmine', pelo: '#94643c', collare: '#f4d03f' },
+    { nome: 'Cupido', pelo: '#a8794a', collare: '#e84393' }
+];
+
+function disegnaStalla(mondo, x, y, scala) {
+    const s = el('g', {
+        class: 'stalla', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
+        'aria-label': 'La stalla delle renne: entra a salutare Rudolph e le sue amiche'
+    }, mondo);
+    el('ellipse', { class: 'alone', cx: 0, cy: -70, rx: 200, ry: 120, fill: 'url(#alone)', opacity: 0.45 }, s);
+    el('ellipse', { cx: 0, cy: 4, rx: 150, ry: 13, fill: 'rgba(60,90,140,0.3)' }, s);
+    // Fienile rosso con il tetto a mansarda
+    el('path', { d: 'M-120 0 V-100 L-96 -150 L0 -186 L96 -150 L120 -100 V0 Z', fill: '#a3242c' }, s);
+    el('path', { d: 'M-120 0 V-100 L-96 -150 L0 -186 L96 -150 L120 -100 V0 Z', fill: 'url(#tex-assi)' }, s);
+    el('path', { d: 'M-130 -96 L-102 -154 L0 -194 L102 -154 L130 -96', stroke: '#fbfdff', 'stroke-width': 10, fill: 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, s);
+    el('path', { d: 'M-120 -100 L-96 -150 L0 -186 L96 -150 L120 -100', stroke: '#5d3a22', 'stroke-width': 4, fill: 'none' }, s);
+    // Portone con le croci bianche
+    el('rect', { x: -48, y: -84, width: 96, height: 84, fill: '#8a1d22', stroke: '#fbf6ea', 'stroke-width': 5 }, s);
+    el('path', { d: 'M0 -84 V0 M-48 -84 L0 0 M0 -84 L-48 0 M48 -84 L0 0 M0 -84 L48 0', stroke: '#fbf6ea', 'stroke-width': 4 }, s);
+    // Finestra del fienile con il fieno
+    el('rect', { x: -22, y: -150, width: 44, height: 40, fill: '#3a2416', stroke: '#fbf6ea', 'stroke-width': 4 }, s);
+    el('path', { d: 'M-20 -112 q 6 -18 12 -4 q 4 -16 10 -2 q 6 -14 12 0 q 4 -10 6 4 Z', fill: '#e8c766' }, s);
+    // Due renne che si affacciano dalle finestrelle
+    [[-90, '#8a5a36', false], [90, '#7a4b2e', true]].forEach(([fx, pelo, naso]) => {
+        el('rect', { x: fx - 22, y: -86, width: 44, height: 38, fill: '#2a180e', stroke: '#fbf6ea', 'stroke-width': 4 }, s);
+        const testa = el('g', { class: 'renna-affacciata', transform: `translate(${fx} -60)` }, s);
+        el('path', { d: 'M-6 -16 q -10 -12 -16 -14 M-11 -24 l -6 -2 M6 -16 q 10 -12 16 -14 M11 -24 l 6 -2', stroke: '#d9c3a0', 'stroke-width': 2.5, fill: 'none', 'stroke-linecap': 'round' }, testa);
+        el('ellipse', { cx: -12, cy: -8, rx: 6, ry: 3, fill: pelo, transform: 'rotate(-20 -12 -8)' }, testa);
+        el('ellipse', { cx: 12, cy: -8, rx: 6, ry: 3, fill: pelo, transform: 'rotate(20 12 -8)' }, testa);
+        el('ellipse', { cx: 0, cy: 0, rx: 11, ry: 14, fill: pelo }, testa);
+        el('ellipse', { cx: 0, cy: 8, rx: 8, ry: 6, fill: '#d9c3a5' }, testa);
+        el('circle', { cx: -4, cy: -3, r: 1.8, fill: '#2a1d14' }, testa);
+        el('circle', { cx: 4, cy: -3, r: 1.8, fill: '#2a1d14' }, testa);
+        el('circle', { cx: 0, cy: 9, r: naso ? 4 : 3, fill: naso ? '#ff3b30' : '#2a1d14', ...(naso ? { filter: 'url(#bagliore)' } : {}) }, testa);
+    });
+    // Insegna, balle di fieno e staccionata
+    el('rect', { x: -86, y: -214, width: 172, height: 26, rx: 5, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 3 }, s);
+    el('text', { x: 0, y: -196, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 'bold', 'letter-spacing': 1, 'font-family': 'Georgia, serif', fill: '#a3242c' }, s).textContent = 'STALLA DELLE RENNE';
+    [[-150, 0], [-128, -22], [150, 0]].forEach(([bx, by]) => {
+        el('rect', { x: bx - 22, y: by - 22, width: 44, height: 24, rx: 5, fill: '#e8c766' }, s);
+        el('path', { d: `M${bx - 18} ${by - 14} h36 M${bx - 18} ${by - 6} h36`, stroke: '#c9a227', 'stroke-width': 2 }, s);
+    });
+    el('path', { d: 'M180 -2 h60 M180 -22 h60 M186 2 v-34 M212 2 v-34 M238 2 v-34', stroke: '#8a5a3c', 'stroke-width': 5 }, s);
+    el('path', { d: 'M-130 2 q 16 -12 32 -4 q 16 -8 30 2 Z M90 2 q 16 -10 30 -4 q 16 -8 30 2 Z', fill: '#fbfdff' }, s);
+    return s;
+}
+
+// Una grande testa di renna che si affaccia dal box: si può toccare e fa sì con la testa
+function testaRenna(genitore, x, y, { pelo, collare, naso, nome }) {
+    const r = el('g', { class: 'renna-box', transform: `translate(${x} ${y}) scale(1.45)`, tabindex: 0, role: 'button', 'aria-label': `${nome}: tocca per salutarla` }, genitore);
+    const muove = el('g', { class: 'testa-renna' }, r);
+    el('path', { d: 'M-30 60 q -6 -60 10 -90 h40 q 16 30 10 90 Z', fill: pelo }, muove);
+    el('path', { d: 'M-24 10 q 24 14 48 0', stroke: collare, 'stroke-width': 10, fill: 'none', 'stroke-linecap': 'round' }, muove);
+    [-14, 0, 14].forEach(cx => el('circle', { cx, cy: 18, r: 5, fill: '#f4d03f', stroke: '#b8860b', 'stroke-width': 1.5 }, muove));
+    // Corna ramificate
+    el('path', { d: 'M-14 -76 q -14 -30 -40 -40 M-28 -98 l -18 -4 M-40 -110 l -6 -14 M14 -76 q 14 -30 40 -40 M28 -98 l 18 -4 M40 -110 l 6 -14', stroke: '#d9c3a0', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, muove);
+    el('ellipse', { cx: -30, cy: -58, rx: 14, ry: 6, fill: pelo, transform: 'rotate(-25 -30 -58)' }, muove);
+    el('ellipse', { cx: 30, cy: -58, rx: 14, ry: 6, fill: pelo, transform: 'rotate(25 30 -58)' }, muove);
+    el('ellipse', { cx: 0, cy: -46, rx: 26, ry: 34, fill: pelo }, muove);
+    el('ellipse', { cx: 0, cy: -24, rx: 19, ry: 14, fill: '#d9c3a5' }, muove);
+    const occhi = el('g', { class: 'occhi-renna' }, muove);
+    el('ellipse', { cx: -10, cy: -54, rx: 4, ry: 5, fill: '#2a1d14' }, occhi);
+    el('ellipse', { cx: 10, cy: -54, rx: 4, ry: 5, fill: '#2a1d14' }, occhi);
+    el('circle', { cx: -9, cy: -56, r: 1.4, fill: '#fff' }, occhi);
+    el('circle', { cx: 11, cy: -56, r: 1.4, fill: '#fff' }, occhi);
+    el('circle', { cx: 0, cy: -26, r: naso ? 9 : 7, fill: naso ? '#ff3b30' : '#2a1d14', class: naso ? 'naso-rudolph' : '', ...(naso ? { filter: 'url(#bagliore)' } : {}) }, muove);
+    el('path', { d: 'M-6 -14 q 6 5 12 0', stroke: '#5a3b2a', 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }, muove);
+    // Un ciuffo di fieno in bocca che mastica
+    el('path', { class: 'fieno-bocca', d: 'M4 -12 l 18 6 M6 -10 l 16 10 M5 -11 l 20 2', stroke: '#e8c766', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, muove);
+    const cuore = el('text', { class: 'cuore-renna', x: 0, y: -120, 'text-anchor': 'middle', 'font-size': 28 }, r);
+    cuore.textContent = '❤️';
+    return r;
+}
+
+function creaStalla({ onEsci, onTocco }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno stalla-dentro', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro la stalla delle renne' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    nodo.append(svg, esci);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    // Travi di legno, lanterne, finimenti con i campanelli, la slitta di Babbo Natale in un angolo
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#5d3a22' }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.8 }, svg);
+    el('path', { d: 'M-200 90 H1800 M-200 160 H1800', stroke: '#3a2416', 'stroke-width': 22 }, svg);
+    for (let x = 0; x <= 1600; x += 400) el('path', { d: `M${x} 90 V620`, stroke: '#3a2416', 'stroke-width': 26 }, svg);
+    [200, 800, 1400].forEach(lx => {
+        el('path', { d: `M${lx} 160 v40`, stroke: '#2a2a2e', 'stroke-width': 3 }, svg);
+        el('circle', { class: 'luce-calda', cx: lx, cy: 230, r: 150, fill: 'url(#alone)', opacity: 0.55 }, svg);
+        el('path', { d: `M${lx - 14} 200 h28 l -4 40 h-20 Z`, fill: '#ffd36b', stroke: '#2a2a2e', 'stroke-width': 3, filter: 'url(#bagliore)' }, svg);
+    });
+    el('text', { x: 800, y: 70, 'text-anchor': 'middle', 'font-size': 40, 'font-family': "'Brush Script MT', cursive", fill: '#ffd36b' }, svg).textContent = 'La stalla delle renne';
+    // Finimenti appesi con i campanelli
+    [[110, 230], [1490, 230]].forEach(([fx, fy]) => {
+        el('path', { d: `M${fx - 50} ${fy} q 50 70 100 0`, stroke: '#a3242c', 'stroke-width': 12, fill: 'none' }, svg);
+        for (let k = 0; k < 5; k++) el('circle', { cx: fx - 40 + k * 20, cy: fy + 32 - Math.abs(k - 2) * 8, r: 8, fill: '#f4d03f', stroke: '#b8860b', 'stroke-width': 2 }, svg);
+    });
+    // Pavimento di paglia
+    el('rect', { x: -1400, y: 620, width: 4400, height: 900, fill: '#c9a24a' }, svg);
+    for (let i = 0; i < 120; i++) el('path', { d: `M${(i * 137) % 1800 - 100} ${640 + (i * 53) % 260} l ${(i % 2 ? 1 : -1) * 22} -6`, stroke: '#e8c766', 'stroke-width': 3, 'stroke-linecap': 'round' }, svg);
+
+    // I cinque box con le porte a metà, il nome sopra e la renna affacciata
+    const renne = [];
+    const vuoti = [];
+    RENNE_STALLA.forEach((renna, i) => {
+        const bx = 160 + i * 320;
+        const box = el('g', {}, svg);
+        el('rect', { x: bx - 140, y: 300, width: 280, height: 330, fill: '#3a2416' }, box);
+        el('rect', { x: bx - 120, y: 238, width: 240, height: 40, rx: 6, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 3 }, box);
+        el('text', { x: bx, y: 267, 'text-anchor': 'middle', 'font-size': 24, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: renna.naso ? '#c0392b' : '#3a2416' }, box).textContent = renna.nome;
+        const testa = testaRenna(box, bx, 492, renna);
+        renne.push(testa);
+        // Il cartello che compare quando le renne sono partite
+        const vuoto = el('g', { class: 'box-vuoto', display: 'none' }, box);
+        el('text', { x: bx, y: 470, 'text-anchor': 'middle', 'font-size': 60 }, vuoto).textContent = '🛷';
+        vuoti.push(vuoto);
+        // La porta a metà, con la X
+        el('rect', { x: bx - 140, y: 500, width: 280, height: 130, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 6 }, box);
+        el('path', { d: `M${bx - 136} 504 L${bx + 136} 626 M${bx + 136} 504 L${bx - 136} 626`, stroke: '#5d3a22', 'stroke-width': 8 }, box);
+        el('rect', { x: bx - 150, y: 490, width: 300, height: 16, fill: '#a0663a' }, box);
+        // Il secchio con le carote
+        el('path', { d: `M${bx + 70} 700 l 8 -50 h44 l 8 50 Z`, fill: '#8d98b8' }, box);
+        [0, 12, 24].forEach(dx => el('path', { d: `M${bx + 84 + dx} 650 l 6 -26 l 6 26 Z`, fill: '#e67e22' }, box));
+    });
+    const partite = el('g', { display: 'none' }, svg);
+    el('rect', { x: 400, y: 720, width: 800, height: 90, rx: 16, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 4 }, partite);
+    el('text', { x: 800, y: 758, 'text-anchor': 'middle', 'font-size': 28, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#a3242c' }, partite).textContent = 'Siamo partite con Babbo Natale!';
+    el('text', { x: 800, y: 792, 'text-anchor': 'middle', 'font-size': 22, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#3a2416' }, partite).textContent = 'Torniamo dopo aver portato tutti i regali 🎁';
+    const cartello = el('g', {}, svg);
+    el('rect', { x: 450, y: 740, width: 700, height: 70, rx: 14, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 3 }, cartello);
+    el('text', { x: 800, y: 784, 'text-anchor': 'middle', 'font-size': 22, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#3a2416' }, cartello).textContent = 'Donato, Donnola, Freccia e Saltarello sono fuori ad allenarsi!';
+
+    // Toccata, la renna fa sì con la testa, suonano i campanelli e spunta un cuore
+    renne.forEach(r => {
+        const saluta = () => {
+            onTocco();
+            r.classList.remove('saluta');
+            r.getBBox();
+            r.classList.add('saluta');
+            setTimeout(() => r.classList.remove('saluta'), 1300);
+        };
+        r.addEventListener('click', saluta);
+        r.addEventListener('keydown', evento => {
+            if (evento.key === 'Enter' || evento.key === ' ') {
+                evento.preventDefault();
+                saluta();
+            }
+        });
+    });
+
+    return {
+        nodo,
+        // La notte del 24 le renne sono partite con la slitta
+        mostra(sonoPartite) {
+            renne.forEach(r => r.setAttribute('display', sonoPartite ? 'none' : 'inline'));
+            vuoti.forEach(v => v.setAttribute('display', sonoPartite ? 'inline' : 'none'));
+            partite.setAttribute('display', sonoPartite ? 'inline' : 'none');
+            cartello.setAttribute('display', sonoPartite ? 'none' : 'inline');
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
+}
+
 // Altezza della strada in ogni punto, per mettere le case ai suoi lati
 function profiloStrada(mondo) {
     const traccia = el('path', { d: STRADA, fill: 'none' }, mondo);
@@ -3143,18 +3860,21 @@ function disegnaPaese(mondo) {
 
     // Lampioni lungo la strada, pupazzi e qualche abete
     for (let x = 250; x < MONDO; x += 420) {
-        if (Math.abs(x - PIAZZA.x) > 260 && (x < 3700 || x > 4300)) elementi.push({ x, y: yStrada(x) + 44, tipo: 'lampione' });
+        const libero = (x < 2120 || x > 2960) && (x < sposta(3700) || x > sposta(4300));
+        if (Math.abs(x - PIAZZA.x) > 260 && libero) elementi.push({ x, y: yStrada(x) + 44, tipo: 'lampione' });
     }
     elementi.push({ x: PIAZZA.x - 210, y: PIAZZA.y + 30, tipo: 'pupazzo' }, { x: 920, y: 640, tipo: 'pupazzo' });
     elementi.push({ x: PIAZZA.x - 60, y: PIAZZA.y + 118, tipo: 'cartello' });
     elementi.push({ x: PIAZZA.x + 180, y: PIAZZA.y + 66, tipo: 'coro' });
     // Pattinatori sul laghetto e mercatino vicino al ruscello
-    elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: 2764, y: 836, tipo: 'mercatino' });
+    elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: sposta(2764), y: 836, tipo: 'mercatino' });
+    // Il quartiere di Babbo Natale, subito dopo la stazione
+    elementi.push({ x: 2265, y: 812, tipo: 'posta' }, { x: 2540, y: 648, tipo: 'laboratorio' }, { x: 2815, y: 818, tipo: 'stalla' });
     // Il luna park d'inverno, in fondo al paese
-    elementi.push({ x: 3745, y: 768, tipo: 'insegnaLuna' }, { x: 4120, y: 650, tipo: 'palaghiaccio' }, { x: 3960, y: 832, tipo: 'giostra' });
-    [[3860, 600], [4330, 630], [4380, 880], [3700, 900]].forEach(([x, y]) => elementi.push({ x, y, tipo: 'abete' }));
-    [[60, 640], [880, 600], [1680, 610], [2760, 600], [3000, 650], [3600, 640], [450, 880], [1880, 880], [3060, 900], [3300, 890]]
-        .forEach(([x, y]) => elementi.push({ x, y, tipo: 'abete' }));
+    elementi.push({ x: sposta(3745), y: 768, tipo: 'insegnaLuna' }, { x: sposta(4120), y: 650, tipo: 'palaghiaccio' }, { x: sposta(3960), y: 832, tipo: 'giostra' });
+    [[3860, 600], [4330, 630], [4380, 880], [3700, 900]].forEach(([x, y]) => elementi.push({ x: sposta(x), y, tipo: 'abete' }));
+    [[60, 640], [880, 600], [1680, 610], [2760, 600], [3000, 650], [3600, 640], [450, 880], [1880, 880], [3060, 900], [3300, 890], [2390, 600], [2960, 610]]
+        .forEach(([x, y], i) => elementi.push({ x: i < 10 ? sposta(x) : x, y, tipo: 'abete' }));
     elementi.push({ x: STAZIONE.x, y: STAZIONE.y, tipo: 'stazione' }, { x: 0, y: BINARI_Y, tipo: 'treno' });
 
     // Le renne: una piccola mandria vicino al laghetto con un cucciolo, altre in giro per il paese.
@@ -3168,7 +3888,7 @@ function disegnaPaese(mondo) {
         { x: 1590, y: 806, percorso: 180, durata: 22, ritardo: 11, naso: '#e74c3c', collare: '#2e7d5b' },
         { x: 2205, y: 845, percorso: 0 },
         { x: 3180, y: 720, percorso: 220, durata: 28, ritardo: 17, collare: '#3a5ba0' }
-    ].forEach(renna => elementi.push({ ...renna, tipo: 'renna' }));
+    ].forEach(renna => elementi.push({ ...renna, x: sposta(renna.x), tipo: 'renna' }));
 
     // Da dietro in avanti, così le cose vicine coprono quelle lontane
     elementi.sort((a, b) => a.y - b.y);
@@ -3185,6 +3905,9 @@ function disegnaPaese(mondo) {
         else if (tipo === 'pattinatori') disegnaPattinatori(mondo, x, y);
         else if (tipo === 'mercatino') disegnaMercatino(mondo, x, y, 0.86);
         else if (tipo === 'giostra') disegnaGiostra(mondo, x, y, scala * 0.95);
+        else if (tipo === 'posta') disegnaPosta(mondo, x, y, scala * 0.95);
+        else if (tipo === 'laboratorio') disegnaLaboratorio(mondo, x, y, scala * 1.1);
+        else if (tipo === 'stalla') disegnaStalla(mondo, x, y, scala * 0.95);
         else if (tipo === 'palaghiaccio') disegnaPalaghiaccio(mondo, x, y, scala * 1.05);
         else if (tipo === 'insegnaLuna') disegnaInsegnaLuna(mondo, x, y, scala * 0.8);
         else if (tipo === 'coro') disegnaCoro(mondo, x, y, scala * 1.25);
@@ -4922,7 +5645,7 @@ function momentoDiAdesso(adesso = new Date()) {
 
 function creaVillaggio(contenitore, opzioni) {
     let { aperti } = opzioni;
-    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = "" } = opzioni;
+    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = "", lettere = [], onLettera = async () => {} } = opzioni;
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -4955,9 +5678,12 @@ function creaVillaggio(contenitore, opzioni) {
     const sala = creaSala({ onParti: () => parti(), benvenuto });
     const bancone = creaBancone({ onEsci: () => esciDalBancone() });
     const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
+    const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere });
+    const laboratorio = creaLaboratorio({ onEsci: () => esciDalQuartiere(laboratorio) });
+    const stalla = creaStalla({ onEsci: () => esciDalQuartiere(stalla), onTocco: () => onTocco() });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
-    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo);
+    contenitore.replaceChildren(svg, neve, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {
@@ -5234,6 +5960,27 @@ function creaVillaggio(contenitore, opzioni) {
         inApertura = false;
     }
 
+    // Si entra in un edificio del quartiere di Babbo Natale: la vista si avvicina alla porta
+    async function entraNelQuartiere(edificio) {
+        if (inApertura) return;
+        inApertura = true;
+        seguiTreno = false;
+        onTocco();
+        const [, x, y, s] = edificio.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
+        await avvicinaAlPunto(x, y - 60 * s, 170 * s, 800);
+        if (edificio.classList.contains('posta')) entraDentro(posta);
+        else if (edificio.classList.contains('laboratorio')) entraDentro(laboratorio);
+        // La notte del 24 le renne sono partite con la slitta
+        else entraDentro(stalla, !modifica && aperti >= 24);
+        inApertura = false;
+    }
+
+    function esciDalQuartiere(stanza) {
+        torna();
+        stanza.nascondi();
+        adattaVista();
+    }
+
     function esciDallaPista() {
         torna();
         pista.nascondi();
@@ -5370,6 +6117,8 @@ function creaVillaggio(contenitore, opzioni) {
         if (giostra) return suonaLaGiostra(giostra);
         const palazzetto = evento.target.closest('.palaghiaccio');
         if (palazzetto) return entraNelPalaghiaccio(palazzetto);
+        const edificio = evento.target.closest('.posta, .laboratorio, .stalla');
+        if (edificio) return entraNelQuartiere(edificio);
         const casa = evento.target.closest('.casa');
         if (casa) apriCasa(casa);
     });
@@ -5436,9 +6185,11 @@ function creaVillaggio(contenitore, opzioni) {
         const albero = evento.target.closest('.albero');
         const giostra = evento.target.closest('.giostra');
         const palazzetto = evento.target.closest('.palaghiaccio');
-        if ((casa || stazione || coro || banco || albero || giostra || palazzetto) && (evento.key === 'Enter' || evento.key === ' ')) {
+        const edificio = evento.target.closest('.posta, .laboratorio, .stalla');
+        if ((casa || stazione || coro || banco || albero || giostra || palazzetto || edificio) && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
-            if (giostra) suonaLaGiostra(giostra);
+            if (edificio) entraNelQuartiere(edificio);
+            else if (giostra) suonaLaGiostra(giostra);
             else if (palazzetto) entraNelPalaghiaccio(palazzetto);
             else if (albero) ballaLoSchiaccianoci(albero);
             else if (banco) entraNellaBancarella(banco);
@@ -5458,7 +6209,10 @@ function creaVillaggio(contenitore, opzioni) {
         { chiave: 'mercatino', selettore: '.bancarella', x: 0, y: -134, k: 1.8 },
         { chiave: 'renne', selettore: '.renna', x: 0, y: -100, k: 2.4 },
         { chiave: 'giostra', selettore: '.giostra', x: 0, y: -290, k: 1.6 },
-        { chiave: 'palaghiaccio', selettore: '.palaghiaccio', x: 0, y: -270, k: 1.6 }
+        { chiave: 'palaghiaccio', selettore: '.palaghiaccio', x: 0, y: -270, k: 1.6 },
+        { chiave: 'posta', selettore: '.posta', x: 0, y: -215, k: 1.6 },
+        { chiave: 'laboratorio', selettore: '.laboratorio', x: 0, y: -262, k: 1.6 },
+        { chiave: 'stalla', selettore: '.stalla', x: 0, y: -236, k: 1.6 }
     ];
     const leggiToccati = () => {
         try { return JSON.parse(localStorage.getItem('villaggio_toccati') || '[]'); } catch { return []; }
@@ -5553,6 +6307,10 @@ function creaVillaggio(contenitore, opzioni) {
         segnaPiene(nuove) {
             piene = nuove;
             aggiornaStato();
+        },
+        // Le letterine arrivate all'ufficio postale (per chi prepara il calendario)
+        impostaLettere(nuove) {
+            posta.aggiornaLettere(nuove);
         },
         // Il benvenuto della stazione, cambiato da chi prepara il calendario
         impostaBenvenuto(testo) {

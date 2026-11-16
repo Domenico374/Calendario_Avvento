@@ -4,7 +4,7 @@ import { test } from 'node:test';
 process.env.SEGRETO = 'segreto-di-prova';
 process.env.BLOB_BASE_URL = 'https://archivio.example';
 
-const { creaCalendario, eliminaCalendario, leggiCalendario, salvaModifiche } = await import('../lib/archivio.js');
+const { aggiungiLettera, creaCalendario, eliminaCalendario, leggiCalendario, salvaModifiche } = await import('../lib/archivio.js');
 
 // Un Redis finto in memoria, con i soli comandi usati
 function redisFinto() {
@@ -83,4 +83,25 @@ test('il benvenuto si salva, resta se non lo si manda e si vede nel link regalo'
     assert.equal(vistaPubblica(calendario, new Date('2026-11-15T10:00:00Z')).benvenuto, 'Ciao Oliver!\n\nBuon viaggio');
     await salvaModifiche(redis, ID, { benvenuto: 'x'.repeat(500), modifiche: {} });
     assert.equal((await leggiCalendario(redis, ID)).benvenuto.length, MAX_BENVENUTO);
+});
+
+test('le letterine si salvano, si tengono le ultime 30 e non si vedono nel link regalo', async () => {
+    const { vistaPubblica, pulisciLettera, MAX_LETTERE } = await import('../lib/calendario.js');
+    const redis = redisFinto();
+    assert.equal(await aggiungiLettera(redis, ID, pulisciLettera({ testo: 'ciao' })), null);
+    await creaCalendario(redis, ID, { titolo: 'Letterine', anno: 2026 });
+    assert.equal(pulisciLettera({ testo: '   ' }), null);
+    await aggiungiLettera(redis, ID, pulisciLettera({ testo: '  Vorrei un trenino  ', firma: '  Oliver   B. ' }));
+    let calendario = await leggiCalendario(redis, ID);
+    assert.equal(calendario.lettere.length, 1);
+    assert.equal(calendario.lettere[0].testo, 'Vorrei un trenino');
+    assert.equal(calendario.lettere[0].firma, 'Oliver B.');
+    assert.equal('lettere' in vistaPubblica(calendario, new Date('2026-12-05T10:00:00Z')), false);
+    for (let i = 0; i < 40; i++) await aggiungiLettera(redis, ID, pulisciLettera({ testo: `lettera ${i}` }));
+    calendario = await leggiCalendario(redis, ID);
+    assert.equal(calendario.lettere.length, MAX_LETTERE);
+    assert.equal(calendario.lettere.at(-1).testo, 'lettera 39');
+    // Salvare una casella non cancella le letterine
+    await salvaModifiche(redis, ID, { modifiche: { 2: { tipo: 'messaggio', testo: 'ciao' } } });
+    assert.equal((await leggiCalendario(redis, ID)).lettere.length, MAX_LETTERE);
 });

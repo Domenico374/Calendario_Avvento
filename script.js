@@ -243,6 +243,7 @@ function disegnaVillaggio() {
             viste: new Set(),
             modifica: true,
             benvenuto: calendario.benvenuto,
+            lettere: calendario.lettere ?? [],
             piene: giorniPieni(),
             onTocco: suonoAperturaCasella,
             // Casa vuota: si prepara la sorpresa. Casa pronta: si vede com'è, con Modifica ed Elimina
@@ -261,6 +262,12 @@ function disegnaVillaggio() {
         viste,
         benvenuto: calendario.benvenuto,
         onTocco: suonoAperturaCasella,
+        // La letterina a Babbo Natale arriva a chi ha preparato il calendario
+        onLettera: (testo, firma) => chiamaApi('/api/calendario', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ azione: 'lettera', id: ID, testo, firma })
+        }),
         onApri: giorno => {
             scriviMemoria(chiaveViste, [...viste]);
             apriGiorno(giorno, { suono: false });
@@ -554,6 +561,8 @@ async function salvaCalendario(modifiche = {}) {
     calendario = { ...dati, modifica: true };
     $('titolo').textContent = calendario.titolo;
     villaggio?.impostaBenvenuto(calendario.benvenuto);
+    villaggio?.impostaLettere(calendario.lettere ?? []);
+    mostraLettere();
     aggiornaVista();
 }
 
@@ -659,6 +668,7 @@ function preparaPannello() {
     $('pannello-modifica').hidden = false;
     $('titolo-modifica').value = calendario.titolo;
     $('benvenuto-modifica').value = calendario.benvenuto ?? '';
+    mostraLettere();
     $('link-condivisione').value = linkPubblico;
     $('link-personale').value = linkPersonale;
     $('linkAnteprima').href = linkPubblico;
@@ -699,6 +709,17 @@ function preparaPannello() {
     // Il calendario si ricorda su questo dispositivo: l'ultimo usato si riapre da solo
     const altri = leggiMemoria('miei_calendari', []).filter(voce => voce.id !== ID);
     scriviMemoria('miei_calendari', [...altri, { id: ID, chiave: CHIAVE, titolo: calendario.titolo }]);
+}
+
+// Le letterine a Babbo Natale arrivate da chi ha ricevuto il calendario
+function mostraLettere() {
+    const lettere = calendario.lettere ?? [];
+    $('lettere-titolo').textContent = `✉️ Letterine a Babbo Natale (${lettere.length})`;
+    $('lettere-elenco').replaceChildren(...(lettere.length
+        ? [...lettere].reverse().map(l => crea('article', { className: 'letterina-ricevuta' },
+            crea('p', { textContent: l.testo }),
+            crea('p', { className: 'firma', textContent: `${l.firma || 'Senza firma'} · ${new Date(l.data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}` })))
+        : [crea('p', { className: 'upload-info', textContent: "Quando il bambino scriverà a Babbo Natale dall'ufficio postale del villaggio, la letterina arriverà qui." })]));
 }
 
 // Elimina il calendario intero e passa al prossimo ricordato su questo dispositivo, o a uno nuovo

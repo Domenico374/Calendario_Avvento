@@ -1,7 +1,7 @@
 import { del } from '@vercel/blob';
-import { creaCalendario, creaRedis, eliminaCalendario, leggiCalendario, salvaModifiche } from '../lib/archivio.js';
+import { aggiungiLettera, creaCalendario, creaRedis, eliminaCalendario, leggiCalendario, salvaModifiche } from '../lib/archivio.js';
 import {
-    annoCalendario, chiaveValida, codiceValido, firma, idValido, nuovoId, pulisciTitolo, vistaPubblica
+    annoCalendario, chiaveValida, codiceValido, firma, idValido, nuovoId, pulisciLettera, pulisciTitolo, vistaPubblica
 } from '../lib/calendario.js';
 
 // I testi e i link stanno nel database; foto, audio e video restano nell'archivio Blob
@@ -36,6 +36,17 @@ async function elimina(req, res, redis) {
     return res.status(200).json({ eliminato: true });
 }
 
+// Chi ha ricevuto il calendario spedisce la letterina a Babbo Natale (non serve la chiave)
+async function lettera(req, res, redis) {
+    const { id, testo, firma: nome } = req.body ?? {};
+    if (!idValido(id)) return res.status(404).json({ errore: 'Calendario non trovato.' });
+    const pulita = pulisciLettera({ testo, firma: nome });
+    if (!pulita) return res.status(400).json({ errore: 'La letterina è vuota.' });
+    const lettere = await aggiungiLettera(redis, id, pulita);
+    if (!lettere) return res.status(404).json({ errore: 'Calendario non trovato.' });
+    return res.status(201).json({ spedita: true });
+}
+
 async function apri(req, res, redis) {
     const { id, chiave } = req.query;
     if (!idValido(id)) return res.status(404).json({ errore: 'Calendario non trovato.' });
@@ -57,6 +68,7 @@ export default async function handler(req, res) {
             if (azione === 'crea') return await crea(req, res, redis);
             if (azione === 'salva') return await salva(req, res, redis);
             if (azione === 'elimina') return await elimina(req, res, redis);
+            if (azione === 'lettera') return await lettera(req, res, redis);
         }
         return res.status(405).json({ errore: 'Richiesta non valida.' });
     } catch (errore) {
