@@ -2322,7 +2322,7 @@ body::before {
     transition: opacity 0.3s, transform 0.3s;
 }
 .scena .guida-fumetto.nascosto { opacity: 0; transform: translate(-50%, -20px); pointer-events: none; }
-.scena.dentro .guida-fumetto { display: none; }
+.scena.dentro .guida-fumetto:not(.fumetto-cucina) { display: none; }
 .scena .guida-faccia { font-size: 2.6rem; line-height: 1; grid-row: span 2; }
 .scena .guida-nome { margin: 0; font-family: 'Mountains of Christmas', 'Brush Script MT', cursive; font-size: 1.5rem; color: #a3242c; }
 .scena .guida-testo { margin: 0; font-size: 1.02rem; line-height: 1.45; }
@@ -2384,4 +2384,33 @@ body::before {
 }
 @media (max-width: 899px) {
     .scena .storia-renna .testo-storia { font-size: 0.95rem; }
+}
+
+/* ---- La slitta personale ---- */
+.scena .scia-cometa { opacity: 0; transition: opacity 0.4s; }
+.scena .slitta-mia.in-corsa .scia-cometa { opacity: 1; }
+.scena .scia-cometa path { animation: scia 1s ease-in-out infinite; }
+.scena .luce-rudolph { opacity: 0; transition: opacity 1s; }
+.scena.momento-notte .luce-rudolph, .scena.momento-tramonto .luce-rudolph { opacity: 0.8; }
+.scena .slitta-mia.in-corsa .slitta-tour-corpo { animation-duration: 0.35s; }
+.scena .slitta-mia.verso-sinistra .slitta-tour-corpo { scale: -1 1; }
+.scena .slitta-mia.vola-via .slitta-tour-corpo { animation: vola-via 4s ease-in forwards; }
+@keyframes vola-via { 0% { translate: 0 0; opacity: 1; } 80% { opacity: 1; } 100% { translate: 900px -700px; opacity: 0; } }
+.scena .storia-renna .bottoni-storia { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.scena .storia-renna .bottoni-storia .chiudi-storia { margin: 0; }
+.scena .storia-renna .scegli-renna { background: #c0392b; }
+/* ---- La signora Natale alla porta ---- */
+.scena .signora-natale { animation: signora-entra 0.8s ease-out both; }
+@keyframes signora-entra { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+.scena .braccio-signora { transform-box: fill-box; transform-origin: 0% 100%; animation: martella 0.9s ease-in-out infinite alternate; }
+/* ---- La cucina di casa Natale ---- */
+.scena .cucina-natale { background: #4a1a1a; }
+.scena .cucina-natale .guida-fumetto { top: 12px; }
+.scena .cucina-natale .babbo-arriva > * { opacity: 0; translate: 260px 0; transition: opacity 0.8s, translate 1.2s cubic-bezier(.2, .9, .3, 1); }
+.scena .cucina-natale.arriva-babbo .babbo-arriva > * { opacity: 1; translate: 0 0; }
+.scena .cucina-natale .porta-cucina { transition: fill 0.6s; }
+.scena .cucina-natale .porta-cucina.aperta { fill: #1d2b6b; }
+.scena .cucina-natale .tazza-finale.bevuta .vapore-tazza { animation-duration: 0.8s; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .scia-cometa path, .scena .braccio-signora, .scena .signora-natale { animation: none; }
 }
