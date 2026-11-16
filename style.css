@@ -2469,3 +2469,34 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .atmosfera .granello { animation: none; opacity: 0.3; }
 }
+
+/* ---- Il paese in 3D ---- */
+.scena canvas.paese-3d { pointer-events: auto; touch-action: none; cursor: grab; display: block; }
+.scena canvas.paese-3d.trascina { cursor: grabbing; }
+.scena:not(.vista-3d) canvas.paese-3d { display: none; }
+.scena.vista-3d > svg,
+.scena.vista-3d > canvas:not(.paese-3d),
+.scena.vista-3d > .vignetta,
+.scena.vista-3d > .freccia { visibility: hidden; }
+.scena.vista-3d > svg * { animation-play-state: paused !important; }
+.scena .cambia-vista {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 2;
+    padding: 8px 14px;
+    border: 2px solid #ffd36b;
+    border-radius: 999px;
+    background: rgba(10, 16, 48, 0.78);
+    color: #ffe9a8;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+.scena .cambia-vista:hover { background: rgba(40, 30, 10, 0.85); }
+.scena .cambia-vista:focus-visible { outline: 3px solid #fff4dc; outline-offset: 2px; }
+.scena.dentro .cambia-vista { display: none; }
+@media (max-width: 600px) {
+    .scena .cambia-vista { right: 10px; bottom: auto; top: 10px; padding: 6px 12px; font-size: 0.85rem; }
+}
+.scena.vista-3d.dentro .suggerimento { visibility: hidden; }

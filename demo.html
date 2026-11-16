@@ -1880,6 +1880,37 @@ body::before {
     .scena .atmosfera .granello { animation: none; opacity: 0.3; }
 }
 
+/* ---- Il paese in 3D ---- */
+.scena canvas.paese-3d { pointer-events: auto; touch-action: none; cursor: grab; display: block; }
+.scena canvas.paese-3d.trascina { cursor: grabbing; }
+.scena:not(.vista-3d) canvas.paese-3d { display: none; }
+.scena.vista-3d > svg,
+.scena.vista-3d > canvas:not(.paese-3d),
+.scena.vista-3d > .vignetta,
+.scena.vista-3d > .freccia { visibility: hidden; }
+.scena.vista-3d > svg * { animation-play-state: paused !important; }
+.scena .cambia-vista {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 2;
+    padding: 8px 14px;
+    border: 2px solid #ffd36b;
+    border-radius: 999px;
+    background: rgba(10, 16, 48, 0.78);
+    color: #ffe9a8;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+.scena .cambia-vista:hover { background: rgba(40, 30, 10, 0.85); }
+.scena .cambia-vista:focus-visible { outline: 3px solid #fff4dc; outline-offset: 2px; }
+.scena.dentro .cambia-vista { display: none; }
+@media (max-width: 600px) {
+    .scena .cambia-vista { right: 10px; bottom: auto; top: 10px; padding: 6px 12px; font-size: 0.85rem; }
+}
+.scena.vista-3d.dentro .suggerimento { visibility: hidden; }
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -1895,7 +1926,7 @@ body::before {
     <p>Così vede il calendario chi lo riceve in regalo: il treno arriva in stazione, si entra e si parte per il viaggio. Ogni giorno di dicembre si apre una casa, fino alla casa di Babbo Natale. Trascina il paese per esplorarlo.</p>
 </header>
 
-<main id="villaggio" class="scena" aria-describedby="spiegazione"></main>
+<main id="villaggio" class="scena" data-vista="3d" aria-describedby="spiegazione"></main>
 <p class="avviso" id="avviso" role="status"></p>
 
 <div class="comandi">
@@ -3350,7 +3381,7 @@ function cantaMerryChristmas(alla_fine) {
 // Una parte del paese non si vede se è fuori dallo schermo o se si è dentro una casa:
 // allora le sue animazioni si fermano, così il villaggio resta leggero anche sui computer vecchi
 function nonSiVede(nodo) {
-    return nodo.classList.contains('fuori') || Boolean(nodo.closest('.scena.dentro'));
+    return nodo.classList.contains('fuori') || Boolean(nodo.closest('.scena.dentro, .scena.vista-3d'));
 }
 
 // Muove una figura disegnata di profilo: verso 1 guarda a sinistra, -1 a destra
@@ -5887,7 +5918,7 @@ function avviaNeve(canvas) {
     const ferma = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function disegna(tempo) {
-        if (canvas.closest('.scena.dentro')) return requestAnimationFrame(disegna);
+        if (canvas.closest('.scena.dentro, .scena.vista-3d')) return requestAnimationFrame(disegna);
         const { width, height } = canvas.getBoundingClientRect();
         if (canvas.width !== Math.round(width)) { canvas.width = width; canvas.height = height; }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -7673,6 +7704,674 @@ function creaBancone({ onEsci }) {
 // ========== GIORNO E NOTTE ==========
 // Il cielo segue l'ora vera in Italia: alba, giorno, tramonto e notte (con l'aurora)
 
+// ========== IL PAESE IN 3D ==========
+// Una seconda "facciata" del villaggio: le case sono le stesse 24, con gli stessi colori.
+// Toccando una casa si entra dalla stessa porta del villaggio disegnato (regalo, sorpresa, date).
+
+let promessaThree = null;
+function caricaThree() {
+    if (window.THREE) return Promise.resolve(window.THREE);
+    promessaThree ??= new Promise((risolvi, rifiuta) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+        s.onload = () => (window.THREE ? risolvi(window.THREE) : rifiuta(new Error('3D non disponibile')));
+        s.onerror = () => {
+            promessaThree = null;
+            rifiuta(new Error('3D non disponibile'));
+        };
+        document.head.append(s);
+    });
+    return promessaThree;
+}
+
+// I colori del cielo e delle luci nei quattro momenti della giornata
+const LUCI_3D = {
+    notte: { alto: '#050920', basso: '#2a3a86', nebbia: '#24306e', emisfero: 0.55, cieloLuce: '#9fb3ff', sole: '#b9c8ff', forza: 0.55, terra: '#eef3ff', buio: true },
+    alba: { alto: '#34407e', basso: '#ffd2a6', nebbia: '#e9c4c0', emisfero: 0.55, cieloLuce: '#ffd9c9', sole: '#ffc7a0', forza: 0.65, terra: '#f3ecf2', buio: false },
+    giorno: { alto: '#3f7fd0', basso: '#d9eafb', nebbia: '#dce8f8', emisfero: 0.55, cieloLuce: '#ffffff', sole: '#fff1d6', forza: 0.7, terra: '#dfe7f6', buio: false },
+    tramonto: { alto: '#262a66', basso: '#ffa860', nebbia: '#c98a8f', emisfero: 0.5, cieloLuce: '#ffc9a8', sole: '#ffb27a', forza: 0.6, terra: '#efe2ea', buio: true }
+};
+
+function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
+    const T = window.THREE;
+    const telefono = matchMedia('(pointer: coarse)').matches || innerWidth < 700;
+    const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canvas = Object.assign(document.createElement('canvas'), { className: 'paese-3d' });
+    canvas.setAttribute('aria-label', 'Il villaggio in 3D: trascina per girare intorno, tocca una casa per entrare');
+    const renderer = new T.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, telefono ? 1.5 : 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = T.PCFSoftShadowMap;
+
+    const scena = new T.Scene();
+    const camera = new T.PerspectiveCamera(45, 1, 0.1, 500);
+    let s3 = 7;
+    const caso = () => (s3 = (s3 * 16807) % 2147483647) / 2147483647;
+
+    // ---- Texture disegnate al volo ----
+    const tela = (lato, disegna) => {
+        const c = document.createElement('canvas');
+        c.width = c.height = lato;
+        disegna(c.getContext('2d'));
+        return new T.CanvasTexture(c);
+    };
+    const ALONE = tela(128, g => {
+        const sf = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+        sf.addColorStop(0, 'rgba(255,255,255,1)');
+        sf.addColorStop(0.25, 'rgba(255,255,255,0.55)');
+        sf.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = sf;
+        g.fillRect(0, 0, 128, 128);
+    });
+    const alone = (colore, scala, opacita = 0.6) => {
+        const s = new T.Sprite(new T.SpriteMaterial({ map: ALONE, color: colore, transparent: true, opacity: opacita, blending: T.AdditiveBlending, depthWrite: false }));
+        s.scale.set(scala, scala, 1);
+        return s;
+    };
+    const numero = n => tela(128, g => {
+        g.fillStyle = '#c9a227';
+        g.beginPath(); g.arc(64, 64, 60, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#fffaf0';
+        g.beginPath(); g.arc(64, 64, 50, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#b22222';
+        g.font = 'bold 62px Georgia, serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(n, 64, 68);
+    });
+
+    // ---- Cielo, nebbia, luci ----
+    const cieloMat = new T.ShaderMaterial({
+        side: T.BackSide, depthWrite: false,
+        uniforms: { alto: { value: new T.Color() }, basso: { value: new T.Color() } },
+        vertexShader: 'varying vec3 p; void main(){ p = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+        fragmentShader: 'uniform vec3 alto; uniform vec3 basso; varying vec3 p; void main(){ float t = smoothstep(-0.05, 0.55, p.y); gl_FragColor = vec4(mix(basso, alto, t), 1.0); }'
+    });
+    scena.add(new T.Mesh(new T.SphereGeometry(400, 32, 16), cieloMat));
+    scena.fog = new T.Fog('#24306e', 70, 260);
+    const emisfero = new T.HemisphereLight('#9fb3ff', '#2b3366', 0.55);
+    scena.add(emisfero);
+    const sole = new T.DirectionalLight('#b9c8ff', 0.55);
+    sole.position.set(-60, 80, -40);
+    sole.castShadow = true;
+    sole.shadow.mapSize.set(telefono ? 1024 : 2048, telefono ? 1024 : 2048);
+    Object.assign(sole.shadow.camera, { left: -50, right: 50, top: 50, bottom: -50, near: 10, far: 220 });
+    sole.shadow.bias = -0.0008;
+    scena.add(sole);
+
+    const stelle = [];
+    for (let i = 0; i < 1600; i++) {
+        const a = caso() * Math.PI * 2, h = 0.08 + caso() * 0.9, r = Math.sqrt(1 - h * h);
+        stelle.push(Math.cos(a) * r * 380, h * 380, Math.sin(a) * r * 380);
+    }
+    const stelleGeo = new T.BufferGeometry();
+    stelleGeo.setAttribute('position', new T.Float32BufferAttribute(stelle, 3));
+    const cieloStellato = new T.Points(stelleGeo, new T.PointsMaterial({ color: '#ffffff', size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0.9, fog: false }));
+    scena.add(cieloStellato);
+    const luna = new T.Mesh(new T.SphereGeometry(9, 24, 16), new T.MeshBasicMaterial({ color: '#fdf6d8', fog: false }));
+    luna.position.set(-150, 170, -260);
+    scena.add(luna);
+    const aloneLuna = alone('#fff3c0', 90, 0.45);
+    aloneLuna.material.fog = false;
+    aloneLuna.position.copy(luna.position);
+    scena.add(aloneLuna);
+
+    // ---- Terreno: piatto in paese, colline e montagne intorno ----
+    const altezza = (x, z) => {
+        const r = Math.hypot(x, z);
+        if (r < 46) return 0;
+        return (r - 46) * 0.22 * (0.65 + 0.35 * Math.sin(Math.atan2(z, x) * 3 + r * 0.05)) + Math.sin(x * 0.08) * Math.cos(z * 0.07) * 1.5;
+    };
+    const terraGeo = new T.PlaneGeometry(460, 460, telefono ? 90 : 150, telefono ? 90 : 150);
+    terraGeo.rotateX(-Math.PI / 2);
+    const pos = terraGeo.attributes.position;
+    for (let i = 0; i < pos.count; i++) pos.setY(i, altezza(pos.getX(i), pos.getZ(i)));
+    terraGeo.computeVertexNormals();
+    const terra = new T.Mesh(terraGeo, new T.MeshStandardMaterial({ color: '#eef3ff', roughness: 0.95 }));
+    terra.receiveShadow = true;
+    scena.add(terra);
+    for (let i = 0; i < 22; i++) {
+        const a = (i / 22) * Math.PI * 2 + caso() * 0.2, r = 190 + caso() * 40, h = 45 + caso() * 55;
+        const monte = new T.Mesh(new T.ConeGeometry(h * 0.85, h, 7), new T.MeshStandardMaterial({ color: '#7d8fc8', roughness: 1, flatShading: true }));
+        monte.position.set(Math.cos(a) * r, h / 2 - 4, Math.sin(a) * r);
+        const cima = new T.Mesh(new T.ConeGeometry(h * 0.33, h * 0.39, 7), new T.MeshStandardMaterial({ color: '#f4f8ff', roughness: 0.9, flatShading: true }));
+        cima.position.y = h * 0.31;
+        monte.add(cima);
+        scena.add(monte);
+    }
+    const pietra = new T.MeshStandardMaterial({ color: '#c9d4ee', roughness: 1 });
+    const piazza = new T.Mesh(new T.CircleGeometry(11, 48), pietra);
+    piazza.rotation.x = -Math.PI / 2;
+    piazza.position.y = 0.02;
+    piazza.receiveShadow = true;
+    scena.add(piazza);
+    const stradaMat = new T.MeshStandardMaterial({ color: '#b5c2e2', roughness: 1 });
+    const strada = new T.Mesh(new T.RingGeometry(27.5, 31, 96), stradaMat);
+    strada.rotation.x = -Math.PI / 2;
+    strada.position.y = 0.03;
+    strada.receiveShadow = true;
+    scena.add(strada);
+    for (let i = 0; i < 4; i++) {
+        const viale = new T.Mesh(new T.PlaneGeometry(3, 17), stradaMat);
+        viale.rotation.x = -Math.PI / 2;
+        const a = i * Math.PI / 2 + Math.PI / 4;
+        viale.rotation.z = -a + Math.PI / 2;
+        viale.position.set(Math.cos(a) * 19.5, 0.025, Math.sin(a) * 19.5);
+        viale.receiveShadow = true;
+        scena.add(viale);
+    }
+
+    // ---- Abeti ----
+    const verdi = ['#1f5e43', '#24684b', '#1b513b'].map(c => new T.MeshStandardMaterial({ color: c, roughness: 0.9, flatShading: true }));
+    const neveMat = new T.MeshStandardMaterial({ color: '#f7faff', roughness: 0.85, flatShading: true });
+    const legnoMat = new T.MeshStandardMaterial({ color: '#4a3426', roughness: 1 });
+    const scatola = (w, h, d, materiale, x, y, z) => {
+        const m = new T.Mesh(new T.BoxGeometry(w, h, d), materiale);
+        m.position.set(x, y, z);
+        return m;
+    };
+    function abete(x, z, k) {
+        const g = new T.Group();
+        const tronco = new T.Mesh(new T.CylinderGeometry(0.25 * k, 0.32 * k, 1.2 * k, 6), legnoMat);
+        tronco.position.y = 0.6 * k;
+        g.add(tronco);
+        const verde = verdi[Math.floor(caso() * 3)];
+        [[1.9, 2.4, 1.9], [1.45, 2.1, 3.1], [0.95, 1.8, 4.2]].forEach(([r, h, y]) => {
+            const c = new T.Mesh(new T.ConeGeometry(r * k, h * k, 8), verde);
+            c.position.y = y * k;
+            c.castShadow = true;
+            g.add(c);
+            const n = new T.Mesh(new T.ConeGeometry(r * k * 0.55, h * k * 0.32, 8), neveMat);
+            n.position.y = (y + h * 0.36) * k;
+            g.add(n);
+        });
+        g.position.set(x, altezza(x, z), z);
+        g.rotation.y = caso() * Math.PI;
+        scena.add(g);
+    }
+    for (let i = 0; i < (telefono ? 70 : 120); i++) {
+        const a = caso() * Math.PI * 2, r = 40 + caso() * 85;
+        abete(Math.cos(a) * r, Math.sin(a) * r, 0.9 + caso() * 1.1);
+    }
+
+    // ---- Le 24 case, con i colori del villaggio disegnato ----
+    const LUCINE = COLORI_FESTA.map(c => new T.MeshBasicMaterial({ color: c }));
+    const case3D = [];
+    function prisma(larghezza, alto, profondo, materiale) {
+        const forma = new T.Shape();
+        forma.moveTo(-larghezza / 2, 0);
+        forma.lineTo(larghezza / 2, 0);
+        forma.lineTo(0, alto);
+        forma.closePath();
+        const geo = new T.ExtrudeGeometry(forma, { depth: profondo, bevelEnabled: false });
+        geo.translate(0, 0, -profondo / 2);
+        const m = new T.Mesh(geo, materiale);
+        m.castShadow = true;
+        return m;
+    }
+    function casa(giorno, x, z) {
+        const g = new T.Group();
+        g.userData.giorno = giorno;
+        const w = 4 + caso() * 1.4, h = 3 + caso() * 1.4, d = 3.6 + caso() * 0.8, rh = 2 + caso() * 0.6;
+        const { muro, tetto } = COLORI[(giorno * 5) % COLORI.length];
+        const corpo = scatola(w, h, d, new T.MeshStandardMaterial({ color: muro, roughness: 0.85 }), 0, h / 2, 0);
+        corpo.castShadow = corpo.receiveShadow = true;
+        g.add(corpo);
+        const tettoM = prisma(w + 0.8, rh, d + 0.7, new T.MeshStandardMaterial({ color: tetto, roughness: 0.8 }));
+        tettoM.position.y = h;
+        g.add(tettoM);
+        const neve = prisma(w + 0.35, rh + 0.05, d + 0.85, neveMat);
+        neve.position.y = h + 0.14;
+        g.add(neve);
+        const comignolo = scatola(0.6, 1.4, 0.6, new T.MeshStandardMaterial({ color: '#8a4b3a', roughness: 1 }), w * 0.22, h + rh * 0.75, -d * 0.15);
+        comignolo.castShadow = true;
+        g.add(comignolo, scatola(0.75, 0.22, 0.75, neveMat, w * 0.22, h + rh * 0.75 + 0.8, -d * 0.15));
+        // Porta che si apre girando sui cardini
+        const cardine = new T.Group();
+        cardine.position.set(-0.48, 0, d / 2 + 0.04);
+        const anta = scatola(0.95, 1.6, 0.12, new T.MeshStandardMaterial({ color: scurisci(tetto, 0.05), roughness: 0.7 }), 0.48, 0.8, 0);
+        const ghirlanda = new T.Mesh(new T.TorusGeometry(0.24, 0.07, 8, 18), new T.MeshStandardMaterial({ color: '#2e6b3f' }));
+        ghirlanda.position.set(0.48, 1.2, 0.09);
+        cardine.add(anta, ghirlanda);
+        g.add(cardine);
+        const vano = scatola(0.9, 1.55, 0.05, new T.MeshBasicMaterial({ color: '#ffcf73' }), 0, 0.78, d / 2 + 0.01);
+        g.add(vano);
+        // Finestre: spente, accese piano o accese di festa
+        const vetro = new T.MeshStandardMaterial({ color: '#1a2142', emissive: '#ffb347', emissiveIntensity: 0.04, roughness: 0.3 });
+        const cornice = new T.MeshStandardMaterial({ color: '#fbf6ea', roughness: 0.8 });
+        [[-w / 4 - 0.15, h * 0.62, d / 2 + 0.04, 0], [w / 4 + 0.15, h * 0.62, d / 2 + 0.04, 0], [w / 2 + 0.04, h * 0.55, 0, Math.PI / 2], [-w / 2 - 0.04, h * 0.55, 0, -Math.PI / 2]].forEach(([fx, fy, fz, ry]) => {
+            const f = new T.Group();
+            f.add(scatola(0.95, 1.05, 0.08, cornice, 0, 0, 0), scatola(0.75, 0.85, 0.1, vetro, 0, 0, 0.01), scatola(0.06, 0.85, 0.12, cornice, 0, 0, 0.02), scatola(0.75, 0.06, 0.12, cornice, 0, 0, 0.02), scatola(1.05, 0.12, 0.25, neveMat, 0, -0.56, 0.08));
+            f.position.set(fx, fy, fz);
+            f.rotation.y = ry;
+            g.add(f);
+        });
+        const targa = new T.Mesh(new T.PlaneGeometry(1.1, 1.1), new T.MeshBasicMaterial({ map: numero(giorno), transparent: true }));
+        targa.position.set(0, h + rh * 0.38, (d + 0.7) / 2 + 0.02);
+        g.add(targa);
+        const lucine = new T.Group();
+        for (let i = 0; i <= 12; i++) {
+            const t = i / 12;
+            const l = new T.Mesh(new T.SphereGeometry(0.09, 8, 6), LUCINE[i % LUCINE.length]);
+            l.position.set(-(w + 0.8) / 2 + (w + 0.8) * t, h - 0.03 + rh * (1 - Math.abs(2 * t - 1)), (d + 0.7) / 2 + 0.08);
+            lucine.add(l);
+        }
+        g.add(lucine);
+        const bagliore = alone('#ffb347', 6, 0.5);
+        bagliore.position.set(0, 1.2, d / 2 + 1.2);
+        g.add(bagliore);
+        // La stella che indica la casa di oggi
+        const stellaOggi = new T.Group();
+        stellaOggi.add(new T.Mesh(geoStella(0.7), new T.MeshBasicMaterial({ color: '#ffe066' })), alone('#ffd36b', 5, 0.85));
+        stellaOggi.position.y = stellaOggi.userData.y = h + rh + 2.2;
+        g.add(stellaOggi);
+        [[-w / 2 + 0.3, d / 2], [w / 2 - 0.2, d / 2 - 0.2]].forEach(([nx, nz]) => {
+            const mucchio = new T.Mesh(new T.SphereGeometry(0.7, 10, 6), neveMat);
+            mucchio.scale.set(1.2, 0.45, 0.9);
+            mucchio.position.set(nx, 0, nz + 0.4);
+            g.add(mucchio);
+        });
+        g.position.set(x, 0, z);
+        g.lookAt(0, 0, 0);
+        scena.add(g);
+        case3D.push({ giorno, gruppo: g, vetro, lucine, bagliore, stellaOggi, cardine, vano, stato: '', aperturaPorta: 0, scossa: 0 });
+    }
+    function geoStella(raggio) {
+        const forma = new T.Shape();
+        for (let i = 0; i < 10; i++) {
+            const r = i % 2 ? raggio * 0.42 : raggio, a = (i / 10) * Math.PI * 2 + Math.PI / 2;
+            i ? forma.lineTo(Math.cos(a) * r, Math.sin(a) * r) : forma.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        const geo = new T.ExtrudeGeometry(forma, { depth: raggio * 0.28, bevelEnabled: false });
+        geo.translate(0, 0, -raggio * 0.14);
+        return geo;
+    }
+    // 12 case nel giro interno e 12 nel giro esterno, in ordine come un percorso
+    for (let i = 0; i < 24; i++) {
+        const interno = i < 12, k = interno ? i : i - 12;
+        const a = (k / 12) * Math.PI * 2 + (interno ? 0.13 : 0.39) - Math.PI / 2;
+        const r = interno ? 22 : 37;
+        casa(i + 1, Math.cos(a) * r, Math.sin(a) * r);
+    }
+
+    // ---- L'albero grande in piazza ----
+    const albero = new T.Group();
+    const tronco = new T.Mesh(new T.CylinderGeometry(0.5, 0.7, 2, 8), legnoMat);
+    tronco.position.y = 1;
+    tronco.castShadow = true;
+    albero.add(tronco);
+    const verdeAlbero = new T.MeshStandardMaterial({ color: '#1d5a3f', roughness: 0.85, flatShading: true });
+    [[4.4, 4.6, 3.2], [3.5, 4, 5.6], [2.6, 3.4, 7.6], [1.6, 2.8, 9.4]].forEach(([r, h, y]) => {
+        const c = new T.Mesh(new T.ConeGeometry(r, h, 12), verdeAlbero);
+        c.position.y = y;
+        c.castShadow = true;
+        const n = new T.Mesh(new T.ConeGeometry(r * 0.5, h * 0.3, 12), neveMat);
+        n.position.y = y + h * 0.36;
+        albero.add(c, n);
+    });
+    const palline = ['#ff4b4b', '#ffd36b', '#6fd3ff', '#ff9de2', '#7dff9a'].map(c => new T.MeshBasicMaterial({ color: c }));
+    const baseColori = palline.map(m => m.color.clone());
+    for (let i = 0; i < 90; i++) {
+        const t = i / 90, rr = 4.35 - t * 3.6, a = t * Math.PI * 14;
+        const p = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), palline[i % palline.length]);
+        p.position.set(Math.cos(a) * rr, 1.6 + t * 9.2, Math.sin(a) * rr);
+        albero.add(p);
+    }
+    const stella = new T.Mesh(geoStella(1.1), new T.MeshBasicMaterial({ color: '#ffe066' }));
+    stella.position.y = 11.6;
+    const aloneStella = alone('#ffd36b', 9, 0.8);
+    aloneStella.position.y = 11.6;
+    const luceStella = new T.PointLight('#ffcf73', 1.2, 40, 2);
+    luceStella.position.y = 10;
+    albero.add(stella, aloneStella, luceStella);
+    [['#c0392b', '#f4d03f', 2.6, 1.4], ['#2e7d5b', '#fbf6ea', -2.4, 2], ['#2d4f8a', '#e84393', 1.2, -2.8], ['#f4d03f', '#c0392b', -2.2, -2]].forEach(([carta, nastro, px, pz]) => {
+        const s = 0.9 + caso() * 0.5, r = new T.Group();
+        const nastroMat = new T.MeshStandardMaterial({ color: nastro });
+        r.add(scatola(s, s, s, new T.MeshStandardMaterial({ color: carta, roughness: 0.6 }), 0, s / 2, 0), scatola(s + 0.02, s + 0.02, 0.2, nastroMat, 0, s / 2, 0), scatola(0.2, s + 0.02, s + 0.02, nastroMat, 0, s / 2, 0));
+        r.children.forEach(m => (m.castShadow = true));
+        r.position.set(px, 0, pz);
+        r.rotation.y = caso() * Math.PI;
+        albero.add(r);
+    });
+    scena.add(albero);
+
+    // ---- Lampioni ----
+    const lampioni = [];
+    const ferro = new T.MeshStandardMaterial({ color: '#2c2f45', roughness: 0.6, metalness: 0.4 });
+    const lanternaMat = new T.MeshBasicMaterial({ color: '#ffd47a' });
+    for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2 + 0.52, r = 26.6;
+        const l = new T.Group();
+        const palo = scatola(0.16, 4, 0.16, ferro, 0, 2, 0);
+        palo.castShadow = true;
+        const a2 = alone('#ffcf73', 4.5, 0.7);
+        a2.position.y = 4.2;
+        l.add(palo, scatola(0.5, 0.6, 0.5, lanternaMat, 0, 4.2, 0), scatola(0.7, 0.12, 0.7, neveMat, 0, 4.58, 0), a2);
+        l.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+        scena.add(l);
+        lampioni.push(a2);
+        if (i % 3 === 0) {
+            const luce = new T.PointLight('#ffcf73', 0.9, 16, 2);
+            luce.position.set(l.position.x, 4, l.position.z);
+            scena.add(luce);
+            lampioni.push(luce);
+        }
+    }
+
+    // ---- La slitta di Babbo Natale ----
+    const slitta = new T.Group();
+    const rosso = new T.MeshStandardMaterial({ color: '#b3202b', roughness: 0.5 });
+    const oro = new T.MeshStandardMaterial({ color: '#e8c766', roughness: 0.3, metalness: 0.6 });
+    slitta.add(scatola(1.7, 0.8, 2.6, rosso, 0, 0.4, 0), scatola(1.7, 1.3, 0.5, rosso, 0, 0.65, -1.1), scatola(0.1, 0.1, 3.4, oro, -0.75, -0.25, 0.2), scatola(0.1, 0.1, 3.4, oro, 0.75, -0.25, 0.2));
+    const pelle = new T.MeshStandardMaterial({ color: '#f2d2bd' });
+    const bianco = new T.MeshStandardMaterial({ color: '#fbfdff' });
+    const babbo = new T.Group();
+    const giacca = new T.Mesh(new T.CylinderGeometry(0.4, 0.55, 1.1, 10), rosso);
+    giacca.position.y = 1.2;
+    const testa = new T.Mesh(new T.SphereGeometry(0.3, 12, 10), pelle);
+    testa.position.y = 1.95;
+    const barba = new T.Mesh(new T.SphereGeometry(0.28, 12, 10), bianco);
+    barba.position.set(0, 1.78, 0.18);
+    const cappello = new T.Mesh(new T.ConeGeometry(0.3, 0.6, 10), rosso);
+    cappello.position.y = 2.35;
+    babbo.add(giacca, testa, barba, cappello);
+    babbo.position.z = -0.3;
+    const sacco = new T.Mesh(new T.SphereGeometry(0.6, 12, 10), new T.MeshStandardMaterial({ color: '#8a5a36', roughness: 1 }));
+    sacco.position.set(0, 1.3, -1.2);
+    slitta.add(babbo, sacco);
+    const pelo = new T.MeshStandardMaterial({ color: '#7a5034', roughness: 0.9 });
+    const corna = new T.MeshStandardMaterial({ color: '#d9c3a0' });
+    const zampe = [];
+    function renna(x, z, naso) {
+        const r = new T.Group();
+        const collo = scatola(0.25, 0.6, 0.25, pelo, 0, 1.0, 0.5);
+        collo.rotation.x = 0.4;
+        r.add(scatola(0.45, 0.5, 1.2, pelo, 0, 0.6, 0), collo, scatola(0.3, 0.3, 0.45, pelo, 0, 1.3, 0.75), scatola(0.05, 0.45, 0.05, corna, 0.12, 1.65, 0.65), scatola(0.05, 0.45, 0.05, corna, -0.12, 1.65, 0.65));
+        [[0.14, 0.4], [-0.14, 0.4], [0.14, -0.4], [-0.14, -0.4]].forEach(([zx, zz], i) => {
+            const zampa = scatola(0.09, 0.55, 0.09, pelo, zx, 0.2, zz);
+            zampa.userData.fase = i % 2 ? 0 : Math.PI;
+            zampe.push(zampa);
+            r.add(zampa);
+        });
+        if (naso) {
+            const n = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), new T.MeshBasicMaterial({ color: '#ff3b30' }));
+            n.position.set(0, 1.3, 1.0);
+            const a = alone('#ff3b30', 2.4, 0.9);
+            a.position.copy(n.position);
+            r.add(n, a);
+        }
+        r.position.set(x, 0, z);
+        slitta.add(r);
+    }
+    [2.6, 4.2, 5.8].forEach(z => { renna(0.45, z, false); renna(-0.45, z, false); });
+    renna(0, 7.4, true);
+    scena.add(slitta);
+    const SCIA = 70;
+    const sciaPos = new Float32Array(SCIA * 3), sciaCol = new Float32Array(SCIA * 3);
+    const sciaGeo = new T.BufferGeometry();
+    sciaGeo.setAttribute('position', new T.BufferAttribute(sciaPos, 3));
+    sciaGeo.setAttribute('color', new T.BufferAttribute(sciaCol, 3));
+    scena.add(new T.Points(sciaGeo, new T.PointsMaterial({ size: 0.6, map: ALONE, vertexColors: true, transparent: true, blending: T.AdditiveBlending, depthWrite: false })));
+    const storia = [];
+
+    // ---- Neve che cade ----
+    const FIOCCHI = telefono ? 1400 : 2800;
+    const fiocchi = new Float32Array(FIOCCHI * 3), velocita = [];
+    for (let i = 0; i < FIOCCHI; i++) {
+        fiocchi.set([(caso() - 0.5) * 140, caso() * 50, (caso() - 0.5) * 140], i * 3);
+        velocita.push(1.5 + caso() * 2.5);
+    }
+    const neveGeo = new T.BufferGeometry();
+    neveGeo.setAttribute('position', new T.BufferAttribute(fiocchi, 3));
+    scena.add(new T.Points(neveGeo, new T.PointsMaterial({ color: '#ffffff', size: 0.35, map: ALONE, transparent: true, depthWrite: false, opacity: 0.9 })));
+
+    // ---- Il momento della giornata segue quello del villaggio ----
+    let buio = true, momentoAttuale = '';
+    function applicaMomento() {
+        const m = momento();
+        if (m === momentoAttuale) return;
+        momentoAttuale = m;
+        const l = LUCI_3D[m] ?? LUCI_3D.notte;
+        buio = l.buio;
+        cieloMat.uniforms.alto.value.set(l.alto);
+        cieloMat.uniforms.basso.value.set(l.basso);
+        scena.fog.color.set(l.nebbia);
+        emisfero.intensity = l.emisfero;
+        emisfero.color.set(l.cieloLuce);
+        sole.color.set(l.sole);
+        sole.intensity = l.forza;
+        sole.position.set(m === 'notte' ? -60 : m === 'alba' ? -90 : m === 'tramonto' ? 90 : 50, m === 'giorno' ? 80 : 40, m === 'notte' ? -40 : 30);
+        terra.material.color.set(l.terra);
+        cieloStellato.visible = luna.visible = aloneLuna.visible = m === 'notte';
+        luceStella.intensity = buio ? 1.2 : 0.3;
+        lampioni.forEach(o => (o.visible = buio));
+    }
+
+    // ---- Telecamera ----
+    const vista = { angolo: 0, alzo: 0.42, distanza: 70, centro: new T.Vector3(0, 3, 0) };
+    const meta = { angolo: 0, alzo: 0.42, distanza: 58, centro: new T.Vector3(0, 3, 0) };
+    let ultimoTocco = -1e9, casaVicina = null;
+    const puntatori = new Map();
+    let pizzico = null, spostato = 0;
+    const vicino = (verso, da) => {
+        while (verso - da > Math.PI) verso -= Math.PI * 2;
+        while (verso - da < -Math.PI) verso += Math.PI * 2;
+        return verso;
+    };
+    function panorama(versoCasa = null) {
+        casaVicina = null;
+        meta.centro.set(0, 3, 0);
+        meta.alzo = 0.42;
+        meta.distanza = 58;
+        if (versoCasa) {
+            const p = versoCasa.gruppo.position;
+            meta.angolo = vicino(Math.atan2(p.z, p.x), vista.angolo);
+        }
+        ultimoTocco = performance.now();
+    }
+    function avvicina(c) {
+        casaVicina = c;
+        const p = c.gruppo.position;
+        meta.centro.set(p.x, 2.6, p.z);
+        meta.angolo = vicino(Math.atan2(p.z, p.x) + Math.PI, vista.angolo);
+        meta.alzo = 0.3;
+        meta.distanza = 15;
+        ultimoTocco = performance.now() + 1e9;
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+        try {
+            canvas.setPointerCapture(e.pointerId);
+        } catch { /* il dito si segue lo stesso */ }
+        puntatori.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        spostato = 0;
+        canvas.classList.add('trascina');
+        if (puntatori.size === 2) {
+            const [a, b] = [...puntatori.values()];
+            pizzico = { d: Math.hypot(a.x - b.x, a.y - b.y), distanza: meta.distanza };
+        }
+    });
+    canvas.addEventListener('pointermove', e => {
+        const p = puntatori.get(e.pointerId);
+        if (!p) return;
+        const dx = e.clientX - p.x, dy = e.clientY - p.y;
+        p.x = e.clientX;
+        p.y = e.clientY;
+        spostato += Math.abs(dx) + Math.abs(dy);
+        ultimoTocco = performance.now();
+        if (puntatori.size === 2 && pizzico) {
+            const [a, b] = [...puntatori.values()];
+            meta.distanza = T.MathUtils.clamp(pizzico.distanza * pizzico.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), 10, 110);
+        } else if (spostato > 8) {
+            if (casaVicina) casaVicina = null;
+            meta.angolo -= dx * 0.006;
+            meta.alzo = T.MathUtils.clamp(meta.alzo + dy * 0.004, 0.08, 1.25);
+        }
+    });
+    function fine(e) {
+        const breve = spostato < 8 && puntatori.size === 1;
+        puntatori.delete(e.pointerId);
+        if (puntatori.size < 2) pizzico = null;
+        if (!puntatori.size) canvas.classList.remove('trascina');
+        if (breve && e.type === 'pointerup') tocca(e.clientX, e.clientY);
+    }
+    canvas.addEventListener('pointerup', fine);
+    canvas.addEventListener('pointercancel', fine);
+    canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        ultimoTocco = performance.now();
+        meta.distanza = T.MathUtils.clamp(meta.distanza * (1 + Math.sign(e.deltaY) * 0.1), 10, 110);
+    }, { passive: false });
+
+    const raggio = new T.Raycaster();
+    function tocca(cx, cy) {
+        const r = canvas.getBoundingClientRect();
+        raggio.setFromCamera({ x: ((cx - r.left) / r.width) * 2 - 1, y: -((cy - r.top) / r.height) * 2 + 1 }, camera);
+        const colpi = raggio.intersectObjects(case3D.map(c => c.gruppo), true);
+        if (!colpi.length) return;
+        let o = colpi[0].object;
+        while (o && !o.userData.giorno) o = o.parent;
+        const c = case3D.find(k => k.gruppo === o);
+        if (!c) return;
+        if (c.stato === 'chiusa') {
+            // Una casa ancora chiusa trema un po', e il villaggio dice quando si aprirà
+            c.scossa = 1;
+            onCasa(c.giorno);
+            return;
+        }
+        avvicina(c);
+        c.aperturaPorta = 0.001;
+        // La porta si apre, poi si entra dalla stessa porta del villaggio disegnato
+        setTimeout(() => onCasa(c.giorno), 1100);
+    }
+
+    function aggiornaCase() {
+        case3D.forEach(c => {
+            const stato = statoCasa(c.giorno);
+            if (stato === c.stato) return;
+            c.stato = stato;
+            c.lucine.visible = stato === 'aperta';
+            c.bagliore.visible = stato !== 'chiusa';
+            c.stellaOggi.visible = stato === 'oggi';
+        });
+    }
+
+    // ---- Dimensioni e animazione ----
+    function adatta() {
+        const w = contenitore.clientWidth, h = contenitore.clientHeight;
+        if (!w || !h) return;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.fov = w < h ? 62 : 45;
+        camera.updateProjectionMatrix();
+    }
+    const osservatore = new ResizeObserver(adatta);
+    osservatore.observe(contenitore);
+
+    const orologio = new T.Clock();
+    let tempo = 0, attivo = false, ultimoStato = 0;
+    function ciclo() {
+        if (!attivo || !contenitore.isConnected) return;
+        requestAnimationFrame(ciclo);
+        const dt = Math.min(orologio.getDelta(), 0.05);
+        // Dentro una casa o con la pagina nascosta non serve disegnare
+        if (document.hidden || contenitore.classList.contains('dentro')) return;
+        tempo += dt;
+        if (tempo - ultimoStato > 0.4) {
+            ultimoStato = tempo;
+            aggiornaCase();
+            applicaMomento();
+        }
+        if (!calmo && performance.now() - ultimoTocco > 5000 && !casaVicina) meta.angolo += dt * 0.04;
+        const k = 1 - Math.pow(0.04, dt);
+        vista.angolo += (meta.angolo - vista.angolo) * k;
+        vista.alzo += (meta.alzo - vista.alzo) * k;
+        vista.distanza += (meta.distanza - vista.distanza) * k;
+        vista.centro.lerp(meta.centro, k);
+        camera.position.set(
+            vista.centro.x + Math.cos(vista.angolo) * Math.cos(vista.alzo) * vista.distanza,
+            vista.centro.y + Math.sin(vista.alzo) * vista.distanza,
+            vista.centro.z + Math.sin(vista.angolo) * Math.cos(vista.alzo) * vista.distanza
+        );
+        camera.lookAt(vista.centro);
+
+        palline.forEach((m, i) => m.color.copy(baseColori[i]).multiplyScalar(0.55 + 0.45 * Math.sin(tempo * 2.2 + i * 1.3)));
+        stella.rotation.y = tempo * 0.6;
+        aloneStella.material.opacity = (buio ? 0.7 : 0.3) + Math.sin(tempo * 3) * 0.1;
+
+        const a = tempo * 0.12, sy = 30 + Math.sin(tempo * 0.9) * 2;
+        slitta.position.set(Math.cos(a) * 32, sy, Math.sin(a) * 32);
+        slitta.lookAt(Math.cos(a + 0.05) * 32, sy, Math.sin(a + 0.05) * 32);
+        zampe.forEach(z => (z.rotation.x = Math.sin(tempo * 9 + z.userData.fase) * 0.6));
+        storia.unshift(slitta.position.clone().add(new T.Vector3((caso() - 0.5) * 0.6, (caso() - 0.5) * 0.6, (caso() - 0.5) * 0.6)));
+        if (storia.length > SCIA) storia.pop();
+        for (let i = 0; i < SCIA; i++) {
+            const p = storia[Math.min(i, storia.length - 1)];
+            sciaPos.set([p.x, p.y - 0.3, p.z], i * 3);
+            const f = 1 - i / SCIA;
+            sciaCol.set([f, f * 0.85, f * 0.45], i * 3);
+        }
+        sciaGeo.attributes.position.needsUpdate = sciaGeo.attributes.color.needsUpdate = true;
+
+        const vel = calmo ? 0.3 : 1;
+        for (let i = 0; i < FIOCCHI; i++) {
+            let y = fiocchi[i * 3 + 1] - velocita[i] * dt * vel;
+            if (y < 0) y += 50;
+            fiocchi[i * 3 + 1] = y;
+            fiocchi[i * 3] += Math.sin(tempo + i) * dt * 0.3;
+        }
+        neveGeo.attributes.position.needsUpdate = true;
+
+        case3D.forEach((c, i) => {
+            if (c.stato === 'aperta') c.lucine.children.forEach((l, j) => (l.visible = Math.sin(tempo * 3 + j + i) > -0.6));
+            const luce = c.stato === 'aperta' ? (buio ? 1.3 : 0.6) : c.stato === 'chiusa' ? 0.04 : buio ? 0.7 : 0.3;
+            c.vetro.emissiveIntensity += (luce - c.vetro.emissiveIntensity) * k;
+            c.bagliore.material.opacity = (buio ? 0.5 : 0.15) * (c.stato === 'aperta' ? 1 : 0.6);
+            if (c.stellaOggi.visible) {
+                c.stellaOggi.position.y = c.stellaOggi.userData.y + Math.sin(tempo * 2.4) * 0.35;
+                c.stellaOggi.rotation.y = tempo * 1.5;
+            }
+            if (c.scossa > 0) {
+                c.scossa = Math.max(0, c.scossa - dt * 1.6);
+                c.gruppo.rotation.z = Math.sin(tempo * 40) * 0.03 * c.scossa;
+            }
+            // La porta si apre piano, e si richiude quando si torna fuori
+            if (c.aperturaPorta > 0) {
+                c.aperturaPorta = Math.min(1, c.aperturaPorta + dt * 1.2);
+                c.cardine.rotation.y = -1.9 * Math.sin(Math.min(1, c.aperturaPorta) * Math.PI / 2);
+            } else if (c.cardine.rotation.y < 0) {
+                c.cardine.rotation.y = Math.min(0, c.cardine.rotation.y + dt * 2);
+            }
+        });
+        renderer.render(scena, camera);
+    }
+
+    return {
+        canvas,
+        avvia(versoGiorno) {
+            if (attivo) return;
+            attivo = true;
+            adatta();
+            aggiornaCase();
+            applicaMomento();
+            const c = case3D.find(k => k.giorno === versoGiorno);
+            panorama(c);
+            if (c) vista.angolo = meta.angolo;
+            orologio.getDelta();
+            requestAnimationFrame(ciclo);
+        },
+        ferma() {
+            attivo = false;
+        },
+        // Usciti da una casa si chiude la porta e si torna a guardare il paese
+        fuori() {
+            case3D.forEach(c => (c.aperturaPorta = 0));
+            if (casaVicina) panorama(casaVicina);
+        },
+        panorama: () => panorama()
+    };
+}
+
 const MOMENTI = ['alba', 'giorno', 'tramonto', 'notte'];
 
 // Luce calda dall'alto, angoli in penombra e un pulviscolo dorato che fluttua nell'aria
@@ -7973,6 +8672,7 @@ function creaVillaggio(contenitore, opzioni) {
     function torna() {
         clearTimeout(timerDentro);
         contenitore.classList.remove('dentro');
+        paese3D?.fuori();
     }
 
     async function apriCasa(casa) {
@@ -8794,6 +9494,56 @@ function creaVillaggio(contenitore, opzioni) {
     } else {
         spostaA(0, false);
         viaggiDelTreno(true);
+    }
+
+    // ---- La vista in 3D: per ora solo dove il contenitore la chiede (data-vista="3d") ----
+    let paese3D = null;
+    const bottoneVista = Object.assign(document.createElement('button'), { type: 'button', className: 'cambia-vista' });
+    const testo2D = suggerimento.textContent;
+    function statoCasa3D(giorno) {
+        const c = mondo.querySelector(`.casa[data-giorno="${giorno}"]`);
+        if (!c) return 'chiusa';
+        if (modifica) return c.classList.contains('aperta') ? 'aperta' : 'pronta';
+        if (c.classList.contains('chiusa')) return 'chiusa';
+        if (c.classList.contains('aperta')) return 'aperta';
+        return c.classList.contains('oggi') ? 'oggi' : 'pronta';
+    }
+    async function usa3D(si) {
+        if (si) {
+            try {
+                await caricaThree();
+                paese3D ??= creaPaese3D(contenitore, {
+                    onCasa: giorno => apriCasa(mondo.querySelector(`.casa[data-giorno="${giorno}"]`)),
+                    statoCasa: statoCasa3D,
+                    momento: () => MOMENTI.find(m => contenitore.classList.contains(`momento-${m}`)) ?? 'notte'
+                });
+            } catch {
+                // Niente 3D su questo dispositivo: resta il villaggio disegnato
+                bottoneVista.hidden = true;
+                return usa3D(false);
+            }
+            if (!paese3D.canvas.isConnected) neve.after(paese3D.canvas);
+            contenitore.classList.add('vista-3d');
+            paese3D.avvia(modifica ? Number(casaDaRaggiungere()?.dataset.giorno ?? 1) : Math.max(1, Math.min(aperti, 24)));
+            suggerimento.textContent = matchMedia('(pointer: coarse)').matches ? '↻ Gira con il dito · tocca una casa' : '↻ Trascina per girare · clicca una casa';
+        } else {
+            paese3D?.ferma();
+            contenitore.classList.remove('vista-3d');
+            suggerimento.textContent = testo2D;
+        }
+        bottoneVista.textContent = si ? '🖼️ Vista 2D' : '🧊 Vista 3D';
+        try {
+            localStorage.setItem('villaggio_vista', si ? '3d' : '2d');
+        } catch { /* la scelta vale solo per questa visita */ }
+    }
+    if (contenitore.dataset.vista === '3d') {
+        contenitore.append(bottoneVista);
+        bottoneVista.addEventListener('click', () => usa3D(!contenitore.classList.contains('vista-3d')));
+        let preferita = '3d';
+        try {
+            preferita = localStorage.getItem('villaggio_vista') ?? '3d';
+        } catch { /* si parte in 3D */ }
+        usa3D(preferita === '3d');
     }
 
     return {
