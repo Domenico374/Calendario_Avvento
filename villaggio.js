@@ -5774,7 +5774,7 @@ const LUCI_3D = {
     tramonto: { alto: '#262a66', basso: '#ffa860', nebbia: '#c98a8f', emisfero: 0.5, cieloLuce: '#ffc9a8', sole: '#ffb27a', forza: 0.6, terra: '#efe2ea', buio: true }
 };
 
-function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trova }) {
+function creaPaese3D(contenitore, { onCasa, onSpeciale, onSlitta = () => {}, statoCasa, momento, trova }) {
     const T = window.THREE;
     const telefono = matchMedia('(pointer: coarse)').matches || innerWidth < 700;
     const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -6472,6 +6472,146 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trov
     scena.add(new T.Points(sciaGeo, new T.PointsMaterial({ size: 0.6, map: ALONE, vertexColors: true, transparent: true, blending: T.AdditiveBlending, depthWrite: false })));
     const storia = [];
 
+    // ---- Le ballerine intorno all'albero: ferme in cerchio, danzano con lo Schiaccianoci ----
+    const ballerine = [];
+    const calzamaglia = new T.MeshStandardMaterial({ color: '#f6c6d0', roughness: 0.6 });
+    const capelliB = new T.MeshStandardMaterial({ color: '#6b4226', roughness: 0.8 });
+    ['#ffd1e3', '#fff4fb', '#d6ecff', '#ffe9b8', '#e8d6ff', '#ffd1e3'].forEach((colore, i) => {
+        const b = new T.Group();
+        const stoffa = new T.MeshStandardMaterial({ color: colore, roughness: 0.5 });
+        [-0.07, 0.07].forEach(x => {
+            const gamba = new T.Mesh(new T.CylinderGeometry(0.045, 0.035, 0.9, 8), calzamaglia);
+            gamba.position.set(x, 0.45, 0);
+            b.add(gamba);
+        });
+        const tutu = new T.Mesh(new T.CylinderGeometry(0.5, 0.58, 0.1, 24), stoffa);
+        tutu.position.y = 0.95;
+        const sottogonna = new T.Mesh(new T.CylinderGeometry(0.42, 0.5, 0.08, 24), bianco);
+        sottogonna.position.y = 0.88;
+        const busto = new T.Mesh(new T.CylinderGeometry(0.12, 0.16, 0.5, 10), stoffa);
+        busto.position.y = 1.25;
+        const testaB = new T.Mesh(new T.SphereGeometry(0.13, 12, 10), pelle);
+        testaB.position.y = 1.62;
+        const chignonB = new T.Mesh(new T.SphereGeometry(0.07, 8, 6), capelliB);
+        chignonB.position.set(0, 1.76, -0.04);
+        const cuffia = new T.Mesh(new T.SphereGeometry(0.135, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2), capelliB);
+        cuffia.position.y = 1.63;
+        const braccia = new T.Group();
+        [-1, 1].forEach(lato => {
+            const braccio = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.6, 6), calzamaglia);
+            braccio.position.set(lato * 0.22, 1.62, 0);
+            braccio.rotation.z = lato * -0.5;
+            braccia.add(braccio);
+        });
+        b.add(tutu, sottogonna, busto, testaB, chignonB, cuffia, braccia);
+        b.children.forEach(m => (m.castShadow = true));
+        b.scale.setScalar(1.45);
+        b.userData = { base: (i / 6) * Math.PI * 2 + 0.3, braccia };
+        albero.add(b);
+        ballerine.push(b);
+    });
+
+    // ---- Il laghetto ghiacciato con i pattinatori ----
+    const lago = new T.Group();
+    const ghiaccio = new T.Mesh(new T.CircleGeometry(5, 48), new T.MeshStandardMaterial({ color: '#cfe9ff', roughness: 0.08, metalness: 0.25 }));
+    ghiaccio.rotation.x = -Math.PI / 2;
+    ghiaccio.scale.set(1.5, 1, 1);
+    ghiaccio.position.y = 0.05;
+    ghiaccio.receiveShadow = true;
+    const riva = new T.Mesh(new T.RingGeometry(5, 5.7, 48), neveMat);
+    riva.rotation.x = -Math.PI / 2;
+    riva.scale.set(1.5, 1, 1);
+    riva.position.y = 0.06;
+    lago.add(ghiaccio, riva);
+    // Riflessi sul ghiaccio
+    [[-2, 1, 1.6], [2.5, -1.2, 1.1]].forEach(([x, z, l]) => {
+        const riflesso = new T.Mesh(new T.PlaneGeometry(l, 0.12), new T.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.6 }));
+        riflesso.rotation.set(-Math.PI / 2, 0, 0.5);
+        riflesso.position.set(x, 0.07, z);
+        lago.add(riflesso);
+    });
+    const pattinatori = [['#c0392b', '#2e7d5b', 6, 3.4, 0.55, 0], ['#2d4f8a', '#f4d03f', 4.6, 2.6, -0.7, 2], ['#7d4e9e', '#c0392b', 5.4, 3, 0.45, 4], ['#2e7d5b', '#fbfdff', 3.2, 1.8, 0.9, 1]].map(([giacca, cappello, rx, rz, vel, fase]) => {
+        const p = personaggio(giacca, cappello, '#f2d2bd', 0.85);
+        const sciarpa = new T.Mesh(new T.TorusGeometry(0.2, 0.06, 6, 14), new T.MeshStandardMaterial({ color: cappello === '#fbfdff' ? '#c0392b' : cappello }));
+        sciarpa.rotation.x = Math.PI / 2;
+        sciarpa.position.y = 1.0;
+        p.add(sciarpa);
+        lago.add(p);
+        return { p, rx, rz, vel, fase };
+    });
+    lago.position.set(Math.cos(A(6.5)) * 45.5, 0, Math.sin(A(6.5)) * 45.5);
+    lago.lookAt(0, 0, 0);
+    scena.add(lago);
+
+    // ---- La slitta personale: Cometa o Rudolph la tirano di casa in casa ----
+    const STRADA_R = 29.25;
+    let mia = null, rennaScelta = null, angoloMia = 0, inCorsa = false;
+    const zampeMia = [];
+    const sciaMiaPos = new Float32Array(40 * 3);
+    const sciaMiaGeo = new T.BufferGeometry();
+    sciaMiaGeo.setAttribute('position', new T.BufferAttribute(sciaMiaPos, 3));
+    const sciaMia = new T.Points(sciaMiaGeo, new T.PointsMaterial({ color: '#ffe066', size: 0.5, map: ALONE, transparent: true, opacity: 0.9, blending: T.AdditiveBlending, depthWrite: false }));
+    sciaMia.visible = false;
+    scena.add(sciaMia);
+    const storiaMia = [];
+    function costruisciMia(renna) {
+        const g = new T.Group();
+        g.userData.slittaMia = true;
+        g.add(scatola(1.5, 0.7, 2.3, rosso, 0, 0.75, 0), scatola(1.5, 1.1, 0.45, rosso, 0, 0.95, -1), scatola(0.1, 0.1, 3, oro, -0.65, 0.3, 0.2), scatola(0.1, 0.1, 3, oro, 0.65, 0.3, 0.2));
+        [-0.65, 0.65].forEach(x => {
+            const ricciolo = new T.Mesh(new T.TorusGeometry(0.3, 0.05, 6, 12, Math.PI), oro);
+            ricciolo.rotation.y = Math.PI / 2;
+            ricciolo.position.set(x, 0.6, 1.7);
+            g.add(ricciolo);
+        });
+        const passeggero = personaggio('#2d4f8a', '#c0392b', '#f2d2bd', 0.75);
+        passeggero.position.set(0, 0.75, -0.2);
+        passeggero.visible = false;
+        g.add(passeggero);
+        g.userData.passeggero = passeggero;
+        const peloMio = new T.MeshStandardMaterial({ color: renna === 'cometa' ? '#c9b08f' : '#7a5034', roughness: 0.9 });
+        const tiro = (x, z, guida) => {
+            const r = new T.Group();
+            const collo = scatola(0.25, 0.6, 0.25, peloMio, 0, 1.4, 0.5);
+            collo.rotation.x = 0.4;
+            r.add(scatola(0.45, 0.5, 1.2, peloMio, 0, 1.0, 0), collo, scatola(0.3, 0.3, 0.45, peloMio, 0, 1.7, 0.75), scatola(0.05, 0.45, 0.05, corna, 0.12, 2.05, 0.65), scatola(0.05, 0.45, 0.05, corna, -0.12, 2.05, 0.65));
+            [[0.14, 0.4], [-0.14, 0.4], [0.14, -0.4], [-0.14, -0.4]].forEach(([zx, zz], i) => {
+                const zampa = scatola(0.09, 0.75, 0.09, peloMio, zx, 0.4, zz);
+                zampa.userData.fase = i % 2 ? 0 : Math.PI;
+                zampeMia.push(zampa);
+                r.add(zampa);
+            });
+            if (guida && renna === 'rudolph') {
+                const naso = new T.Mesh(new T.SphereGeometry(0.11, 8, 6), new T.MeshBasicMaterial({ color: '#ff3b30' }));
+                naso.position.set(0, 1.7, 1.0);
+                const luceNaso = alone('#ff3b30', 3.2, 0.95);
+                luceNaso.position.copy(naso.position);
+                r.add(naso, luceNaso);
+            }
+            if (guida && renna === 'cometa') {
+                const stellina = new T.Mesh(geoStella(0.28), new T.MeshBasicMaterial({ color: '#ffe066' }));
+                stellina.position.set(0, 2.45, 0.65);
+                const luceStellina = alone('#ffe066', 2.6, 0.9);
+                luceStellina.position.copy(stellina.position);
+                r.add(stellina, luceStellina);
+            }
+            r.children.forEach(m => (m.castShadow = true));
+            r.position.set(x, 0, z);
+            g.add(r);
+        };
+        tiro(0.4, 2.7, false);
+        tiro(-0.4, 2.7, false);
+        tiro(0, 4.4, true);
+        g.children.forEach(m => (m.castShadow = true));
+        return g;
+    }
+    function posaMia(a, verso = 1) {
+        angoloMia = a;
+        mia.position.set(Math.cos(a) * STRADA_R, 0, Math.sin(a) * STRADA_R);
+        mia.lookAt(Math.cos(a + verso * 0.02) * STRADA_R, 0, Math.sin(a + verso * 0.02) * STRADA_R);
+    }
+    const angoloCasa = c => Math.atan2(c.gruppo.position.z, c.gruppo.position.x);
+
     // ---- Neve che cade ----
     const FIOCCHI = telefono ? 1400 : 2800;
     const fiocchi = new Float32Array(FIOCCHI * 3), velocita = [];
@@ -6588,7 +6728,7 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trov
     function tocca(cx, cy) {
         const r = canvas.getBoundingClientRect();
         raggio.setFromCamera({ x: ((cx - r.left) / r.width) * 2 - 1, y: -((cy - r.top) / r.height) * 2 + 1 }, camera);
-        const colpi = raggio.intersectObjects([...case3D.map(c => c.gruppo), ...speciali.map(k => k.gruppo)], true);
+        const colpi = raggio.intersectObjects([...case3D.map(c => c.gruppo), ...speciali.map(k => k.gruppo), ...(mia ? [mia] : [])], true);
         // Contano solo le cose solide e visibili: non gli aloni di luce né le lucine spente
         const visibile = n => {
             for (; n; n = n.parent) if (!n.visible) return false;
@@ -6597,7 +6737,8 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trov
         const colpo = colpi.find(h => !h.object.isSprite && visibile(h.object));
         if (!colpo) return;
         let o = colpo.object;
-        while (o && !o.userData.giorno && !o.userData.speciale) o = o.parent;
+        while (o && !o.userData.giorno && !o.userData.speciale && !o.userData.slittaMia) o = o.parent;
+        if (o?.userData.slittaMia) return onSlitta();
         const sp = speciali.find(k => k.gruppo === o);
         if (sp) return toccaSpeciale(sp);
         const c = case3D.find(k => k.gruppo === o);
@@ -6605,6 +6746,7 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trov
     }
 
     function toccaCasa(c) {
+        if (mia && c.stato !== 'chiusa') return onCasa(c.giorno);
         if (c.stato === 'chiusa') {
             // Una casa ancora chiusa trema un po', e il villaggio dice quando si aprirà
             c.scossa = 1;
@@ -6751,6 +6893,32 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trov
             v.position.set(Math.cos(a) * BINARI, 0, Math.sin(a) * BINARI);
             v.lookAt(Math.cos(a + 0.01) * BINARI, 0, Math.sin(a + 0.01) * BINARI);
         });
+        // Ballerine: ferme in cerchio che ondeggiano, oppure in girotondo con piroette
+        const danza = sAlbero.fino > tempo;
+        ballerine.forEach((b, i) => {
+            const a = b.userData.base + (danza ? tempo * 0.5 : 0);
+            b.position.set(Math.cos(a) * 6.6, danza ? Math.abs(Math.sin(tempo * 3 + i)) * 0.25 : 0, Math.sin(a) * 6.6);
+            b.rotation.y = danza ? tempo * 5 + i : -a + Math.PI / 2 + Math.sin(tempo + i) * 0.15;
+            b.userData.braccia.rotation.z = danza ? Math.sin(tempo * 3 + i) * 0.3 : 0;
+        });
+        // Pattinatori che scivolano sul ghiaccio, piegati nelle curve
+        pattinatori.forEach(k => {
+            const t = tempo * k.vel + k.fase;
+            const x = Math.cos(t) * k.rx, z = Math.sin(t) * k.rz;
+            k.p.position.set(x, 0.06, z);
+            k.p.rotation.set(0, Math.atan2(-Math.sin(t) * k.rx * Math.sign(k.vel), Math.cos(t) * k.rz * Math.sign(k.vel)), Math.sign(k.vel) * -0.15);
+        });
+        // La slitta personale: le renne scalpitano, e Cometa lascia una scia di stelle
+        if (mia) {
+            zampeMia.forEach(z => (z.rotation.x = inCorsa ? Math.sin(tempo * 12 + z.userData.fase) * 0.7 : Math.sin(tempo * 1.5 + z.userData.fase) * 0.05));
+            if (rennaScelta === 'cometa') {
+                const punta = mia.localToWorld(new T.Vector3(0, 2.4, 4.6));
+                storiaMia.unshift(punta.add(new T.Vector3((caso() - 0.5) * 0.3, (caso() - 0.5) * 0.3, (caso() - 0.5) * 0.3)));
+                if (storiaMia.length > 40) storiaMia.pop();
+                storiaMia.forEach((v, i) => sciaMiaPos.set([v.x, v.y - i * 0.01, v.z], i * 3));
+                sciaMiaGeo.attributes.position.needsUpdate = true;
+            }
+        }
         renderer.render(scena, camera);
     }
 
@@ -6789,7 +6957,53 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trov
             signora.visible = si;
             casa24.aperturaPorta = si ? 0.001 : 0;
         },
-        panorama: () => panorama()
+        panorama: () => panorama(),
+        // La renna scelta nella stalla: la slitta compare sulla strada, vicino alla casa di oggi
+        slitta(renna, giornoVicino = 1) {
+            if (!renna || renna === rennaScelta) return;
+            if (mia) {
+                scena.remove(mia);
+                zampeMia.length = 0;
+            }
+            rennaScelta = renna;
+            mia = costruisciMia(renna);
+            scena.add(mia);
+            const c = case3D.find(k => k.giorno === giornoVicino) ?? case3D[0];
+            posaMia(angoloCasa(c) - 0.12);
+            storiaMia.length = 0;
+            sciaMia.visible = renna === 'cometa';
+        },
+        // Si sale e si corre sulla strada ad anello fino alla casa; poi si apre la porta
+        corsaVerso(giorno) {
+            const c = case3D.find(k => k.giorno === giorno);
+            if (!mia || !c || !attivo) return Promise.resolve();
+            mia.userData.passeggero.visible = true;
+            const da = angoloMia, a = vicino(angoloCasa(c) - 0.12, da);
+            const verso = a >= da ? 1 : -1;
+            const durata = Math.min(4200, Math.max(1400, Math.abs(a - da) * 1700));
+            inCorsa = true;
+            return new Promise(fatto => {
+                const inizio = performance.now();
+                const passo = adesso => {
+                    const t = Math.min(1, (adesso - inizio) / durata);
+                    const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                    posaMia(da + (a - da) * e, verso);
+                    // La telecamera segue la slitta da dietro e un po' dall'alto
+                    vicinoA = mia;
+                    meta.centro.set(mia.position.x, 2, mia.position.z);
+                    meta.angolo = vicino(angoloMia - verso * 0.9, vista.angolo);
+                    meta.alzo = 0.42;
+                    meta.distanza = 17;
+                    ultimoTocco = performance.now() + 1e9;
+                    if (t < 1 && attivo) return requestAnimationFrame(passo);
+                    inCorsa = false;
+                    avvicinaCasa(c);
+                    c.aperturaPorta = 0.001;
+                    setTimeout(fatto, 1100);
+                };
+                requestAnimationFrame(passo);
+            });
+        }
     };
 }
 
@@ -7109,7 +7323,12 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
         seguiTreno = false;
         // Con la slitta personale si arriva davanti alla casa correndo sulla strada
-        if (slittaMia && !contenitore.classList.contains('vista-3d')) {
+        // In 3D la slitta corre sulla strada ad anello; nel disegno, lungo la strada del paese
+        if (rennaMia && paese3D && contenitore.classList.contains('vista-3d')) {
+            inApertura = true;
+            await paese3D.corsaVerso(giorno);
+            inApertura = false;
+        } else if (slittaMia) {
             inApertura = true;
             await corsaMia(Number(casa.dataset.x) - 80);
             inApertura = false;
@@ -7359,7 +7578,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (!slittaMia || !casa) return;
         onTocco();
         slittaMia.classList.add('a-bordo');
-        await corsaMia(Number(casa.dataset.x) - 80);
+        if (!contenitore.classList.contains('vista-3d')) await corsaMia(Number(casa.dataset.x) - 80);
         apriCasa(casa);
     }
 
@@ -7376,6 +7595,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             slittaMia = disegnaSlittaMia(nome);
             posizionaMia(stallaX - 70, false, 842);
         } else xMia = dove;
+        paese3D?.slitta(nome, Number(casaDaRaggiungere()?.dataset.giorno ?? 1));
     }
 
     // ---- Il 24: la signora Natale alla porta, poi in cucina ----
@@ -7944,6 +8164,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
                     onCasa: giorno => apriCasa(mondo.querySelector(`.casa[data-giorno="${giorno}"]`)),
                     // Gli edifici 3D bussano alla stessa porta di quelli disegnati
                     onSpeciale: elemento => elemento.dispatchEvent(new MouseEvent('click', { bubbles: true })),
+                    onSlitta: () => invitaASalire(),
                     trova: (selettore, indice = 0) => mondo.querySelectorAll(selettore)[indice] ?? null,
                     statoCasa: statoCasa3D,
                     momento: () => MOMENTI.find(m => contenitore.classList.contains(`momento-${m}`)) ?? 'notte'
@@ -7956,6 +8177,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             if (!paese3D.canvas.isConnected) neve.after(paese3D.canvas);
             contenitore.classList.add('vista-3d');
             paese3D.avvia(modifica ? Number(casaDaRaggiungere()?.dataset.giorno ?? 1) : Math.max(1, Math.min(aperti, 24)));
+            if (rennaMia) paese3D.slitta(rennaMia, Number(casaDaRaggiungere()?.dataset.giorno ?? 1));
             suggerimento.textContent = matchMedia('(pointer: coarse)').matches ? '↻ Gira con il dito · tocca una casa' : '↻ Trascina per girare · clicca una casa';
         } else {
             paese3D?.ferma();
