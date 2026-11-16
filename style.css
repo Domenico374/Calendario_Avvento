@@ -2414,3 +2414,9 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .scia-cometa path, .scena .braccio-signora, .scena .signora-natale { animation: none; }
 }
+
+/* ---- Salire sulla slitta ---- */
+.scena .slitta-mia { cursor: pointer; }
+.scena .slitta-mia:focus-visible { outline: none; filter: drop-shadow(0 0 8px rgba(255, 220, 140, 0.95)); }
+.scena .slitta-mia .passeggero { opacity: 0; transition: opacity 0.5s; }
+.scena .slitta-mia.a-bordo .passeggero { opacity: 1; }

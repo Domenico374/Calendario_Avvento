@@ -6029,8 +6029,9 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             posizionaSlitta(xSlitta);
             fumettoGuida.classList.remove('nascosto');
         } else if (stanza === stalla && slittaMia) {
-            // Usciti dalla stalla, la vista va sulla slitta con la renna appena scelta
+            // Usciti dalla stalla, la vista va sulla slitta con la renna appena scelta, che invita a salire
             posizionaMia(xMia, true, yMia);
+            invitaASalire();
         }
     }
 
@@ -6056,7 +6057,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     let slittaMia = null, xMia = 0, yMia = 0, animMia = null;
 
     function disegnaSlittaMia(renna) {
-        const g = el('g', { class: `slitta-mia slitta-${renna}`, 'pointer-events': 'none' }, mondo);
+        const g = el('g', { class: `slitta-mia slitta-${renna}`, tabindex: 0, role: 'button', 'aria-label': `La tua slitta con ${NOMI_RENNA[renna]}: tocca per salire e partire` }, mondo);
         const corpo = el('g', { class: 'slitta-tour-corpo' }, g);
         el('ellipse', { cx: 30, cy: 6, rx: 120, ry: 11, fill: 'rgba(40,60,110,0.3)' }, corpo);
         // Cometa lascia una scia di stelline, Rudolph illumina la strada col naso
@@ -6073,6 +6074,17 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26', stroke: '#e8c766', 'stroke-width': 3, fill: 'none' }, corpo);
         el('path', { d: 'M-44 -40 q 20 -14 40 0 Z', fill: '#2e7d4a' }, corpo);
         el('text', { x: -10, y: -16, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, corpo).textContent = '★ TU ★';
+        // Il passeggero seduto, con berretto e sciarpa: compare quando si sale a bordo
+        const passeggero = el('g', { class: 'passeggero' }, corpo);
+        el('path', { d: 'M-34 -44 q 0 -26 18 -26 q 18 0 18 26 Z', fill: '#2d4f8a' }, passeggero);
+        el('rect', { x: -32, y: -66, width: 32, height: 7, rx: 3, fill: '#c0392b' }, passeggero);
+        el('circle', { cx: -16, cy: -80, r: 11, fill: '#f2d2bd' }, passeggero);
+        el('path', { d: 'M-27 -82 Q-27 -96 -16 -96 Q-5 -96 -5 -82 Z', fill: '#c0392b' }, passeggero);
+        el('rect', { x: -28, y: -84, width: 24, height: 5, rx: 2.5, fill: '#fbfdff' }, passeggero);
+        el('circle', { cx: -16, cy: -98, r: 3.5, fill: '#fbfdff' }, passeggero);
+        el('circle', { cx: -12, cy: -80, r: 1.4, fill: '#2a1d14' }, passeggero);
+        el('path', { d: 'M-14 -75 q 3 2 6 0', stroke: '#7a3a2a', 'stroke-width': 1.2, fill: 'none' }, passeggero);
+        el('path', { class: 'braccio-elfo saluta', d: 'M-4 -58 q 10 -6 12 -18', stroke: '#2d4f8a', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, passeggero);
         el('path', { d: 'M-62 6 L-58 14 M30 6 L26 14 M-80 14 H40 Q56 14 54 2', stroke: '#e8c766', 'stroke-width': 3.5, fill: 'none', 'stroke-linecap': 'round' }, corpo);
         return g;
     }
@@ -6117,6 +6129,52 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             };
             animMia = requestAnimationFrame(passo);
         });
+    }
+
+    // La casa dove porta la slitta: quella di oggi; per chi prepara, la prima ancora vuota
+    function casaDaRaggiungere() {
+        let giorno = Math.max(1, Math.min(aperti, 24));
+        if (modifica) {
+            giorno = 1;
+            for (let g = 1; g <= 24; g++) if (!piene.has(g)) { giorno = g; break; }
+        }
+        return mondo.querySelector(`.casa[data-giorno="${giorno}"]`);
+    }
+
+    function invitaASalire() {
+        if (!slittaMia || slittaTour) return;
+        const casa = casaDaRaggiungere();
+        const numero = casa?.dataset.giorno;
+        modoFumetto = 'slitta';
+        facciaGuida.textContent = rennaMia === 'rudolph' ? '🔴' : '✨';
+        nomeGuida.textContent = NOMI_RENNA[rennaMia];
+        testoGuida.textContent = modifica
+            ? `Sali sulla slitta! Ti porto alla casa numero ${numero}, così prepari la sua sorpresa.`
+            : aperti >= 1
+                ? `Sali sulla slitta! Ti porto alla casa di oggi, la numero ${numero}.`
+                : 'Sali sulla slitta! Ti porto alla casa numero 1: si aprirà il 1° dicembre.';
+        entraGuida.hidden = true;
+        conCometa.hidden = true;
+        conRudolph.hidden = true;
+        avantiGuida.hidden = false;
+        avantiGuida.textContent = '🛷 Sali e parti';
+        saltaGuida.hidden = false;
+        saltaGuida.textContent = 'Non ora';
+        fumettoGuida.hidden = false;
+        fumettoGuida.classList.remove('nascosto');
+        avantiGuida.focus({ preventScroll: true });
+    }
+
+    async function partiConLaSlitta() {
+        fumettoGuida.hidden = true;
+        saltaGuida.textContent = 'Salta il tour';
+        modoFumetto = 'tour';
+        const casa = casaDaRaggiungere();
+        if (!slittaMia || !casa) return;
+        onTocco();
+        slittaMia.classList.add('a-bordo');
+        await corsaMia(Number(casa.dataset.x) - 80);
+        apriCasa(casa);
     }
 
     function scegliRenna(nome, subito = true) {
@@ -6309,6 +6367,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (rennaMia) {
             // La slitta personale parte da dove si è fermato il tour e porta alla casa di oggi
             if (!slittaMia) slittaMia = disegnaSlittaMia(rennaMia);
+            slittaMia.classList.add('a-bordo');
             posizionaMia(dove, true);
             corsaMia(Number(casa?.dataset.x ?? PIAZZA.x) - 80);
             return;
@@ -6327,12 +6386,22 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         parla(`Ciao, sono ${guidaScelta.nome}! Sali sulla slitta: ti porto a scoprire il quartiere di Babbo Natale, proprio qui dietro la stazione.`);
     }
 
-    avantiGuida.addEventListener('click', () => (modoFumetto === 'finale' ? entraInCucina() : prossimaTappa()));
+    avantiGuida.addEventListener('click', () => {
+        if (modoFumetto === 'finale') entraInCucina();
+        else if (modoFumetto === 'slitta') partiConLaSlitta();
+        else prossimaTappa();
+    });
     [[conCometa, 'cometa'], [conRudolph, 'rudolph']].forEach(([bottone, nome]) => bottone.addEventListener('click', () => {
         scegliRenna(nome, false);
         prossimaTappa();
     }));
-    saltaGuida.addEventListener('click', fineTour);
+    saltaGuida.addEventListener('click', () => {
+        if (modoFumetto === 'slitta') {
+            fumettoGuida.hidden = true;
+            saltaGuida.textContent = 'Salta il tour';
+            modoFumetto = 'tour';
+        } else fineTour();
+    });
     entraGuida.addEventListener('click', () => {
         const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour]?.edificio);
         if (!edificio) return;
@@ -6468,6 +6537,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (edificio) return entraNelQuartiere(edificio);
         const negozioAddobbi = evento.target.closest('.negozio');
         if (negozioAddobbi) return entraNelNegozio(negozioAddobbi);
+        if (evento.target.closest('.slitta-mia')) return invitaASalire();
         const casa = evento.target.closest('.casa');
         if (casa) apriCasa(casa);
     });
