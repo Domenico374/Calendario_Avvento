@@ -2061,3 +2061,25 @@ body::before {
 @media (max-width: 899px) {
     .scena .negozio-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
 }
+
+/* ---- Luce e ombre ---- */
+/* Le pozze di luce calda e i coni dei lampioni si vedono solo quando fa buio */
+.scena .pozza-luce, .scena .pozza-lampione, .scena .cono-lampione { opacity: 0; transition: opacity 1.5s; }
+.scena.momento-notte .aperta .pozza-luce, .scena.momento-tramonto .aperta .pozza-luce { opacity: 1; }
+.scena.momento-notte .pozza-lampione, .scena.momento-notte .cono-lampione { opacity: 1; }
+.scena.momento-tramonto .pozza-lampione, .scena.momento-tramonto .cono-lampione,
+.scena.momento-alba .pozza-lampione, .scena.momento-alba .cono-lampione { opacity: 0.6; }
+/* Di giorno le ombre sono più nette, di notte più leggere */
+.scena.momento-giorno .ombra-proiettata { opacity: 0.3; }
+.scena.momento-notte .ombra-proiettata { opacity: 0.14; }
+.scena .brillantini path { opacity: 0; animation: brillantino 3.6s ease-in-out infinite; }
+@keyframes brillantino { 0%, 70%, 100% { opacity: 0; transform: scale(0.4); } 82% { opacity: 1; transform: scale(1.2); } }
+.scena .brillantini path { transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .brillantini path { animation: none; opacity: 0.5; }
+}
+
+.scena .buio-terra { opacity: 0; transition: opacity 1.5s; }
+.scena.momento-notte .buio-terra { opacity: 0.32; }
+.scena.momento-tramonto .buio-terra { opacity: 0.14; }
+.scena.momento-alba .buio-terra { opacity: 0.1; }

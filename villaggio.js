@@ -88,6 +88,24 @@ function disegnaDefinizioni(svg) {
     const unisci = el('feMerge', {}, bagliore);
     el('feMergeNode', { in: 'b' }, unisci);
     el('feMergeNode', { in: 'SourceGraphic' }, unisci);
+    // La luce arriva da sinistra (luna o sole): il lato sinistro è più chiaro, il destro in ombra
+    const luce = el('linearGradient', { id: 'luce-facciata', x1: 0, y1: 0, x2: 1, y2: 0.25 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#fff6e0', 'stop-opacity': 0.16 }, luce);
+    el('stop', { offset: '45%', 'stop-color': '#fff6e0', 'stop-opacity': 0 }, luce);
+    el('stop', { offset: '100%', 'stop-color': '#0b1440', 'stop-opacity': 0.22 }, luce);
+    const lucetetto = el('linearGradient', { id: 'luce-tetto', x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': 0.14 }, lucetetto);
+    el('stop', { offset: '50%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, lucetetto);
+    el('stop', { offset: '100%', 'stop-color': '#0b1440', 'stop-opacity': 0.25 }, lucetetto);
+    const ombraMorbida = el('filter', { id: 'ombra-morbida', x: '-30%', y: '-60%', width: '160%', height: '220%' }, defs);
+    el('feGaussianBlur', { stdDeviation: 5 }, ombraMorbida);
+    const pozza = el('radialGradient', { id: 'pozza-luce' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffcf73', 'stop-opacity': 0.55 }, pozza);
+    el('stop', { offset: '60%', 'stop-color': '#ffcf73', 'stop-opacity': 0.18 }, pozza);
+    el('stop', { offset: '100%', 'stop-color': '#ffcf73', 'stop-opacity': 0 }, pozza);
+    const cono = el('linearGradient', { id: 'cono-luce', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#fff1b8', 'stop-opacity': 0.45 }, cono);
+    el('stop', { offset: '100%', 'stop-color': '#fff1b8', 'stop-opacity': 0 }, cono);
     const alone = el('radialGradient', { id: 'alone' }, defs);
     el('stop', { offset: '0%', 'stop-color': '#ffe08a', 'stop-opacity': 0.9 }, alone);
     el('stop', { offset: '100%', 'stop-color': '#ffe08a', 'stop-opacity': 0 }, alone);
@@ -500,7 +518,11 @@ function disegnaRenna(mondo, x, y, scala, { percorso = 0, durata = 26, ritardo =
 
 function disegnaLampione(mondo, x, y, scala) {
     const lampione = el('g', { transform: `translate(${x} ${y}) scale(${scala})` }, mondo);
+    el('path', { class: 'ombra-proiettata', d: 'M-3 0 L3 0 L90 -16 L84 -18 Z', fill: '#2d3c78', opacity: 0.22, filter: 'url(#ombra-morbida)' }, lampione);
+    el('ellipse', { class: 'pozza-lampione', cx: 0, cy: 2, rx: 70, ry: 16, fill: 'url(#pozza-luce)' }, lampione);
+    el('path', { class: 'cono-lampione', d: 'M-9 -112 L-58 0 L58 0 L9 -112 Z', fill: 'url(#cono-luce)' }, lampione);
     el('rect', { x: -3, y: -110, width: 6, height: 110, fill: '#2c2f45' }, lampione);
+    el('rect', { x: -3, y: -110, width: 2, height: 110, fill: '#5a6080', opacity: 0.7 }, lampione);
     el('circle', { cx: 0, cy: -118, r: 30, fill: 'url(#alone)', opacity: 0.8 }, lampione);
     el('rect', { x: -10, y: -128, width: 20, height: 20, rx: 3, fill: '#ffe08a', filter: 'url(#bagliore)' }, lampione);
     el('path', { d: 'M-13 -128 L0 -140 L13 -128 Z', fill: '#2c2f45' }, lampione);
@@ -519,9 +541,11 @@ function disegnaPupazzo(mondo, x, y, scala) {
 
 function disegnaAbete(genitore, x, y, scala, colore) {
     const g = el('g', { transform: `translate(${x} ${y}) scale(${scala})` }, genitore);
+    el('path', { d: 'M-18 2 L18 2 L70 -10 L40 -12 Z', fill: '#2d3c78', opacity: 0.18, filter: 'url(#ombra-morbida)' }, g);
     el('rect', { x: -4, y: -10, width: 8, height: 12, fill: '#4a3426' }, g);
     [[0, 46, 34], [-22, 38, 28], [-42, 28, 20]].forEach(([dy, larghezza, altezza]) => {
         el('path', { d: `M${-larghezza / 2} ${dy - 8} L0 ${dy - 8 - altezza} L${larghezza / 2} ${dy - 8} Z`, fill: colore }, g);
+        el('path', { d: `M0 ${dy - 8 - altezza} L${larghezza / 2} ${dy - 8} L${larghezza / 8} ${dy - 6} Z`, fill: '#0b1440', opacity: 0.22 }, g);
         el('path', { d: `M${-larghezza / 4} ${dy - 8 - altezza / 2} L0 ${dy - 8 - altezza} L${larghezza / 4} ${dy - 8 - altezza / 2} Z`, fill: '#f4f8ff' }, g);
     });
     return g;
@@ -589,7 +613,12 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
         'aria-label': `${giorno} dicembre`, transform: `translate(${x} ${y}) scale(${scala})`
     }, mondo);
     el('ellipse', { class: 'alone', cx: 10, cy: -h / 2, rx: w * 1.1, ry: h, fill: 'url(#alone)' }, casa);
+    // Ombra lunga e morbida verso destra, come se la luce venisse da sinistra
+    const lunga = h * 0.9 + 30;
+    el('path', { class: 'ombra-proiettata', d: `M${-w / 2 + 6} 2 L${w / 2 + dx} ${-dy + 2} L${w / 2 + dx + lunga} ${-dy - lunga * 0.16} L${-w / 2 + lunga} ${-lunga * 0.16} Z`, fill: '#2d3c78', opacity: 0.2, filter: 'url(#ombra-morbida)' }, casa);
     el('ellipse', { cx: 14 * verso, cy: 4, rx: w * 0.8, ry: 11, fill: '#6f84bd', opacity: 0.35 }, casa);
+    // Di notte, la luce delle finestre accese si posa sulla neve davanti alla casa
+    el('ellipse', { class: 'pozza-luce', cx: 0, cy: 14, rx: w * 0.85, ry: 20, fill: 'url(#pozza-luce)' }, casa);
     const corpo = el('g', { class: 'corpo' }, casa);
 
     // ---- Fianco ----
@@ -620,6 +649,7 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
         }, corpo);
     }
     el('rect', { x: -w / 2, y: -h, width: w, height: h, fill: 'url(#ombra-muro)' }, corpo);
+    el('rect', { x: -w / 2, y: -h, width: w, height: h, fill: 'url(#luce-facciata)' }, corpo);
     // Zoccolo in pietra
     el('rect', { x: -w / 2, y: -12, width: w, height: 12, fill: '#8b8e9e' }, corpo);
     el('rect', { x: -w / 2, y: -12, width: w, height: 12, fill: 'url(#tex-pietra)' }, corpo);
@@ -651,6 +681,7 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
 
         el('path', { d: `M${-w / 2 - 6} ${-h} L0 ${-h - rh} L${w / 2 + 6} ${-h} Z`, fill: colori.tetto }, corpo);
         el('path', { d: `M${-w / 2 - 6} ${-h} L0 ${-h - rh} L${w / 2 + 6} ${-h} Z`, fill: 'url(#tex-assi)', opacity: 0.6 }, corpo);
+        el('path', { d: `M${-w / 2 - 6} ${-h} L0 ${-h - rh} L${w / 2 + 6} ${-h} Z`, fill: 'url(#luce-tetto)' }, corpo);
         // Ombra della gronda sul timpano e tavola di bordo
         el('path', { d: `M${-w / 2 - 4} ${-h + 3} L0 ${-h - rh + 5} L${w / 2 + 4} ${-h + 3}`, fill: 'none', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 6 }, corpo);
         el('path', { d: `M${-w / 2 - 9} ${-h + 1} L0 ${-h - rh - 1} L${w / 2 + 9} ${-h + 1}`, fill: 'none', stroke: scurisci(colori.tetto, 0.45), 'stroke-width': 6, 'stroke-linejoin': 'round' }, corpo);
@@ -1434,6 +1465,19 @@ function disegnaMercatino(mondo, x, y, scala) {
 
 // ---- La neve che cresce giorno dopo giorno ----
 // Cumuli e mucchi di neve in più: diventano sempre più visibili man mano che si va verso Natale
+// Brillantini sulla neve che luccicano qua e là, divisi in gruppi lungo il paese
+function disegnaBrillantini(mondo) {
+    let seme2 = 3;
+    const caso2 = () => (seme2 = (seme2 * 16807) % 2147483647) / 2147483647;
+    for (let tratto = 0; tratto < MONDO; tratto += 400) {
+        const gruppo = el('g', { class: 'brillantini', 'pointer-events': 'none' }, mondo);
+        for (let i = 0; i < 12; i++) {
+            const x = tratto + caso2() * 400, y = 600 + caso2() * 290;
+            el('path', { d: `M${x.toFixed(1)} ${(y - 3).toFixed(1)} L${(x + 0.8).toFixed(1)} ${y.toFixed(1)} L${x.toFixed(1)} ${(y + 3).toFixed(1)} L${(x - 0.8).toFixed(1)} ${y.toFixed(1)} Z M${(x - 3).toFixed(1)} ${y.toFixed(1)} L${x.toFixed(1)} ${(y - 0.8).toFixed(1)} L${(x + 3).toFixed(1)} ${y.toFixed(1)} L${x.toFixed(1)} ${(y + 0.8).toFixed(1)} Z`, fill: '#ffffff', style: `animation-delay:-${(caso2() * 4).toFixed(2)}s` }, gruppo);
+        }
+    }
+}
+
 function disegnaNeveCheCresce(mondo) {
     const neve = el('g', { class: 'neve-extra', 'pointer-events': 'none' }, mondo);
     [[220, 790], [470, 812], [700, 668], [1150, 800], [1390, 770], [2230, 812], [2460, 768], [2700, 800], [3060, 780], [3500, 800], [1320, 655], [2520, 650], [3240, 640]]
@@ -2726,6 +2770,9 @@ function profiloStrada(mondo) {
 function disegnaPaese(mondo) {
     disegnaTerreno(mondo);
     disegnaNeveCheCresce(mondo);
+    disegnaBrillantini(mondo);
+    // Di notte la neve si fa più scura e blu: le luci delle case e dei lampioni risaltano
+    el('rect', { class: 'buio-terra', x: -300, y: 530, width: MONDO + 800, height: 420, fill: '#0b1440', 'pointer-events': 'none' }, mondo);
     const yStrada = profiloStrada(mondo);
 
     const elementi = [];
