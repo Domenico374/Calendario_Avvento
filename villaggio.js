@@ -2139,6 +2139,24 @@ function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', l
     });
     el('rect', { x: -1400, y: 820, width: 4400, height: 700, fill: '#5d3a22' }, svg);
     el('rect', { x: -1400, y: 812, width: 4400, height: 14, fill: '#8a5a3c' }, svg);
+    // Allo sportello c'è un elfo che accoglie chi entra
+    disegnaElfo(svg, 1400, 700, 1.7, { giacca: '#a3242c', cappello: '#2e7d4a', capelli: '#c9984a' }).braccio.classList.add('saluta');
+    el('rect', { x: 1160, y: 640, width: 460, height: 200, fill: '#8a5a3c' }, svg);
+    el('rect', { x: 1160, y: 640, width: 460, height: 200, fill: 'url(#tex-assi)' }, svg);
+    el('rect', { x: 1145, y: 624, width: 490, height: 22, rx: 4, fill: '#a0663a' }, svg);
+    el('rect', { x: 1250, y: 690, width: 280, height: 46, rx: 8, fill: '#a3242c', stroke: '#e8c766', 'stroke-width': 3 }, svg);
+    el('text', { x: 1390, y: 721, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 'bold', 'letter-spacing': 2, 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = 'SPORTELLO';
+    // Timbro e pila di buste sul bancone
+    el('rect', { x: 1190, y: 600, width: 40, height: 26, rx: 3, fill: '#5d3a22' }, svg);
+    el('rect', { x: 1200, y: 586, width: 20, height: 16, rx: 3, fill: '#c0392b' }, svg);
+    [0, 1, 2].forEach(k => el('rect', { x: 1540 - k * 4, y: 606 - k * 8, width: 56, height: 18, rx: 2, fill: ['#fffaf0', '#fde7c8', '#e8f1ff'][k], stroke: '#c9a227', 'stroke-width': 1.5 }, svg));
+    const fumettoElfo = el('g', {}, svg);
+    el('rect', { x: 1190, y: 250, width: 400, height: 168, rx: 30, fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 3 }, fumettoElfo);
+    el('path', { d: 'M1370 412 L1392 452 L1410 412 Z', fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 3, 'stroke-linejoin': 'round' }, fumettoElfo);
+    el('rect', { x: 1366, y: 404, width: 48, height: 12, fill: '#fffdf6' }, fumettoElfo);
+    ['Benvenuti alla posta', 'del Polo Nord! Scrivete', 'qui la letterina: la porto', 'io a Babbo Natale!'].forEach((riga, i) => {
+        el('text', { x: 1390, y: 292 + i * 34, 'text-anchor': 'middle', 'font-size': 25, 'font-family': 'Georgia, serif', fill: '#3b2416' }, fumettoElfo).textContent = riga;
+    });
 
     const scrivi = () => {
         foglio.replaceChildren();
@@ -2423,6 +2441,13 @@ function creaLaboratorio({ onEsci }) {
     pacco(el('g', { transform: 'translate(1110 780) scale(1.2)' }, svg), CARTE_PACCHI[3]);
     // Pila di regali finiti
     [[1500, 860, 0], [1560, 860, 1], [1530, 808, 2], [1460, 860, 4]].forEach(([px, py, i]) => pacco(el('g', { transform: `translate(${px} ${py}) scale(1.6)` }, svg), CARTE_PACCHI[i]));
+
+    // Il tour in minibus con Fiocco, l'elfo autista
+    const tour = creaTour(nodo);
+    const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'ricomincia bottone-tour', textContent: '🚌 Fai il tour con l\'elfo' });
+    nodo.append(bottoneTour);
+    bottoneTour.addEventListener('click', () => tour.apri());
+    esci.addEventListener('click', () => tour.chiudi());
 
     return {
         nodo,
@@ -2812,6 +2837,475 @@ function creaNegozio({ onEsci, onTocco }) {
             nodo.classList.remove('visibile');
             nodo.hidden = true;
         }
+    };
+}
+
+// ========== LE RICETTE ==========
+// Toccando il dolce sul tavolino del salotto (o il cibo delle nonne al mercatino) si apre la ricetta
+
+const ATTENZIONE_CALDO = 'Olio e zucchero bollenti: meglio farlo insieme a un adulto.';
+
+const RICETTE = {
+    'Biscotti a stella': {
+        tempo: '30 minuti + 30 di riposo',
+        ingredienti: ['250 g di farina', '125 g di burro morbido', '100 g di zucchero', '1 uovo', 'la scorza di un limone', 'zucchero a velo'],
+        passi: ['Lavora il burro con lo zucchero, poi aggiungi l\'uovo e la scorza di limone.', 'Unisci la farina e impasta fino a ottenere una palla liscia. Mettila in frigo per 30 minuti.', 'Stendi l\'impasto alto mezzo centimetro e ritaglia le stelle con lo stampino.', 'Cuoci a 180 °C per 10-12 minuti, finché i bordi sono dorati.', 'Quando sono fredde, spolverale di zucchero a velo.']
+    },
+    'Omini di pan di zenzero': {
+        tempo: '40 minuti + 1 ora di riposo',
+        ingredienti: ['300 g di farina', '100 g di burro', '100 g di zucchero di canna', '3 cucchiai di miele', '1 uovo', '2 cucchiaini di zenzero in polvere', '1 cucchiaino di cannella', '½ cucchiaino di bicarbonato', 'per la glassa: zucchero a velo e un albume'],
+        passi: ['Sciogli a fuoco basso il burro con lo zucchero e il miele, poi lascia intiepidire.', 'Aggiungi l\'uovo, la farina, le spezie e il bicarbonato e impasta.', 'Avvolgi l\'impasto nella pellicola e lascialo in frigo per un\'ora.', 'Stendilo alto mezzo centimetro e ritaglia gli omini.', 'Cuoci a 180 °C per 10 minuti. Da freddi, disegna occhi e bottoni con la glassa.']
+    },
+    'Bastoncini di zucchero': {
+        tempo: '40 minuti',
+        ingredienti: ['200 g di zucchero', '60 ml di acqua', '2 cucchiai di sciroppo di glucosio', 'qualche goccia di aroma di menta', 'colorante alimentare rosso'],
+        passi: ['Cuoci zucchero, acqua e glucosio finché lo sciroppo arriva a 150 °C (serve il termometro da cucina).', 'Togli dal fuoco, aggiungi la menta e versa su un piano unto, dividendo in due parti.', 'Colora di rosso una parte e lascia l\'altra bianca.', 'Appena si possono maneggiare (con i guanti!), fai due cordoncini, attorcigliali insieme e piega la cima a bastone.'],
+        nota: ATTENZIONE_CALDO
+    },
+    'Mandarini e noci': {
+        tempo: '20 minuti',
+        ingredienti: ['4 mandarini', '100 g di cioccolato fondente', '12 noci', '2 cucchiai di miele'],
+        passi: ['Sbuccia i mandarini e dividili a spicchi.', 'Sciogli il cioccolato a bagnomaria.', 'Immergi metà di ogni spicchio nel cioccolato e appoggialo su carta da forno.', 'Sguscia le noci e passale nel miele.', 'Metti tutto in frigo per 10 minuti e servi in una ciotola, come si faceva una volta.']
+    },
+    'Cioccolata calda': {
+        tempo: '10 minuti',
+        ingredienti: ['500 ml di latte', '100 g di cioccolato fondente', '2 cucchiai di cacao amaro', '3 cucchiai di zucchero', '1 cucchiaio di amido di mais', 'panna montata'],
+        passi: ['In un pentolino mescola cacao, zucchero e amido.', 'Aggiungi il latte freddo poco alla volta, mescolando bene per non fare grumi.', 'Scalda a fuoco basso e unisci il cioccolato a pezzetti.', 'Continua a mescolare per 5 minuti, finché diventa densa.', 'Versa nelle tazze e aggiungi un ciuffo di panna montata.']
+    },
+    'Torrone': {
+        tempo: '1 ora e mezza',
+        ingredienti: ['250 g di miele', '200 g di zucchero', '2 albumi', '400 g di mandorle pelate', '2 fogli di ostia', 'la scorza di un limone'],
+        passi: ['Tosta le mandorle in forno a 160 °C per 10 minuti.', 'Scalda il miele a bagnomaria mescolando per circa un\'ora, finché diventa chiaro e denso.', 'Monta gli albumi a neve e uniscili al miele, sempre mescolando.', 'A parte cuoci lo zucchero con un goccio d\'acqua fino a sciroppo, poi uniscilo al composto con mandorle e scorza.', 'Stendi tra due fogli di ostia, schiaccia bene, lascia raffreddare e taglia a barrette.'],
+        nota: ATTENZIONE_CALDO
+    },
+    'Ricciarelli': {
+        tempo: '30 minuti + una notte di riposo',
+        ingredienti: ['250 g di farina di mandorle', '200 g di zucchero a velo (e altro per rotolarli)', '2 albumi', 'la scorza grattugiata di un\'arancia', 'un pizzico di lievito per dolci'],
+        passi: ['Monta gli albumi non troppo fermi.', 'Unisci la farina di mandorle, lo zucchero a velo, la scorza e il lievito.', 'Forma dei piccoli ovali e rotolali nello zucchero a velo.', 'Lasciali riposare su una teglia tutta la notte.', 'Cuoci a 160 °C per 12-15 minuti: devono restare morbidi e con le crepe in superficie.']
+    },
+    'Struffoli': {
+        tempo: '1 ora',
+        ingredienti: ['300 g di farina', '3 uova', '30 g di burro', '1 cucchiaio di zucchero', 'la scorza di un limone', 'olio per friggere', '200 g di miele', 'confettini colorati e canditi'],
+        passi: ['Impasta farina, uova, burro, zucchero e scorza fino a una palla liscia.', 'Fai dei cordoncini sottili e tagliali a palline grandi come una nocciola.', 'Friggi le palline poco alla volta in olio caldo finché sono dorate.', 'Sciogli il miele in una pentola larga e mescolaci dentro gli struffoli.', 'Disponili a corona su un piatto e decora con confettini e canditi.'],
+        nota: ATTENZIONE_CALDO
+    },
+    'Cavallucci': {
+        tempo: '40 minuti',
+        ingredienti: ['250 g di farina', '200 g di zucchero', '70 ml di acqua', '80 g di noci tritate', '50 g di canditi', '1 cucchiaino di semi di anice', 'un pizzico di cannella', 'un pizzico di bicarbonato'],
+        passi: ['Sciogli lo zucchero nell\'acqua a fuoco basso.', 'Togli dal fuoco e aggiungi farina, noci, canditi, anice, cannella e bicarbonato.', 'Con le mani infarinate forma delle palline e schiacciale un po\'.', 'Cuoci a 160 °C per 15-20 minuti: devono restare chiari.']
+    },
+    'Roccocò': {
+        tempo: '50 minuti',
+        ingredienti: ['300 g di farina', '250 g di zucchero', '200 g di mandorle intere', '100 ml di succo d\'arancia', '1 cucchiaino di spezie miste (cannella, chiodi di garofano, noce moscata)', 'un pizzico di ammoniaca per dolci', '1 uovo per spennellare'],
+        passi: ['Tosta le mandorle in forno per qualche minuto.', 'Impasta farina, zucchero, mandorle, succo d\'arancia, spezie e ammoniaca.', 'Fai dei cordoni grossi come un dito e chiudili ad anello.', 'Spennella con l\'uovo sbattuto.', 'Cuoci a 180 °C per circa 20 minuti: diventano belli croccanti.']
+    },
+    'Mostaccioli': {
+        tempo: '50 minuti',
+        ingredienti: ['300 g di farina', '150 g di miele', '80 g di zucchero', '30 g di cacao amaro', '80 ml di acqua o succo d\'arancia', '1 cucchiaino di spezie miste', 'un pizzico di ammoniaca per dolci', '200 g di cioccolato fondente per coprirli'],
+        passi: ['Scalda un poco il miele con l\'acqua.', 'Impasta con farina, zucchero, cacao, spezie e ammoniaca.', 'Stendi alto un centimetro e taglia a rombi.', 'Cuoci a 180 °C per 15 minuti.', 'Da freddi, ricoprili di cioccolato fuso e lascialo indurire.']
+    },
+    'Castagne': {
+        tempo: '35 minuti',
+        ingredienti: ['500 g di castagne', 'un po\' di sale grosso', 'un canovaccio pulito'],
+        passi: ['Incidi ogni castagna con un taglio a croce sulla parte bombata.', 'Mettile in una padella bucata sul fuoco vivo.', 'Fai saltare la padella ogni tanto per 25-30 minuti, finché la buccia si apre e si annerisce.', 'Avvolgile nel canovaccio per 5 minuti: si sbucciano meglio.', 'Mangiale calde calde!']
+    },
+    'Croccante': {
+        tempo: '25 minuti',
+        ingredienti: ['200 g di mandorle', '200 g di zucchero', 'qualche goccia di succo di limone', 'mezzo limone per stendere'],
+        passi: ['Tosta le mandorle in una padella.', 'In un\'altra pentola scogli lo zucchero con il limone finché diventa un caramello color ambra.', 'Unisci le mandorle e mescola velocemente.', 'Versa su carta da forno e stendi con il mezzo limone.', 'Taglia a pezzetti quando è ancora tiepido.'],
+        nota: ATTENZIONE_CALDO
+    },
+    'Panforte': {
+        tempo: '1 ora',
+        ingredienti: ['150 g di mandorle', '100 g di nocciole', '150 g di canditi', '80 g di farina', '100 g di miele', '100 g di zucchero', '1 cucchiaio di cacao', 'spezie: cannella, chiodi di garofano, noce moscata, un pizzico di pepe', 'un foglio di ostia'],
+        passi: ['Tosta mandorle e nocciole e tritale grossolanamente.', 'Mescolale con canditi, farina, cacao e spezie.', 'Scalda miele e zucchero finché si sciolgono e versali sulla frutta secca.', 'Stendi il composto alto 2 cm in una tortiera foderata con l\'ostia.', 'Cuoci a 160 °C per 25 minuti e, da freddo, spolvera di zucchero a velo.']
+    },
+    'Cartellate': {
+        tempo: '1 ora + una notte',
+        ingredienti: ['500 g di farina', '100 ml di olio', '150 ml di vino bianco', 'un pizzico di sale', 'olio per friggere', 'vincotto o miele'],
+        passi: ['Impasta farina, olio, vino e sale e stendi una sfoglia sottilissima.', 'Taglia delle strisce con la rotella dentellata.', 'Pizzica la striscia ogni 3 cm e arrotolala su sé stessa, come una rosa.', 'Lascia asciugare una notte, poi friggi fino a doratura.', 'Immergile nel vincotto o nel miele caldo.'],
+        nota: ATTENZIONE_CALDO
+    },
+    'Susamielli': {
+        tempo: '40 minuti',
+        ingredienti: ['300 g di farina', '250 g di miele', '100 g di zucchero', '100 g di mandorle tritate', '1 cucchiaino di spezie miste', 'la scorza di un\'arancia', 'un pizzico di ammoniaca per dolci'],
+        passi: ['Scalda il miele finché è fluido.', 'Impasta con farina, zucchero, mandorle, spezie, scorza e ammoniaca.', 'Fai dei bastoncini e piegali a forma di S.', 'Cuoci a 180 °C per 15 minuti.']
+    },
+    'Frutta martorana': {
+        tempo: '1 ora',
+        ingredienti: ['250 g di farina di mandorle', '250 g di zucchero a velo', '50 ml di acqua', 'colori alimentari', 'un pennellino'],
+        passi: ['Sciogli lo zucchero nell\'acqua a fuoco basso.', 'Aggiungi la farina di mandorle e mescola finché la pasta si stacca dalla pentola.', 'Lavorala tiepida sul piano finché è liscia.', 'Modella piccoli frutti: arance, fragole, pere, ciliegie.', 'Lasciali asciugare e dipingili con i colori alimentari.']
+    },
+    'Pignolata': {
+        tempo: '1 ora',
+        ingredienti: ['300 g di farina', '4 uova', 'olio per friggere', 'per la glassa al cioccolato: 150 g di cioccolato fondente', 'per la glassa al limone: 200 g di zucchero a velo, 1 albume, succo di limone'],
+        passi: ['Impasta farina e uova e fai tante palline piccole.', 'Friggile poco alla volta finché sono dorate e lasciale raffreddare.', 'Ricopri metà palline con il cioccolato fuso.', 'Ricopri le altre con la glassa al limone (zucchero a velo, albume e limone).', 'Disponile a piramide, metà nere e metà bianche.'],
+        nota: ATTENZIONE_CALDO
+    },
+    'Zelten': {
+        tempo: '1 ora + 2 ore di lievitazione',
+        ingredienti: ['200 g di farina di segale', '100 g di farina 00', '150 g di fichi secchi', '100 g di uvetta', '100 g di noci', '100 g di datteri', '50 g di canditi', '150 ml di latte', '10 g di lievito di birra', '80 g di zucchero', 'un pizzico di cannella'],
+        passi: ['Ammolla l\'uvetta e taglia a pezzetti fichi e datteri.', 'Sciogli il lievito nel latte tiepido.', 'Impasta farine, zucchero, cannella e latte, poi aggiungi tutta la frutta.', 'Forma delle pagnotte basse e decorale con mezze noci.', 'Lascia lievitare 2 ore e cuoci a 170 °C per circa 50 minuti.']
+    },
+    'Pandolce genovese': {
+        tempo: '1 ora e mezza',
+        ingredienti: ['500 g di farina', '150 g di burro', '150 g di zucchero', '1 uovo', '100 ml di latte', '1 bustina di lievito per dolci', '150 g di uvetta', '100 g di canditi', '50 g di pinoli', '1 cucchiaino di semi di finocchio', 'un cucchiaio di acqua di fiori d\'arancio'],
+        passi: ['Lavora il burro con lo zucchero e l\'uovo.', 'Aggiungi farina, lievito, latte e acqua di fiori d\'arancio.', 'Unisci uvetta, canditi, pinoli e semi di finocchio.', 'Forma una pagnotta e incidi un triangolo sopra.', 'Cuoci a 180 °C per circa 50 minuti.']
+    },
+    'Panpepato': {
+        tempo: '1 ora',
+        ingredienti: ['200 g di miele', '100 g di mandorle', '100 g di nocciole', '100 g di noci', '50 g di uvetta', '50 g di canditi', '100 g di cioccolato fondente', '100 g di farina', '20 g di cacao', 'spezie e un pizzico di pepe'],
+        passi: ['Tosta la frutta secca e tritala grossolanamente.', 'Sciogli il miele con il cioccolato.', 'Unisci frutta secca, uvetta, canditi, farina, cacao e spezie.', 'Forma delle pagnotte con le mani bagnate.', 'Cuoci a 160 °C per 25 minuti.']
+    },
+    'Tronchetto di Natale': {
+        tempo: '1 ora',
+        ingredienti: ['4 uova', '100 g di zucchero', '80 g di farina', '20 g di cacao', 'per la crema: 200 ml di panna e 100 g di cioccolato', 'per la copertura: 200 g di cioccolato e 100 ml di panna', 'zucchero a velo'],
+        passi: ['Monta le uova con lo zucchero, poi aggiungi delicatamente farina e cacao.', 'Stendi su una teglia con carta da forno e cuoci a 200 °C per 8 minuti.', 'Arrotola subito la pasta calda in un canovaccio e lasciala raffreddare.', 'Srotolala, farcisci con la crema al cioccolato e riarrotola.', 'Ricopri con il cioccolato fuso con la panna, fai le righe della corteccia con una forchetta e spolvera la "neve".']
+    },
+    'Pandoro': {
+        tempo: '20 minuti + 2 ore in frigo',
+        ingredienti: ['1 pandoro', '250 g di mascarpone', '200 ml di panna', '60 g di zucchero', 'gocce di cioccolato', 'zucchero a velo'],
+        passi: ['Monta la panna con lo zucchero e unisci il mascarpone.', 'Taglia il pandoro a fette orizzontali, seguendo le punte della stella.', 'Ricomponilo spalmando la crema tra una fetta e l\'altra e girando ogni fetta, così le punte formano un albero.', 'Aggiungi le gocce di cioccolato e lascia in frigo 2 ore.', 'Prima di servire, una nevicata di zucchero a velo.']
+    },
+    'Panettone': {
+        tempo: '30 minuti + 3 ore in frigo',
+        ingredienti: ['1 panettone', '250 g di mascarpone', '200 ml di panna', '60 g di zucchero', '50 g di gocce di cioccolato'],
+        passi: ['Taglia il panettone a fette di un centimetro.', 'Fodera una ciotola con la pellicola e poi con le fette di panettone.', 'Monta la panna con lo zucchero, unisci mascarpone e gocce di cioccolato.', 'Riempi la ciotola con la crema e chiudi con altre fette.', 'Lascia in frigo 3 ore, poi capovolgi su un piatto: ecco lo zuccotto di panettone!']
+    },
+    // Le ricette delle nonne del mercatino
+    'Caldarroste della nonna': {
+        tempo: '35 minuti',
+        ingredienti: ['castagne grosse e lucide', 'una padella con i buchi', 'un canovaccio umido'],
+        passi: ['Incidi le castagne con un taglio a croce.', 'Mettile nella padella bucata sul fuoco e falle saltare spesso.', 'Dopo 25-30 minuti la buccia è scura e aperta.', 'Avvolgile nel canovaccio umido per qualche minuto: così la pellicina viene via da sola.', 'Servile nel cartoccio di carta, calde calde.']
+    },
+    'Cioccolata della nonna': {
+        tempo: '15 minuti',
+        ingredienti: ['1 litro di latte intero', '150 g di cioccolato fondente', '3 cucchiai di cacao amaro', '4 cucchiai di zucchero', '2 cucchiai di farina o fecola', 'panna da montare'],
+        passi: ['Nel paiolo mescola cacao, zucchero e farina.', 'Aggiungi il latte un poco alla volta, mescolando con il cucchiaio di legno.', 'Metti sul fuoco basso e aggiungi il cioccolato a pezzi.', 'Mescola piano piano finché la cioccolata vela il cucchiaio.', 'Servila con la panna montata e un biscotto.']
+    },
+    'Frittelle della nonna': {
+        tempo: '30 minuti + 1 ora e mezza di lievitazione',
+        ingredienti: ['250 g di farina', '10 g di lievito di birra', '150 ml di latte tiepido', '2 uova', '50 g di zucchero', '50 g di uvetta', 'la scorza di un limone', 'olio per friggere', 'zucchero per spolverare'],
+        passi: ['Sciogli il lievito nel latte tiepido.', 'Mescola con farina, uova, zucchero, scorza e uvetta fino a una pastella densa.', 'Copri e lascia lievitare un\'ora e mezza.', 'Con due cucchiai fai cadere delle palline nell\'olio caldo e friggi finché sono dorate.', 'Rotolale nello zucchero e mangiale tiepide.'],
+        nota: ATTENZIONE_CALDO
+    }
+};
+
+// La scheda della ricetta: un foglio di quaderno che compare sopra la stanza
+function creaRicettario(nodo) {
+    const scheda = Object.assign(document.createElement('div'), { className: 'scheda-ricetta', hidden: true });
+    scheda.setAttribute('role', 'dialog');
+    scheda.setAttribute('aria-label', 'Ricetta');
+    nodo.append(scheda);
+    const chiudi = () => {
+        scheda.classList.remove('apre');
+        scheda.hidden = true;
+    };
+    scheda.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape') {
+            evento.stopPropagation();
+            chiudi();
+        }
+    });
+    return {
+        mostra(nome) {
+            const r = RICETTE[nome];
+            if (!r) return;
+            const crea = (tag, testo, classe) => Object.assign(document.createElement(tag), { textContent: testo ?? '', className: classe ?? '' });
+            const ingredienti = crea('ul');
+            r.ingredienti.forEach(i => ingredienti.append(crea('li', i)));
+            const passi = crea('ol');
+            r.passi.forEach(p => passi.append(crea('li', p)));
+            const bottone = crea('button', 'Chiudi la ricetta', 'chiudi-ricetta');
+            bottone.type = 'button';
+            bottone.addEventListener('click', chiudi);
+            scheda.replaceChildren(
+                crea('p', '📖 La ricetta', 'etichetta-ricetta'),
+                crea('h3', nome.replace(' della nonna', '')),
+                crea('p', `⏱ ${r.tempo}`, 'tempo-ricetta'),
+                crea('h4', 'Ingredienti'), ingredienti,
+                crea('h4', 'Come si fa'), passi,
+                ...(r.nota ? [crea('p', `⚠️ ${r.nota}`, 'nota-ricetta')] : []),
+                bottone
+            );
+            scheda.hidden = false;
+            scheda.scrollTop = 0;
+            requestAnimationFrame(() => scheda.classList.add('apre'));
+            bottone.focus({ preventScroll: true });
+        },
+        nascondi: chiudi,
+        aperta: () => !scheda.hidden
+    };
+}
+
+// ---------- Il tour del laboratorio in minibus ----------
+// Fiocco, l'elfo autista, accompagna in minibus lungo la fabbrica: dalla letterina alla slitta
+
+const TAPPE_TOUR = [
+    { titolo: 'Si parte!', testo: 'Ciao, sono Fiocco, l\'elfo autista! Allacciate le cinture: vi porto a vedere come nasce un regalo, dalla letterina fino alla slitta di Babbo Natale.' },
+    { titolo: '1 · Le letterine', testo: 'Tutto comincia qui: gli elfi postini aprono le letterine una per una e scrivono sul grande registro i desideri di ognuno.' },
+    { titolo: '2 · Il progetto', testo: 'Gli elfi progettisti disegnano il giocattolo sul foglio blu, con tutte le misure. Guardate: oggi tocca a un trenino!' },
+    { titolo: '3 · La falegnameria', testo: 'Qui si costruiscono i pezzi: si sega il legno, si lima, si inchioda. Che profumo di bosco, vero?' },
+    { titolo: '4 · I colori', testo: 'Ed ecco la stanza più allegra! I giocattoli prendono colore: rosso, verde, blu e un tocco d\'oro.' },
+    { titolo: '5 · Il collaudo', testo: 'Ogni giocattolo viene provato con cura: il trenino deve fare il giro della pista senza fermarsi. Promosso!' },
+    { titolo: '6 · L\'impacchettatrice', testo: 'Poi si incarta: carta colorata, nastro e un bel fiocco. La macchina fa tutto da sola… quasi!' },
+    { titolo: '7 · La slitta', testo: 'Infine i pacchi vanno nei sacchi, città per città, e salgono sulla slitta di Babbo Natale. Il tour è finito: grazie per essere saliti!' }
+];
+
+function creaTour(contenitore) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'tour', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Il tour del laboratorio in minibus' });
+    const pannello = Object.assign(document.createElement('div'), { className: 'tour-pannello' });
+    const titolo = Object.assign(document.createElement('p'), { className: 'tour-titolo' });
+    const testo = Object.assign(document.createElement('p'), { className: 'tour-testo' });
+    const comandi = Object.assign(document.createElement('div'), { className: 'tour-comandi' });
+    const indietro = Object.assign(document.createElement('button'), { type: 'button', textContent: '◀ Indietro' });
+    const avanti = Object.assign(document.createElement('button'), { type: 'button', className: 'tour-avanti', textContent: 'Avanti ▶' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '✕ Esci dal tour' });
+    comandi.append(indietro, avanti);
+    pannello.append(titolo, testo, comandi);
+    nodo.append(svg, pannello, esci);
+    contenitore.append(nodo);
+
+    const PASSO = 1000, LUNGO = PASSO * TAPPE_TOUR.length + 1200;
+    const centro = i => 600 + i * PASSO;
+
+    // La fabbrica lunghissima: pareti di legno, lucine, pavimento e la strada del minibus
+    el('rect', { x: -400, y: -400, width: LUNGO + 800, height: 1700, fill: '#6d4630' }, svg);
+    el('rect', { x: -400, y: -400, width: LUNGO + 800, height: 1700, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    let festone = 'M-400 40';
+    for (let x = -400; x < LUNGO + 400; x += 300) festone += ' q 150 50 300 0';
+    el('path', { d: festone, fill: 'none', stroke: '#1f5c34', 'stroke-width': 14 }, svg);
+    for (let x = -250, i = 0; x < LUNGO + 400; x += 75, i++) el('circle', { class: 'pallina', cx: x, cy: 52 + Math.sin(((x + 400) % 300) / 300 * Math.PI) * 22, r: 7, fill: COLORI_FESTA[i % 5], style: `animation-delay:${((i * 0.3) % 2).toFixed(1)}s` }, svg);
+    el('rect', { x: -400, y: 690, width: LUNGO + 800, height: 700, fill: '#5d3a22' }, svg);
+    el('rect', { x: -400, y: 740, width: LUNGO + 800, height: 80, fill: '#4a4a52' }, svg);
+    el('path', { d: `M-400 780 H${LUNGO + 400}`, stroke: '#f4d03f', 'stroke-width': 5, 'stroke-dasharray': '40 30' }, svg);
+
+    // I cartelli delle tappe
+    TAPPE_TOUR.forEach((tappa, i) => {
+        const cx = centro(i) + 150;
+        el('rect', { x: cx - 170, y: 110, width: 340, height: 54, rx: 10, fill: '#a3242c', stroke: '#e8c766', 'stroke-width': 3 }, svg);
+        el('text', { x: cx, y: 146, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fffaf0' }, svg).textContent = tappa.titolo;
+    });
+
+    const tavolo = (x, y, w) => {
+        el('rect', { x: x - w / 2, y: y - 14, width: w, height: 14, fill: '#a0663a' }, svg);
+        el('path', { d: `M${x - w / 2 + 12} ${y} v70 M${x + w / 2 - 12} ${y} v70`, stroke: '#6d4630', 'stroke-width': 10 }, svg);
+    };
+    const lettera = (x, y, r = 0) => {
+        const g = el('g', { transform: `rotate(${r} ${x} ${y})` }, svg);
+        el('rect', { x: x - 22, y: y - 14, width: 44, height: 28, rx: 2, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 1.5 }, g);
+        el('path', { d: `M${x - 22} ${y - 14} l22 15 l22 -15`, stroke: '#c9a227', 'stroke-width': 1.5, fill: 'none' }, g);
+    };
+
+    // 0 · L'ingresso del tour
+    {
+        const cx = centro(0) + 150;
+        el('path', { d: `M${cx - 220} 690 V360 Q${cx} 200 ${cx + 220} 360 V690 H${cx + 170} V380 Q${cx} 260 ${cx - 170} 380 V690 Z`, fill: '#2e7d4a', stroke: '#e8c766', 'stroke-width': 4 }, svg);
+        el('text', { x: cx, y: 330, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = 'TOUR DEGLI ELFI';
+        for (let k = 0; k < 9; k++) el('circle', { class: 'pallina', cx: cx - 200 + k * 50, cy: 372 - Math.sin((k / 8) * Math.PI) * 120, r: 8, fill: COLORI_FESTA[k % 5] }, svg);
+    }
+    // 1 · Le letterine: elfi postini che leggono e scrivono sul registro
+    {
+        const cx = centro(1) + 150;
+        tavolo(cx, 620, 420);
+        [[-150, 596, -8], [-90, 592, 6], [-30, 598, -3], [120, 594, 10]].forEach(([dx, y, r]) => lettera(cx + dx, y, r));
+        el('rect', { x: cx + 20, y: 560, width: 80, height: 50, rx: 3, fill: '#8a1d22' }, svg);
+        el('rect', { x: cx + 26, y: 566, width: 68, height: 38, fill: '#fbf6ea' }, svg);
+        disegnaElfo(svg, cx - 110, 700, 1.5, { giacca: '#2e7d5b', cappello: '#c0392b' }).braccio.classList.add('saluta');
+        disegnaElfo(svg, cx + 150, 700, 1.5, { giacca: '#7d4e9e', cappello: '#f4d03f', capelli: '#2b1d14' }).braccio.classList.add('martella');
+        [[cx - 260, 690], [cx + 300, 690]].forEach(([sx, sy]) => {
+            el('path', { d: `M${sx - 50} ${sy} q -8 -90 30 -110 q 20 -6 40 0 q 38 20 30 110 Z`, fill: '#c9a27c' }, svg);
+            lettera(sx, sy - 115, -12);
+            lettera(sx + 14, sy - 108, 14);
+        });
+    }
+    // 2 · Il progetto: il tavolo da disegno con il foglio blu del trenino
+    {
+        const cx = centro(2) + 150;
+        el('path', { d: `M${cx - 160} 640 L${cx - 120} 420 L${cx + 160} 420 L${cx + 200} 640 Z`, fill: '#a0663a' }, svg);
+        el('path', { d: `M${cx - 140} 620 L${cx - 106} 440 L${cx + 146} 440 L${cx + 180} 620 Z`, fill: '#2d5fa8' }, svg);
+        const progetto = el('g', { stroke: '#e8f1ff', 'stroke-width': 3, fill: 'none' }, svg);
+        el('rect', { x: cx - 70, y: 500, width: 80, height: 60 }, progetto);
+        el('rect', { x: cx + 10, y: 520, width: 70, height: 40 }, progetto);
+        el('rect', { x: cx - 60, y: 470, width: 20, height: 30 }, progetto);
+        [cx - 50, cx - 10, cx + 50].forEach(rx => el('circle', { cx: rx, cy: 574, r: 14 }, progetto));
+        el('path', { d: `M${cx - 90} 600 h180 M${cx - 90} 594 v12 M${cx + 90} 594 v12`, stroke: '#e8f1ff', 'stroke-width': 2 }, svg);
+        el('text', { x: cx, y: 616, 'text-anchor': 'middle', 'font-size': 14, fill: '#e8f1ff', 'font-family': 'Georgia, serif' }, svg).textContent = 'TRENINO · 30 cm';
+        el('path', { d: `M${cx - 120} 640 v60 M${cx + 160} 640 v60`, stroke: '#6d4630', 'stroke-width': 10 }, svg);
+        const matita = disegnaElfo(svg, cx + 280, 700, 1.5, { giacca: '#c0392b', cappello: '#2e7d4a' });
+        el('path', { d: 'M30 -48 l 14 -16', stroke: '#f4d03f', 'stroke-width': 4, 'stroke-linecap': 'round' }, matita.braccio);
+        matita.braccio.classList.add('martella');
+        el('path', { d: `M${cx - 200} 300 v60 l -30 40 h60 Z`, fill: '#2a2a2e' }, svg);
+        el('circle', { class: 'luce-calda', cx: cx - 200, cy: 430, r: 80, fill: 'url(#alone)', opacity: 0.6 }, svg);
+    }
+    // 3 · La falegnameria: si sega e si martella
+    {
+        const cx = centro(3) + 150;
+        tavolo(cx, 620, 440);
+        el('rect', { x: cx - 180, y: 582, width: 200, height: 24, fill: '#d9a066' }, svg);
+        el('path', { d: `M${cx - 170} 590 h180 M${cx - 170} 598 h180`, stroke: '#b8803f', 'stroke-width': 1.5 }, svg);
+        const sega = el('g', { class: 'sega' }, svg);
+        el('path', { d: `M${cx - 60} 560 h90 l -6 22 h-84 Z`, fill: '#b8c2d8' }, sega);
+        el('path', { d: `M${cx - 60} 582 l 6 6 l 6 -6 l 6 6 l 6 -6 l 6 6 l 6 -6 l 6 6 l 6 -6 l 6 6 l 6 -6 l 6 6 l 6 -6 l 6 6`, stroke: '#8d98b8', 'stroke-width': 2, fill: 'none' }, sega);
+        el('rect', { x: cx + 30, y: 548, width: 34, height: 26, rx: 6, fill: '#c0392b' }, sega);
+        for (let k = 0; k < 6; k++) el('circle', { class: 'segatura', cx: cx - 20 + k * 6, cy: 610, r: 3, fill: '#e3c49a', style: `animation-delay:${(k * 0.2).toFixed(1)}s` }, svg);
+        disegnaElfo(svg, cx - 150, 700, 1.5, { giacca: '#2e7d5b', cappello: '#f4d03f' }).braccio.classList.add('martella');
+        const martello = disegnaElfo(svg, cx + 230, 700, 1.5, { giacca: '#2d4f8a', cappello: '#c0392b', capelli: '#5a3b2a' });
+        el('path', { d: 'M30 -48 l 18 -18', stroke: '#6d4630', 'stroke-width': 4, 'stroke-linecap': 'round' }, martello.braccio);
+        el('rect', { x: 40, y: -76, width: 22, height: 10, rx: 2, fill: '#5d6280', transform: 'rotate(40 51 -71)' }, martello.braccio);
+        martello.braccio.classList.add('martella');
+        [[cx + 330, 690], [cx + 380, 690], [cx + 355, 660]].forEach(([px, py]) => el('rect', { x: px - 22, y: py - 30, width: 44, height: 30, fill: '#d9a066', stroke: '#b8803f', 'stroke-width': 2 }, svg));
+    }
+    // 4 · I colori: giocattoli che si colorano, barattoli e pennelli
+    {
+        const cx = centro(4) + 150;
+        tavolo(cx, 620, 460);
+        [0, 1, 2, 4].forEach((g, k) => GIOCATTOLI[g](el('g', { transform: `translate(${cx - 170 + k * 110} 606) scale(1.5)` }, svg)));
+        ['#e0262f', '#2e7d4a', '#3f7fd6', '#f4d03f', '#e84393'].forEach((c, k) => {
+            const bx = cx - 200 + k * 90;
+            el('path', { d: `M${bx - 24} 690 l 4 -50 h40 l 4 50 Z`, fill: '#b8c2d8' }, svg);
+            el('ellipse', { cx: bx, cy: 640, rx: 22, ry: 6, fill: c }, svg);
+            el('path', { d: `M${bx - 16} 642 q 2 14 6 16`, stroke: c, 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, svg);
+        });
+        const pittore = disegnaElfo(svg, cx + 300, 700, 1.5, { giacca: '#f4d03f', cappello: '#2d4f8a', capelli: '#c9984a' });
+        el('path', { d: 'M30 -48 l 16 -20', stroke: '#8a5a3c', 'stroke-width': 4, 'stroke-linecap': 'round' }, pittore.braccio);
+        el('circle', { cx: 46, cy: -68, r: 4, fill: '#e0262f' }, pittore.braccio);
+        pittore.braccio.classList.add('martella');
+    }
+    // 5 · Il collaudo: il trenino gira sulla pista, l'elfo controlla
+    {
+        const cx = centro(5) + 150;
+        el('ellipse', { cx, cy: 640, rx: 220, ry: 50, fill: 'none', stroke: '#8d98b8', 'stroke-width': 10 }, svg);
+        el('ellipse', { cx, cy: 640, rx: 220, ry: 50, fill: 'none', stroke: '#6d4630', 'stroke-width': 4, 'stroke-dasharray': '6 10' }, svg);
+        const giro = el('g', { class: 'trenino-collaudo' }, svg);
+        el('animateMotion', { dur: '6s', repeatCount: 'indefinite', path: `M${cx + 220} 640 A220 50 0 1 1 ${cx - 220} 640 A220 50 0 1 1 ${cx + 220} 640`, rotate: 'auto' }, giro);
+        GIOCATTOLI[1](el('g', { transform: 'translate(0 8) scale(1.1)' }, giro));
+        const ispettore = disegnaElfo(svg, cx + 330, 700, 1.5, { giacca: '#16a085', cappello: '#c0392b' });
+        el('rect', { x: 22, y: -64, width: 26, height: 32, rx: 2, fill: '#fbf6ea', stroke: '#8a5a3c', 'stroke-width': 2 }, ispettore.braccio);
+        el('path', { d: 'M28 -48 l 5 6 l 9 -12', stroke: '#2e7d4a', 'stroke-width': 3, fill: 'none' }, ispettore.braccio);
+        el('text', { x: cx + 330, y: 470, 'text-anchor': 'middle', 'font-size': 60, fill: '#7dff9a', class: 'promosso' }, svg).textContent = '✓';
+        GIOCATTOLI[2](el('g', { class: 'palla-rimbalza', transform: `translate(${cx - 300} 690) scale(1.4)` }, svg));
+    }
+    // 6 · L'impacchettatrice
+    {
+        const cx = centro(6) + 150;
+        el('rect', { x: cx - 120, y: 430, width: 240, height: 240, rx: 16, fill: '#c0392b', stroke: '#8a1d22', 'stroke-width': 4 }, svg);
+        el('rect', { x: cx - 100, y: 590, width: 200, height: 70, rx: 8, fill: '#2a180e' }, svg);
+        el('text', { x: cx, y: 470, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = 'IMPACCHETTATRICE';
+        [[cx - 40, 530, 28], [cx + 44, 524, 20]].forEach(([gx, gy, r], i) => {
+            const ingranaggio = el('g', { class: i ? 'ingranaggio inverso' : 'ingranaggio' }, el('g', { transform: `translate(${gx} ${gy})` }, svg));
+            el('circle', { r, fill: '#e8c766' }, ingranaggio);
+            for (let k = 0; k < 8; k++) el('rect', { x: -4, y: -r - 6, width: 8, height: 10, fill: '#e8c766', transform: `rotate(${k * 45})` }, ingranaggio);
+            el('circle', { r: r * 0.35, fill: '#8a1d22' }, ingranaggio);
+        });
+        GIOCATTOLI[0](el('g', { transform: `translate(${cx - 230} 690) scale(1.6)` }, svg));
+        [[cx + 200, 690, 0], [cx + 260, 690, 2], [cx + 230, 640, 4]].forEach(([px, py, i]) => pacco(el('g', { transform: `translate(${px} ${py}) scale(1.4)` }, svg), CARTE_PACCHI[i]));
+    }
+    // 7 · I sacchi delle città e la slitta di Babbo Natale
+    {
+        const cx = centro(7) + 150;
+        ['ROMA', 'MILANO', 'NAPOLI', 'TORINO', 'PALERMO'].forEach((citta, k) => {
+            const sx = cx - 260 + k * 85, sy = 690;
+            el('path', { d: `M${sx - 36} ${sy} q -6 -70 22 -86 q 14 -4 28 0 q 28 16 22 86 Z`, fill: '#c9a27c' }, svg);
+            el('rect', { x: sx - 30, y: sy - 50, width: 60, height: 18, rx: 3, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 1.5 }, svg);
+            el('text', { x: sx, y: sy - 37, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#a3242c' }, svg).textContent = citta;
+        });
+        const slitta = el('g', { transform: `translate(${cx + 300} 640) scale(2.2)` }, svg);
+        el('path', { d: 'M-50 -2 Q-56 -26 -40 -28 L-28 -20 L8 -20 Q20 -20 22 -8 L18 4 L-44 4 Z', fill: '#b3202b' }, slitta);
+        el('path', { d: 'M-50 -2 Q-56 -26 -40 -28 L-28 -20 L8 -20 Q20 -20 22 -8', stroke: '#e8c766', 'stroke-width': 2.4, fill: 'none' }, slitta);
+        el('path', { d: 'M-44 4 L-40 10 M14 4 L10 10 M-58 10 H22 Q34 10 32 0', stroke: '#e8c766', 'stroke-width': 2.6, fill: 'none', 'stroke-linecap': 'round' }, slitta);
+        el('path', { d: 'M-40 -22 q -10 -22 6 -30 q 12 -4 18 6 q 6 14 -6 26 Z', fill: '#8a5a36' }, slitta);
+        [[-36, -50, '#2e7d5b'], [-26, -54, '#f4d03f'], [-30, -46, '#c0392b'], [-16, -40, '#3f7fd6']].forEach(([x, y, c]) => el('rect', { x: x - 5, y: y - 5, width: 10, height: 9, fill: c }, slitta));
+        disegnaElfo(svg, cx + 120, 700, 1.4, { giacca: '#a3242c', cappello: '#2e7d4a' }).braccio.classList.add('saluta');
+    }
+
+    // Il minibus di Fiocco: giallo, con la corona sul muso e l'elfo autista al volante
+    const bus = el('g', {}, svg);
+    el('ellipse', { cx: 0, cy: 8, rx: 190, ry: 14, fill: 'rgba(0,0,0,0.3)' }, bus);
+    el('path', { d: 'M-180 -10 V-130 Q-180 -150 -160 -150 H120 Q160 -150 176 -110 L190 -60 V-10 Z', fill: '#f4c430', stroke: '#b8860b', 'stroke-width': 4 }, bus);
+    el('rect', { x: -180, y: -40, width: 370, height: 16, fill: '#c0392b' }, bus);
+    [-160, -100, -40, 20].forEach(fx => el('rect', { x: fx, y: -136, width: 50, height: 60, rx: 8, fill: '#bfe3ff', stroke: '#b8860b', 'stroke-width': 3 }, bus));
+    el('path', { d: 'M88 -136 H130 Q156 -136 168 -104 L176 -76 H88 Z', fill: '#bfe3ff', stroke: '#b8860b', 'stroke-width': 3 }, bus);
+    // Fiocco al volante
+    el('circle', { cx: 122, cy: -96, r: 15, fill: '#f6c9a8' }, bus);
+    el('path', { d: 'M108 -104 L132 -140 L138 -104 Z', fill: '#c0392b' }, bus);
+    el('rect', { x: 106, y: -108, width: 34, height: 6, rx: 3, fill: '#fbfdff' }, bus);
+    el('circle', { cx: 132, cy: -142, r: 4, fill: '#e2b93b' }, bus);
+    el('circle', { cx: 128, cy: -97, r: 2, fill: '#3b2412' }, bus);
+    el('path', { d: 'M124 -90 q 5 4 10 0', stroke: '#7a3c12', 'stroke-width': 1.6, fill: 'none' }, bus);
+    el('circle', { cx: 150, cy: -82, r: 10, fill: 'none', stroke: '#3a3a44', 'stroke-width': 3 }, bus);
+    el('text', { x: -40, y: -50, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#8a1d22' }, bus).textContent = 'TOUR DEGLI ELFI';
+    el('circle', { cx: 184, cy: -30, r: 7, fill: '#fff3b0' }, bus);
+    el('circle', { cx: 178, cy: -64, r: 12, fill: 'none', stroke: '#1f5c34', 'stroke-width': 6 }, bus);
+    el('circle', { cx: 178, cy: -52, r: 3, fill: '#c0392b' }, bus);
+    const ruote = [-110, 110].map(rx => {
+        const r = el('g', { class: 'ruota-bus' }, el('g', { transform: `translate(${rx} -6)` }, bus));
+        el('circle', { r: 28, fill: '#2a2a2e' }, r);
+        el('circle', { r: 13, fill: '#b8c2d8' }, r);
+        el('path', { d: 'M-13 0 H13 M0 -13 V13', stroke: '#5d6280', 'stroke-width': 3 }, r);
+        return r;
+    });
+
+    // Il viaggio: la vista e il minibus avanzano insieme da una tappa all'altra
+    let tappa = 0, vista = centro(0) - 600, animazione = null;
+    const posiziona = () => {
+        svg.setAttribute('viewBox', `${vista.toFixed(1)} 0 1600 900`);
+        bus.setAttribute('transform', `translate(${(vista + 330).toFixed(1)} 772)`);
+    };
+    const racconta = () => {
+        titolo.textContent = TAPPE_TOUR[tappa].titolo;
+        testo.textContent = TAPPE_TOUR[tappa].testo;
+        indietro.disabled = tappa === 0;
+        avanti.textContent = tappa === TAPPE_TOUR.length - 1 ? 'Fine del tour 🎉' : 'Avanti ▶';
+    };
+    const vai = nuova => {
+        tappa = Math.max(0, Math.min(TAPPE_TOUR.length - 1, nuova));
+        racconta();
+        cancelAnimationFrame(animazione);
+        const da = vista, a = centro(tappa) - 600;
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            vista = a;
+            return posiziona();
+        }
+        nodo.classList.add('in-viaggio');
+        const inizio = performance.now();
+        const passo = adesso => {
+            const t = Math.min(1, (adesso - inizio) / 1800);
+            vista = da + (a - da) * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+            posiziona();
+            if (t < 1) animazione = requestAnimationFrame(passo);
+            else nodo.classList.remove('in-viaggio');
+        };
+        animazione = requestAnimationFrame(passo);
+    };
+    avanti.addEventListener('click', () => (tappa === TAPPE_TOUR.length - 1 ? chiudi() : vai(tappa + 1)));
+    indietro.addEventListener('click', () => vai(tappa - 1));
+    const chiudi = () => {
+        cancelAnimationFrame(animazione);
+        nodo.hidden = true;
+    };
+    esci.addEventListener('click', chiudi);
+    nodo.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape') {
+            evento.stopPropagation();
+            chiudi();
+        }
+        if (evento.key === 'ArrowRight') vai(tappa + 1);
+        if (evento.key === 'ArrowLeft') vai(tappa - 1);
+    });
+
+    return {
+        apri() {
+            tappa = 0;
+            vista = centro(0) - 600;
+            posiziona();
+            racconta();
+            nodo.hidden = false;
+            avanti.focus({ preventScroll: true });
+        },
+        chiudi,
+        aperto: () => !nodo.hidden
     };
 }
 
@@ -3365,8 +3859,20 @@ function disegnaDolce(g, { tipo, colore }) {
 }
 
 // Il tavolino tondo accanto alla poltrona, con l'alzatina e il cartellino del dolce
-function creaTavolino(genitore) {
-    const tavolino = el('g', { transform: 'translate(1150 872) scale(1.35)' }, genitore);
+function creaTavolino(genitore, onRicetta = () => {}) {
+    const tavolino = el('g', { class: 'tavolino-ricetta', transform: 'translate(1150 872) scale(1.35)', tabindex: 0, role: 'button', 'aria-label': 'Il dolce del giorno: tocca per la ricetta' }, genitore);
+    let dolceDelGiorno = DOLCI[0].nome;
+    const apriRicetta = evento => {
+        evento.stopPropagation();
+        onRicetta(dolceDelGiorno);
+    };
+    tavolino.addEventListener('click', apriRicetta);
+    tavolino.addEventListener('keydown', evento => {
+        if (evento.key === 'Enter' || evento.key === ' ') {
+            evento.preventDefault();
+            apriRicetta(evento);
+        }
+    });
     el('ellipse', { cx: 0, cy: 4, rx: 90, ry: 12, fill: 'rgba(0,0,0,0.3)' }, tavolino);
     el('path', { d: 'M-6 -86 h12 l4 74 h-20 Z', fill: '#5d3a22' }, tavolino);
     el('path', { d: 'M-40 0 q 40 -22 80 0', fill: 'none', stroke: '#4a2c1c', 'stroke-width': 9, 'stroke-linecap': 'round' }, tavolino);
@@ -3383,9 +3889,14 @@ function creaTavolino(genitore) {
     const cartellino = el('g', { transform: 'translate(0 -66)' }, tavolino);
     const fondo = el('rect', { y: -15, height: 26, rx: 6, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 2 }, cartellino);
     const nome = el('text', { x: 0, y: 4, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#9b1d2a' }, cartellino);
+    // Il bollino che invita a toccare: c'è la ricetta
+    const bollino = el('g', { class: 'bollino-ricetta', transform: 'translate(70 -150)' }, tavolino);
+    el('circle', { r: 17, fill: '#c0392b', stroke: '#e8c766', 'stroke-width': 2.5 }, bollino);
+    el('text', { x: 0, y: 6, 'text-anchor': 'middle', 'font-size': 17 }, bollino).textContent = '📖';
     return {
         mostra(giorno) {
             const scelto = DOLCI[(giorno - 1) % DOLCI.length];
+            dolceDelGiorno = scelto.nome;
             dolce.replaceChildren();
             disegnaDolce(dolce, scelto);
             nome.textContent = scelto.nome;
@@ -4122,7 +4633,8 @@ function creaInterno({ onScarta, onEsci }) {
     // Baffi
     el('path', { d: 'M-13 6 l-20 -3 M-13 8 l-20 2 M-12 10 l-17 6 M3 6 l14 -4 M3 8 l15 1', stroke: '#fbf3e6', 'stroke-width': 0.9, opacity: 0.85, 'stroke-linecap': 'round' }, testa);
 
-    const tavolino = creaTavolino(svg);
+    const ricettario = creaRicettario(nodo);
+    const tavolino = creaTavolino(svg, nome => ricettario.mostra(nome));
 
     // Poltrona di velluto con la coperta a quadri
     const poltrona = el('g', { transform: 'translate(1430 840)' }, svg);
@@ -4274,7 +4786,9 @@ function creaInterno({ onScarta, onEsci }) {
     });
     esci.addEventListener('click', onEsci);
     nodo.addEventListener('keydown', evento => {
-        if (evento.key === 'Escape' && !scartato) onEsci();
+        if (evento.key !== 'Escape') return;
+        if (ricettario.aperta()) ricettario.nascondi();
+        else if (!scartato) onEsci();
     });
 
     return {
@@ -4285,6 +4799,7 @@ function creaInterno({ onScarta, onEsci }) {
             cartaCoperchio.setAttribute('fill', scurisci(colore, 0.08));
             [nastroBase, nastroCoperchio, ...anelli].forEach(parte => parte.setAttribute('fill', nastro));
             data.textContent = `${giorno} dicembre`;
+            ricettario.nascondi();
             tavolino.mostra(giorno);
             quadro.mostra(giorno);
             personaggio.mostra(giorno);
@@ -4335,9 +4850,17 @@ function creaBancone({ onEsci }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno bancone', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro la bancarella: la nonna che cucina' });
     const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
-    nodo.append(svg, esci);
+    const libro = Object.assign(document.createElement('button'), { type: 'button', className: 'ricomincia libro-ricetta', textContent: '📖 La ricetta della nonna' });
+    nodo.append(svg, esci, libro);
+    const ricettario = creaRicettario(nodo);
+    let cucinaAperta = 'castagne';
+    libro.addEventListener('click', () => ricettario.mostra({ castagne: 'Caldarroste della nonna', cioccolata: 'Cioccolata della nonna', frittelle: 'Frittelle della nonna' }[cucinaAperta]));
     esci.addEventListener('click', onEsci);
-    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+    nodo.addEventListener('keydown', evento => {
+        if (evento.key !== 'Escape') return;
+        if (ricettario.aperta()) ricettario.nascondi();
+        else onEsci();
+    });
 
     const defs = el('defs', {}, svg);
     const quadretti = el('pattern', { id: 'quadretti-bancone', width: 40, height: 40, patternUnits: 'userSpaceOnUse' }, defs);
@@ -4596,6 +5119,8 @@ function creaBancone({ onEsci }) {
         nodo,
         mostra(tipo) {
             const cucina = CUCINE[tipo] ?? CUCINE.castagne;
+            cucinaAperta = CUCINE[tipo] ? tipo : 'castagne';
+            ricettario.nascondi();
             Object.entries(scene).forEach(([nome, g]) => g.setAttribute('display', nome === tipo ? 'inline' : 'none'));
             insegna1.textContent = cucina.insegna[0];
             insegna2.textContent = cucina.insegna[1];
