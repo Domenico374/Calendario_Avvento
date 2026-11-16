@@ -2500,3 +2500,29 @@ body::before {
     .scena .cambia-vista { right: 10px; bottom: auto; top: 10px; padding: 6px 12px; font-size: 0.85rem; }
 }
 .scena.vista-3d.dentro .suggerimento { visibility: hidden; }
+
+/* ---- L'annuncio dell'altoparlante in stazione ---- */
+.sala .annuncio-stazione {
+    position: absolute;
+    left: 50%;
+    top: 14px;
+    z-index: 3;
+    width: min(92%, 640px);
+    margin: 0;
+    padding: 10px 16px;
+    border: 2px solid #ffd36b;
+    border-radius: 14px;
+    background: rgba(10, 16, 48, 0.85);
+    color: #fff4dc;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.35;
+    opacity: 0;
+    transform: translate(-50%, -12px);
+    transition: opacity 0.5s, transform 0.5s;
+    pointer-events: none;
+}
+.sala .annuncio-stazione.si-vede { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 600px) {
+    .sala .annuncio-stazione { font-size: 0.85rem; top: 54px; }
+}

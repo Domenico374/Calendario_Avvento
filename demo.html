@@ -1911,6 +1911,32 @@ body::before {
 }
 .scena.vista-3d.dentro .suggerimento { visibility: hidden; }
 
+/* ---- L'annuncio dell'altoparlante in stazione ---- */
+.sala .annuncio-stazione {
+    position: absolute;
+    left: 50%;
+    top: 14px;
+    z-index: 3;
+    width: min(92%, 640px);
+    margin: 0;
+    padding: 10px 16px;
+    border: 2px solid #ffd36b;
+    border-radius: 14px;
+    background: rgba(10, 16, 48, 0.85);
+    color: #fff4dc;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.35;
+    opacity: 0;
+    transform: translate(-50%, -12px);
+    transition: opacity 0.5s, transform 0.5s;
+    pointer-events: none;
+}
+.sala .annuncio-stazione.si-vede { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 600px) {
+    .sala .annuncio-stazione { font-size: 0.85rem; top: 54px; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -6432,6 +6458,45 @@ const BENVENUTO = [
     'questo meraviglioso viaggio?'
 ];
 
+// L'annuncio dell'altoparlante: il din-don della stazione e poi una voce che dà il benvenuto
+const ANNUNCIO = 'Benvenuti al nostro villaggio! Fuori troverete i nostri elfi, che vi faranno fare il tour.';
+function suonaDinDon() {
+    const Contesto = window.AudioContext || window.webkitAudioContext;
+    if (!Contesto) return Promise.resolve();
+    const contesto = new Contesto();
+    const t0 = contesto.currentTime + 0.05;
+    ['G4', 'C5', 'E5', 'G5'].forEach((nota, i) => {
+        const t = t0 + i * 0.42;
+        [[1, 0.22], [2, 0.05], [3.01, 0.025]].forEach(([multiplo, volume]) => {
+            const o = contesto.createOscillator();
+            const g = contesto.createGain();
+            o.type = 'sine';
+            o.frequency.value = frequenza(nota) * multiplo;
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(volume, t + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+            o.connect(g).connect(contesto.destination);
+            o.start(t);
+            o.stop(t + 1.7);
+        });
+    });
+    setTimeout(() => contesto.close(), 3600);
+    return new Promise(fatto => setTimeout(fatto, 1900));
+}
+function leggiAnnuncio(testo) {
+    const sintesi = window.speechSynthesis;
+    if (!sintesi || !window.SpeechSynthesisUtterance) return;
+    sintesi.cancel();
+    const frase = new SpeechSynthesisUtterance(testo);
+    frase.lang = 'it-IT';
+    frase.rate = 0.92;
+    frase.pitch = 1.05;
+    const voci = sintesi.getVoices().filter(v => v.lang?.toLowerCase().startsWith('it'));
+    // Se c'è, una voce femminile come negli annunci delle stazioni
+    frase.voice = voci.find(v => /alice|elsa|federica|isabella|female|donna/i.test(v.name)) ?? voci[0] ?? null;
+    sintesi.speak(frase);
+}
+
 // Va a capo tra le parole, rispettando gli a capo scritti da chi prepara il calendario
 function avvolgiTesto(testo, massimo) {
     const righe = [];
@@ -6457,7 +6522,24 @@ function creaSala({ onParti, benvenuto = '' }) {
     const conElfo = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♂️ Parto con l\'elfo' });
     const conElfa = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♀️ Parto con l\'elfa' });
     partenze.append(domanda, conElfo, conElfa);
-    nodo.append(svg, partenze);
+    // La scritta dell'annuncio, per chi ha l'audio spento
+    const annuncio = Object.assign(document.createElement('p'), { className: 'annuncio-stazione', textContent: `📢 ${ANNUNCIO}` });
+    annuncio.setAttribute('role', 'status');
+    nodo.append(svg, annuncio, partenze);
+    let timerAnnuncio = null, voltaAnnuncio = 0;
+    async function faiAnnuncio() {
+        const volta = ++voltaAnnuncio;
+        annuncio.classList.remove('si-vede');
+        clearTimeout(timerAnnuncio);
+        await new Promise(fatto => setTimeout(fatto, 700));
+        if (volta !== voltaAnnuncio || nodo.hidden) return;
+        annuncio.classList.add('si-vede');
+        try {
+            await suonaDinDon();
+            if (volta === voltaAnnuncio && !nodo.hidden) leggiAnnuncio(ANNUNCIO);
+        } catch { /* senza audio resta la scritta */ }
+        timerAnnuncio = setTimeout(() => annuncio.classList.remove('si-vede'), 9000);
+    }
     const parti = conElfo;
     conElfo.addEventListener('click', () => onParti('elfo'));
     conElfa.addEventListener('click', () => onParti('elfa'));
@@ -6726,10 +6808,15 @@ function creaSala({ onParti, benvenuto = '' }) {
                 nodo.classList.add('visibile');
                 parti.focus({ preventScroll: true });
             });
+            faiAnnuncio();
         },
         nascondi() {
             nodo.classList.remove('visibile');
             nodo.hidden = true;
+            voltaAnnuncio++;
+            clearTimeout(timerAnnuncio);
+            annuncio.classList.remove('si-vede');
+            try { window.speechSynthesis?.cancel(); } catch { /* niente voce */ }
         },
         impostaBenvenuto: scriviBenvenuto
     };
