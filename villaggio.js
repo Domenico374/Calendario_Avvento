@@ -6028,6 +6028,9 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (slittaTour) {
             posizionaSlitta(xSlitta);
             fumettoGuida.classList.remove('nascosto');
+        } else if (stanza === stalla && slittaMia) {
+            // Usciti dalla stalla, la vista va sulla slitta con la renna appena scelta
+            posizionaMia(xMia, true, yMia);
         }
     }
 
@@ -6050,7 +6053,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const NOMI_RENNA = { cometa: 'Cometa', rudolph: 'Rudolph' };
     let rennaMia = null;
     try { rennaMia = NOMI_RENNA[localStorage.getItem('villaggio_renna')] ? localStorage.getItem('villaggio_renna') : null; } catch { rennaMia = null; }
-    let slittaMia = null, xMia = 0, animMia = null;
+    let slittaMia = null, xMia = 0, yMia = 0, animMia = null;
 
     function disegnaSlittaMia(renna) {
         const g = el('g', { class: `slitta-mia slitta-${renna}`, 'pointer-events': 'none' }, mondo);
@@ -6074,9 +6077,9 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         return g;
     }
 
-    function posizionaMia(x, segui) {
+    function posizionaMia(x, segui, y = yStrada(x) + 10) {
         xMia = x;
-        const y = yStrada(x) + 10;
+        yMia = y;
         slittaMia?.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(scalaPer(y) * 1.3).toFixed(3)})`);
         if (segui) {
             posizione = limita(x - larghezzaVista * 0.4);
@@ -6089,7 +6092,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         return new Promise(fatto => {
             if (!slittaMia) return fatto();
             cancelAnimationFrame(animMia);
-            const da = xMia, distanza = Math.abs(arrivo - da);
+            const da = xMia, yDa = yMia, distanza = Math.abs(arrivo - da);
             if (movimentoRidotto || distanza < 40) {
                 posizionaMia(arrivo, true);
                 return fatto();
@@ -6101,7 +6104,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             const sicurezza = setTimeout(() => { posizionaMia(arrivo, true); slittaMia?.classList.remove('in-corsa'); fatto(); }, durata + 600);
             const passo = adesso => {
                 const t = Math.min(1, (adesso - inizio) / durata);
-                posizionaMia(da + (arrivo - da) * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2), true);
+                const x = da + (arrivo - da) * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+                // Se era parcheggiata fuori strada (davanti alla stalla), la raggiunge dolcemente
+                const k = Math.min(1, t / 0.35);
+                posizionaMia(x, true, yDa + (yStrada(x) + 10 - yDa) * k);
                 if (t < 1) animMia = requestAnimationFrame(passo);
                 else {
                     clearTimeout(sicurezza);
@@ -6121,8 +6127,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         slittaMia?.remove();
         slittaMia = null;
         if (subito) {
+            // La slitta aspetta proprio davanti alla porta della stalla
+            const stallaX = Number(mondo.querySelector('.stalla')?.getAttribute('transform').match(/translate\(([\d.-]+)/)[1] ?? dove);
             slittaMia = disegnaSlittaMia(nome);
-            posizionaMia(sposta(2815) - 90, false);
+            posizionaMia(stallaX - 70, false, 842);
         } else xMia = dove;
     }
 
