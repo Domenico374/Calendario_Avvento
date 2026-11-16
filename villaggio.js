@@ -4499,6 +4499,109 @@ function suonaDinDon() {
     setTimeout(() => contesto.close(), 3600);
     return new Promise(fatto => setTimeout(fatto, 1900));
 }
+// Il treno a vapore che arriva al villaggio: il ciuf-ciuf che rallenta, il fischio e lo sbuffo dei freni.
+// Il browser fa partire i suoni solo dopo un tocco: se il tocco arriva a treno in viaggio,
+// si sente la parte che manca, sempre a tempo con il treno disegnato.
+function suonoTrenoInArrivo(durata) {
+    const Contesto = window.AudioContext || window.webkitAudioContext;
+    const partenza = performance.now();
+    let contesto = null, finito = false;
+    const rumore = secondi => {
+        const buffer = contesto.createBuffer(1, Math.ceil(contesto.sampleRate * secondi), contesto.sampleRate);
+        const dati = buffer.getChannelData(0);
+        for (let i = 0; i < dati.length; i++) dati[i] = Math.random() * 2 - 1;
+        const sorgente = contesto.createBufferSource();
+        sorgente.buffer = buffer;
+        return sorgente;
+    };
+    const sbuffo = (t, volume, lungo = 0.13, tono = 700) => {
+        const n = rumore(lungo + 0.05);
+        const filtro = contesto.createBiquadFilter();
+        filtro.type = 'bandpass';
+        filtro.frequency.value = tono;
+        filtro.Q.value = 0.9;
+        const g = contesto.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(volume, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + lungo);
+        n.connect(filtro).connect(g).connect(contesto.destination);
+        n.start(t);
+        n.stop(t + lungo + 0.05);
+    };
+    const fischio = (t, lungo) => {
+        const g = contesto.createGain();
+        const filtro = contesto.createBiquadFilter();
+        filtro.type = 'lowpass';
+        filtro.frequency.value = 2400;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.07, t + 0.08);
+        g.gain.setValueAtTime(0.07, t + lungo - 0.15);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + lungo);
+        filtro.connect(g).connect(contesto.destination);
+        [587, 740, 880].forEach(f => {
+            const o = contesto.createOscillator();
+            o.type = 'sawtooth';
+            o.frequency.setValueAtTime(f * 0.97, t);
+            o.frequency.linearRampToValueAtTime(f, t + 0.12);
+            o.connect(filtro);
+            o.start(t);
+            o.stop(t + lungo + 0.05);
+        });
+        // Il soffio del vapore nel fischio
+        const n = rumore(lungo);
+        const fn = contesto.createBiquadFilter();
+        fn.type = 'bandpass';
+        fn.frequency.value = 1800;
+        const gn = contesto.createGain();
+        gn.gain.setValueAtTime(0.0001, t);
+        gn.gain.exponentialRampToValueAtTime(0.03, t + 0.08);
+        gn.gain.exponentialRampToValueAtTime(0.0001, t + lungo);
+        n.connect(fn).connect(gn).connect(contesto.destination);
+        n.start(t);
+    };
+    function programma() {
+        const passati = (performance.now() - partenza) / 1000, totale = durata / 1000;
+        if (passati > totale + 1) return;
+        const t0 = contesto.currentTime + 0.05 - passati;
+        // Il ciuf-ciuf: veloce all'inizio, sempre più lento mentre il treno frena
+        let x = 0, colpo = 0;
+        while (x < totale * 0.9) {
+            const velocita = Math.max(0.12, Math.pow(1 - x / totale, 2));
+            if (x >= passati) sbuffo(t0 + x, colpo % 2 ? 0.09 : 0.16);
+            x += 0.17 / velocita;
+            colpo++;
+        }
+        if (passati < 0.6) fischio(t0 + 0.3, 1.1);
+        // In arrivo: due fischi, lo sbuffo dei freni e il vapore che esce
+        if (passati < totale - 2.4) {
+            fischio(t0 + totale - 2.4, 0.45);
+            fischio(t0 + totale - 1.8, 0.9);
+        }
+        sbuffo(Math.max(contesto.currentTime + 0.05, t0 + totale - 0.3), 0.12, 1.8, 3200);
+        setTimeout(() => contesto.close(), (totale - passati + 3) * 1000);
+    }
+    function sblocca() {
+        if (finito) return;
+        finito = true;
+        ['pointerdown', 'keydown', 'touchstart'].forEach(e => removeEventListener(e, sblocca, true));
+        contesto.resume().then(programma).catch(() => {});
+    }
+    if (!Contesto) return;
+    try { contesto = new Contesto(); } catch { return; }
+    if (contesto.state === 'running') {
+        finito = true;
+        programma();
+    } else {
+        ['pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, sblocca, true));
+        setTimeout(() => {
+            if (finito) return;
+            finito = true;
+            ['pointerdown', 'keydown', 'touchstart'].forEach(e => removeEventListener(e, sblocca, true));
+            contesto.close();
+        }, durata + 1000);
+    }
+}
+
 function leggiAnnuncio(testo) {
     const sintesi = window.speechSynthesis;
     if (!sintesi || !window.SpeechSynthesisUtterance) return;
@@ -8185,6 +8288,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     // All'arrivo il treno attraversa il paese e la vista lo accompagna fino alla stazione
     async function viaggiDelTreno(segui) {
         seguiTreno = segui;
+        // Chi arriva al villaggio sente il treno arrivare
+        if (segui) suonoTrenoInArrivo(11000);
         await corsa(-350, STAZIONE.fermata, 11000, true);
         // Il treno è arrivato: la stazione brilla e invita a entrare
         mondo.querySelector('.stazione').classList.add('invita');
