@@ -1793,3 +1793,40 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .scintilla-tocco > * { animation: none; }
 }
+
+/* ---- Il luna park d'inverno ---- */
+.scena .giostra, .scena .palaghiaccio { cursor: pointer; }
+.scena .giostra:focus-visible, .scena .palaghiaccio:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+.scena .palaghiaccio:hover { filter: brightness(1.1); }
+.scena .lucina-giostra { animation: luce-tetto 1.2s ease-in-out infinite; }
+.scena .giostra.suona .lucina-giostra { animation-duration: 0.45s; }
+.scena .bandierina { transform-box: fill-box; transform-origin: 0% 50%; animation: bandierina 1.4s ease-in-out infinite alternate; }
+@keyframes bandierina { from { transform: scaleX(0.8) skewY(-6deg); } to { transform: scaleX(1.05) skewY(6deg); } }
+.scena .sagome-pattinatori path { animation: sagoma 4s ease-in-out infinite alternate; }
+@keyframes sagoma { from { transform: translateX(-6px); } to { transform: translateX(10px); } }
+/* Dentro il palazzetto */
+.scena .pista { background: #141c40; }
+.scena .pista .faro-pista { transform-box: view-box; animation: faro 6s ease-in-out infinite alternate; }
+.scena .pista .faro-pista:nth-of-type(1) { transform-origin: 300px 0; }
+.scena .pista .faro-pista:nth-of-type(2) { transform-origin: 800px 0; }
+.scena .pista .faro-pista:nth-of-type(3) { transform-origin: 1300px 0; }
+@keyframes faro { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+.scena .pista .musica-pista {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    border: 2px solid #ffd36b;
+    border-radius: 999px;
+    background: rgba(20, 28, 64, 0.8);
+    color: #ffe9a8;
+    font: inherit;
+    font-weight: bold;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+@media (max-width: 899px) {
+    .scena .pista .musica-pista { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .lucina-giostra, .scena .bandierina, .scena .sagome-pattinatori path, .scena .pista .faro-pista { animation: none; }
+}
