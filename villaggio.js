@@ -4187,18 +4187,16 @@ function avvolgiTesto(testo, massimo) {
 function creaSala({ onParti, benvenuto = '' }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
-    // Si sceglie chi fa da guida nel tour in slitta, oppure si esplora da soli
+    // Si sceglie chi fa da guida nel tour in slitta
     const partenze = Object.assign(document.createElement('div'), { className: 'partenze' });
     const domanda = Object.assign(document.createElement('p'), { className: 'domanda-guida', textContent: 'Chi ti accompagna sulla slitta?' });
     const conElfo = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♂️ Parto con l\'elfo' });
     const conElfa = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♀️ Parto con l\'elfa' });
-    const daSolo = Object.assign(document.createElement('button'), { type: 'button', className: 'esploro', textContent: 'Esploro per conto mio' });
-    partenze.append(domanda, conElfo, conElfa, daSolo);
+    partenze.append(domanda, conElfo, conElfa);
     nodo.append(svg, partenze);
     const parti = conElfo;
     conElfo.addEventListener('click', () => onParti('elfo'));
     conElfa.addEventListener('click', () => onParti('elfa'));
-    daSolo.addEventListener('click', () => onParti(null));
 
     const defs = el('defs', {}, svg);
     const vetro = el('clipPath', { id: 'vetro-sala' }, defs);
