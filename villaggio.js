@@ -5928,7 +5928,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
 
         seguiTreno = false;
         // Con la slitta personale si arriva davanti alla casa correndo sulla strada
-        if (slittaMia && !modifica) {
+        if (slittaMia) {
             inApertura = true;
             await corsaMia(Number(casa.dataset.x) - 80);
             inApertura = false;
@@ -6120,7 +6120,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     }
 
     function scegliRenna(nome, subito = true) {
-        if (!NOMI_RENNA[nome] || modifica) return;
+        if (!NOMI_RENNA[nome]) return;
         rennaMia = nome;
         try { localStorage.setItem('villaggio_renna', nome); } catch { /* resterà solo per questa visita */ }
         const dove = slittaMia ? xMia : STAZIONE.x + 80;
@@ -6306,7 +6306,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         tappaTour = -1;
         try { localStorage.setItem('villaggio_tour_fatto', '1'); } catch { /* niente memoria: pazienza */ }
         const casa = mondo.querySelector(`.casa[data-giorno="${Math.max(1, Math.min(aperti, 24))}"]`);
-        if (rennaMia && !modifica) {
+        if (rennaMia) {
             // La slitta personale parte da dove si è fermato il tour e porta alla casa di oggi
             if (!slittaMia) slittaMia = disegnaSlittaMia(rennaMia);
             posizionaMia(dove, true);
@@ -6626,7 +6626,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const casaDiOggi = modifica ? null : mondo.querySelector(`.casa[data-giorno="${aperti}"]`);
     const partenzaVista = casaDiOggi ? Number(casaDiOggi.dataset.x) : PIAZZA.x;
 
-    if (rennaMia && !modifica) {
+    if (rennaMia) {
         slittaMia = disegnaSlittaMia(rennaMia);
         posizionaMia(casaDiOggi ? Number(casaDiOggi.dataset.x) - 80 : STAZIONE.x + 80, false);
     }
