@@ -7732,7 +7732,7 @@ const LUCI_3D = {
     tramonto: { alto: '#262a66', basso: '#ffa860', nebbia: '#c98a8f', emisfero: 0.5, cieloLuce: '#ffc9a8', sole: '#ffb27a', forza: 0.6, terra: '#efe2ea', buio: true }
 };
 
-function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
+function creaPaese3D(contenitore, { onCasa, onSpeciale, statoCasa, momento, trova }) {
     const T = window.THREE;
     const telefono = matchMedia('(pointer: coarse)').matches || innerWidth < 700;
     const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -7819,8 +7819,8 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
     // ---- Terreno: piatto in paese, colline e montagne intorno ----
     const altezza = (x, z) => {
         const r = Math.hypot(x, z);
-        if (r < 46) return 0;
-        return (r - 46) * 0.22 * (0.65 + 0.35 * Math.sin(Math.atan2(z, x) * 3 + r * 0.05)) + Math.sin(x * 0.08) * Math.cos(z * 0.07) * 1.5;
+        if (r < 64) return 0;
+        return (r - 64) * 0.22 * (0.65 + 0.35 * Math.sin(Math.atan2(z, x) * 3 + r * 0.05)) + Math.sin(x * 0.08) * Math.cos(z * 0.07) * 1.5;
     };
     const terraGeo = new T.PlaneGeometry(460, 460, telefono ? 90 : 150, telefono ? 90 : 150);
     terraGeo.rotateX(-Math.PI / 2);
@@ -7890,8 +7890,28 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         scena.add(g);
     }
     for (let i = 0; i < (telefono ? 70 : 120); i++) {
-        const a = caso() * Math.PI * 2, r = 40 + caso() * 85;
+        const a = caso() * Math.PI * 2, r = 67 + caso() * 75;
         abete(Math.cos(a) * r, Math.sin(a) * r, 0.9 + caso() * 1.1);
+    }
+
+    // Insegne di legno con la scritta dorata
+    function cartello(testo, largo, sfondo = '#7b2d26') {
+        const c = document.createElement('canvas');
+        c.width = 512;
+        c.height = 128;
+        const g = c.getContext('2d');
+        g.fillStyle = '#c9a227';
+        g.fillRect(0, 0, 512, 128);
+        g.fillStyle = sfondo;
+        g.fillRect(8, 8, 496, 112);
+        let misura = 56;
+        g.font = `bold ${misura}px Georgia, serif`;
+        while (g.measureText(testo).width > 470 && misura > 20) g.font = `bold ${(misura -= 2)}px Georgia, serif`;
+        g.fillStyle = '#fff4dc';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(testo, 256, 68);
+        return new T.Mesh(new T.PlaneGeometry(largo, largo / 4), new T.MeshBasicMaterial({ map: new T.CanvasTexture(c) }));
     }
 
     // ---- Le 24 case, con i colori del villaggio disegnato ----
@@ -7913,7 +7933,8 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         const g = new T.Group();
         g.userData.giorno = giorno;
         const w = 4 + caso() * 1.4, h = 3 + caso() * 1.4, d = 3.6 + caso() * 0.8, rh = 2 + caso() * 0.6;
-        const { muro, tetto } = COLORI[(giorno * 5) % COLORI.length];
+        // La 24 è la casa di Babbo Natale: rossa con il tetto verde, come nel villaggio disegnato
+        const { muro, tetto } = giorno === 24 ? { muro: '#c0392b', tetto: '#2e5b3f' } : COLORI[(giorno * 5) % COLORI.length];
         const corpo = scatola(w, h, d, new T.MeshStandardMaterial({ color: muro, roughness: 0.85 }), 0, h / 2, 0);
         corpo.castShadow = corpo.receiveShadow = true;
         g.add(corpo);
@@ -7964,6 +7985,16 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         const stellaOggi = new T.Group();
         stellaOggi.add(new T.Mesh(geoStella(0.7), new T.MeshBasicMaterial({ color: '#ffe066' })), alone('#ffd36b', 5, 0.85));
         stellaOggi.position.y = stellaOggi.userData.y = h + rh + 2.2;
+        if (giorno === 24) {
+            const insegna = cartello('BABBO NATALE', 1.7, '#2e5b3f');
+            insegna.position.set(0, 2.05, d / 2 + 0.06);
+            g.add(insegna);
+            // Bastoncini di zucchero ai lati della porta
+            [-0.85, 0.85].forEach(bx => {
+                for (let k = 0; k < 6; k++) g.add(scatola(0.16, 0.25, 0.16, new T.MeshStandardMaterial({ color: k % 2 ? '#fbfdff' : '#d63031' }), bx, 0.12 + k * 0.25, d / 2 + 0.25));
+            });
+            g.scale.setScalar(1.35);
+        }
         g.add(stellaOggi);
         [[-w / 2 + 0.3, d / 2], [w / 2 - 0.2, d / 2 - 0.2]].forEach(([nx, nz]) => {
             const mucchio = new T.Mesh(new T.SphereGeometry(0.7, 10, 6), neveMat);
@@ -7974,7 +8005,7 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         g.position.set(x, 0, z);
         g.lookAt(0, 0, 0);
         scena.add(g);
-        case3D.push({ giorno, gruppo: g, vetro, lucine, bagliore, stellaOggi, cardine, vano, stato: '', aperturaPorta: 0, scossa: 0 });
+        case3D.push({ giorno, gruppo: g, vetro, lucine, bagliore, stellaOggi, cardine, vano, d, stato: '', aperturaPorta: 0, scossa: 0 });
     }
     function geoStella(raggio) {
         const forma = new T.Shape();
@@ -8106,6 +8137,291 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
     [2.6, 4.2, 5.8].forEach(z => { renna(0.45, z, false); renna(-0.45, z, false); });
     renna(0, 7.4, true);
     scena.add(slitta);
+    // ---- Gli edifici speciali: ognuno apre la sua stanza del villaggio disegnato ----
+    const speciali = [];
+    const vetriSpeciali = [];
+    const legnoChiaro = new T.MeshStandardMaterial({ color: '#8a5a3c', roughness: 0.9 });
+    const cornice = new T.MeshStandardMaterial({ color: '#fbf6ea', roughness: 0.8 });
+    const vetroSpeciale = () => {
+        const v = new T.MeshStandardMaterial({ color: '#1a2142', emissive: '#ffb347', emissiveIntensity: 1, roughness: 0.3 });
+        vetriSpeciali.push(v);
+        return v;
+    };
+    function finestraGrande(g, x, y, z, vetro) {
+        g.add(scatola(1.25, 1.35, 0.1, cornice, x, y, z), scatola(1.05, 1.15, 0.12, vetro, x, y, z + 0.01), scatola(0.08, 1.15, 0.14, cornice, x, y, z + 0.02), scatola(1.05, 0.08, 0.14, cornice, x, y, z + 0.02), scatola(1.4, 0.14, 0.3, neveMat, x, y - 0.72, z + 0.1));
+    }
+    function edificio({ w, h, d, muro, tetto, testo, insegna = '#7b2d26', rh = 2.6 }) {
+        const g = new T.Group();
+        const corpo = scatola(w, h, d, new T.MeshStandardMaterial({ color: muro, roughness: 0.85 }), 0, h / 2, 0);
+        corpo.castShadow = corpo.receiveShadow = true;
+        const t = prisma(w + 0.9, rh, d + 0.8, new T.MeshStandardMaterial({ color: tetto, roughness: 0.8 }));
+        t.position.y = h;
+        const n = prisma(w + 0.45, rh + 0.05, d + 0.95, neveMat);
+        n.position.y = h + 0.16;
+        g.add(corpo, t, n, scatola(1.5, 2.3, 0.14, new T.MeshStandardMaterial({ color: '#5a3a22', roughness: 0.7 }), 0, 1.15, d / 2 + 0.05));
+        const vetro = vetroSpeciale();
+        [-w * 0.3, w * 0.3].forEach(x => finestraGrande(g, x, h * 0.55, d / 2 + 0.05, vetro));
+        const scritta = cartello(testo, Math.min(w * 0.62, 5.2), insegna);
+        scritta.position.set(0, h + rh * 0.3, (d + 0.8) / 2 + 0.03);
+        g.add(scritta);
+        const bagliore = alone('#ffb347', w * 0.9, 0.35);
+        bagliore.position.set(0, 1.4, d / 2 + 1.5);
+        g.add(bagliore);
+        lampioni.push(bagliore);
+        return g;
+    }
+    function speciale(gruppo, selettore, indice, r, angolo, { entra = true, distanza = 19, alto = 3, alzo = 0.55, guardaFuori = false } = {}) {
+        gruppo.position.set(Math.cos(angolo) * r, 0, Math.sin(angolo) * r);
+        if (guardaFuori) gruppo.lookAt(gruppo.position.x * 2, 0, gruppo.position.z * 2);
+        else gruppo.lookAt(0, 0, 0);
+        gruppo.userData.speciale = true;
+        if (!scena.children.includes(gruppo)) scena.add(gruppo);
+        const s = { gruppo, elemento: trova(selettore, indice), entra, distanza, alto, alzo, fino: 0 };
+        speciali.push(s);
+        return s;
+    }
+    function personaggio(giacca, cappello, pelleColore = '#f2d2bd', k = 1) {
+        const p = new T.Group();
+        const corpo = new T.Mesh(new T.CylinderGeometry(0.28 * k, 0.4 * k, 1.1 * k, 10), new T.MeshStandardMaterial({ color: giacca, roughness: 0.8 }));
+        corpo.position.y = 0.55 * k;
+        corpo.castShadow = true;
+        const testa = new T.Mesh(new T.SphereGeometry(0.25 * k, 12, 10), new T.MeshStandardMaterial({ color: pelleColore }));
+        testa.position.y = 1.3 * k;
+        const berretto = new T.Mesh(new T.ConeGeometry(0.24 * k, 0.5 * k, 10), new T.MeshStandardMaterial({ color: cappello }));
+        berretto.position.y = 1.62 * k;
+        const pon = new T.Mesh(new T.SphereGeometry(0.07 * k, 8, 6), bianco);
+        pon.position.y = 1.88 * k;
+        p.add(corpo, testa, berretto, pon);
+        return p;
+    }
+    const A = i => -Math.PI / 2 + i * (Math.PI / 4) + 0.2;
+
+    // Stazione, con il marciapiede verso i binari del trenino
+    const stazione = edificio({ w: 10, h: 4.6, d: 5, muro: '#8a5a3c', tetto: '#7b2d26', testo: 'STAZIONE' });
+    const orologio3D = new T.Mesh(new T.CircleGeometry(0.55, 24), new T.MeshBasicMaterial({ color: '#fdf6dc' }));
+    orologio3D.position.set(0, 3.7, 2.58);
+    stazione.add(orologio3D, scatola(0.06, 0.4, 0.02, new T.MeshBasicMaterial({ color: '#222' }), 0, 3.85, 2.6), scatola(0.3, 0.06, 0.02, new T.MeshBasicMaterial({ color: '#222' }), 0.12, 3.7, 2.6));
+    stazione.add(scatola(16, 0.5, 3.2, pietra, 0, 0.25, -4.2));
+    speciale(stazione, '.stazione', 0, 52, A(0), { distanza: 20 });
+
+    // Ufficio postale con la cassetta delle lettere
+    const posta3D = edificio({ w: 8, h: 4.2, d: 5, muro: '#c0392b', tetto: '#2e5b3f', testo: 'UFFICIO POSTALE', insegna: '#2e5b3f' });
+    const rossoPosta = new T.MeshStandardMaterial({ color: '#d63031', roughness: 0.5 });
+    posta3D.add(scatola(0.12, 1.2, 0.12, ferro, 5, 0.6, 3.4), scatola(0.7, 0.9, 0.55, rossoPosta, 5, 1.55, 3.4), scatola(0.8, 0.12, 0.65, neveMat, 5, 2.05, 3.4));
+    speciale(posta3D, '.posta', 0, 50, A(1), { distanza: 17 });
+
+    // Laboratorio degli elfi, con l'ingranaggio che gira e i pacchi pronti
+    const laboratorio3D = edificio({ w: 12, h: 5.2, d: 6, muro: '#8a5a3c', tetto: '#2d4f8a', testo: 'LABORATORIO DEGLI ELFI', insegna: '#2d4f8a' });
+    const ingranaggio = new T.Group();
+    const oroGiallo = new T.MeshStandardMaterial({ color: '#e8c766', roughness: 0.3, metalness: 0.6 });
+    ingranaggio.add(new T.Mesh(new T.TorusGeometry(0.55, 0.14, 8, 24), oroGiallo));
+    for (let i = 0; i < 8; i++) {
+        const dente = scatola(0.22, 0.3, 0.16, oroGiallo, Math.cos(i * Math.PI / 4) * 0.75, Math.sin(i * Math.PI / 4) * 0.75, 0);
+        dente.rotation.z = i * Math.PI / 4;
+        ingranaggio.add(dente);
+    }
+    ingranaggio.position.set(0, 3.9, 3.08);
+    laboratorio3D.add(ingranaggio);
+    [['#c0392b', 4.6, 0.5], ['#2e7d5b', 5.5, 0.45], ['#f4d03f', 5, 1.3]].forEach(([c, x, y]) => laboratorio3D.add(scatola(0.9, 0.9, 0.9, new T.MeshStandardMaterial({ color: c }), x, y, 3.6)));
+    speciale(laboratorio3D, '.laboratorio', 0, 53, A(2), { distanza: 22 });
+
+    // Stalla rossa con il portone a croce, il fieno e due renne fuori
+    const stalla3D = edificio({ w: 9, h: 4.2, d: 5.5, muro: '#a3242c', tetto: '#5d3a22', testo: 'STALLA DELLE RENNE', insegna: '#5d3a22', rh: 3 });
+    [0.55, -0.55].forEach(a => {
+        const asse = scatola(0.14, 2.7, 0.06, bianco, 0, 1.15, 2.86);
+        asse.rotation.z = a;
+        stalla3D.add(asse);
+    });
+    const fieno = new T.MeshStandardMaterial({ color: '#d9b34a', roughness: 1 });
+    [[-5.4, 0.5, 2.5], [-5.4, 1.4, 2.5], [5.4, 0.5, 2.8]].forEach(([x, y, z]) => {
+        const balla = new T.Mesh(new T.CylinderGeometry(0.5, 0.5, 1.1, 12), fieno);
+        balla.rotation.z = Math.PI / 2;
+        balla.position.set(x, y, z);
+        stalla3D.add(balla);
+    });
+    function rennaFerma(x, z, ry) {
+        const r = new T.Group();
+        const collo = scatola(0.3, 0.8, 0.3, pelo, 0, 1.4, 0.65);
+        collo.rotation.x = 0.3;
+        r.add(scatola(0.6, 0.65, 1.5, pelo, 0, 1.0, 0), collo, scatola(0.38, 0.38, 0.6, pelo, 0, 1.85, 0.9), scatola(0.06, 0.6, 0.06, corna, 0.15, 2.3, 0.8), scatola(0.06, 0.6, 0.06, corna, -0.15, 2.3, 0.8));
+        [[0.18, 0.5], [-0.18, 0.5], [0.18, -0.5], [-0.18, -0.5]].forEach(([zx, zz]) => r.add(scatola(0.12, 0.75, 0.12, pelo, zx, 0.37, zz)));
+        r.position.set(x, 0, z);
+        r.rotation.y = ry;
+        r.children.forEach(m => (m.castShadow = true));
+        stalla3D.add(r);
+    }
+    rennaFerma(-3.6, 3.9, 0.7);
+    rennaFerma(3.3, 4.4, -0.5);
+    speciale(stalla3D, '.stalla', 0, 51, A(3), { distanza: 19 });
+
+    // Le bancarelle: tetto colorato innevato, bancone, lampada e chi vende
+    function bancarella(nome, colore, merce) {
+        const g = new T.Group();
+        g.add(scatola(3, 1.1, 1.3, legnoChiaro, 0, 0.55, 0.35), scatola(3.1, 0.1, 1.45, bianco, 0, 1.13, 0.35), scatola(3, 2.5, 0.12, legnoChiaro, 0, 1.25, -0.6));
+        [[-1.45, -0.55], [1.45, -0.55], [-1.45, 1.0], [1.45, 1.0]].forEach(([x, z]) => g.add(scatola(0.12, 2.6, 0.12, legnoChiaro, x, 1.3, z)));
+        const tettoB = prisma(3.7, 1.1, 2.3, new T.MeshStandardMaterial({ color: colore, roughness: 0.7 }));
+        tettoB.position.set(0, 2.6, 0.2);
+        const neveB = prisma(3.35, 1.15, 2.4, neveMat);
+        neveB.position.set(0, 2.72, 0.2);
+        const scritta = cartello(nome, 2.3, colore);
+        scritta.position.set(0, 2.92, 1.37);
+        const lampada = new T.Mesh(new T.SphereGeometry(0.14, 10, 8), lanternaMat);
+        lampada.position.set(0, 2.3, 0.9);
+        const luceB = alone('#ffcf73', 3, 0.6);
+        luceB.position.copy(lampada.position);
+        lampioni.push(luceB);
+        g.add(tettoB, neveB, scritta, lampada, luceB);
+        merce.forEach((c, i) => {
+            const m = new T.Mesh(new T.SphereGeometry(0.16, 10, 8), new T.MeshStandardMaterial({ color: c, roughness: 0.5 }));
+            m.position.set(-1.1 + i * 0.45, 1.3, 0.6);
+            g.add(m);
+        });
+        const chi = personaggio(['#3b3f58', '#5b3a6b', '#2d4f8a', '#2e7d5b', '#c0392b'][nome.length % 5], '#c0392b');
+        chi.position.set(0.3, 0.2, -0.2);
+        g.add(chi);
+        return g;
+    }
+    [['Castagne', '#9b1d2a', ['#6b3a1e', '#7a4424', '#5d3218', '#6b3a1e', '#7a4424']], ['Cioccolata', '#2e6b3f', ['#5a3420', '#fbfdff', '#5a3420', '#fbfdff', '#5a3420']], ['Frittelle', '#2d4f8a', ['#e0a85a', '#d9984a', '#e0a85a', '#d9984a', '#e0a85a']]].forEach(([nome, colore, merce], i) => {
+        speciale(bancarella(nome, colore, merce), `.bancarella[data-tipo="${nome.toLowerCase()}"]`, 0, 50, A(4) + (i - 1) * 0.1, { distanza: 11, alto: 1.8 });
+    });
+    [['Addobbi', '#7d4e9e', ['#e0262f', '#f4d03f', '#3f7fd6', '#e84393', '#2e7d4a']], ['Candele', '#b5651d', ['#fff4dc', '#ffd36b', '#fff4dc', '#ffd36b', '#fff4dc']]].forEach(([nome, colore, merce], i) => {
+        speciale(bancarella(nome, colore, merce), '.negozio', i, 50, A(5) + (i - 0.5) * 0.1, { distanza: 11, alto: 1.8 });
+    });
+
+    // La giostra con i cavalli che salgono e scendono
+    const giostra3D = new T.Group();
+    const pedana = new T.Mesh(new T.CylinderGeometry(3.4, 3.6, 0.5, 32), new T.MeshStandardMaterial({ color: '#fbf1d8', roughness: 0.6 }));
+    pedana.position.y = 0.25;
+    giostra3D.add(pedana);
+    const giro = new T.Group();
+    giro.add(scatola(0.9, 3.4, 0.9, oroGiallo, 0, 2.2, 0));
+    const strisce = tela(256, g => {
+        for (let i = 0; i < 16; i++) {
+            g.fillStyle = i % 2 ? '#fbfdff' : '#c0392b';
+            g.fillRect(i * 16, 0, 16, 256);
+        }
+    });
+    const tettoG = new T.Mesh(new T.ConeGeometry(3.9, 1.9, 32), new T.MeshStandardMaterial({ map: strisce, roughness: 0.6 }));
+    tettoG.position.y = 4.85;
+    tettoG.castShadow = true;
+    const cimaG = new T.Mesh(new T.SphereGeometry(0.25, 10, 8), oroGiallo);
+    cimaG.position.y = 5.95;
+    giro.add(tettoG, cimaG);
+    const cavalli = [];
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const palo = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 3.5, 6), oroGiallo);
+        palo.position.set(Math.cos(a) * 2.6, 2.2, Math.sin(a) * 2.6);
+        const cavallo = new T.Group();
+        const mantello = new T.MeshStandardMaterial({ color: i % 2 ? '#fbfdff' : '#f2d7b3' });
+        const collo = scatola(0.25, 0.6, 0.25, mantello, 0, 0.35, 0.45);
+        collo.rotation.x = -0.4;
+        cavallo.add(scatola(0.32, 0.45, 1.1, mantello, 0, 0, 0), collo, scatola(0.25, 0.25, 0.5, mantello, 0, 0.65, 0.65), scatola(0.36, 0.1, 0.5, new T.MeshStandardMaterial({ color: COLORI_FESTA[i % 5] }), 0, 0.26, -0.05));
+        cavallo.position.set(Math.cos(a) * 2.6, 1.6, Math.sin(a) * 2.6);
+        cavallo.rotation.y = -a;
+        cavalli.push(cavallo);
+        giro.add(palo, cavallo);
+        const luceG = new T.Mesh(new T.SphereGeometry(0.1, 8, 6), LUCINE[i % LUCINE.length]);
+        luceG.position.set(Math.cos(a) * 3.85, 3.95, Math.sin(a) * 3.85);
+        giro.add(luceG);
+    }
+    giostra3D.add(giro);
+    const sGiostra = speciale(giostra3D, '.giostra', 0, 50, A(6), { entra: false, distanza: 15, alto: 2.5 });
+
+    // Il palaghiaccio: una cupola di ghiaccio azzurro
+    const pala = new T.Group();
+    const muroPala = new T.Mesh(new T.CylinderGeometry(6, 6, 3.2, 40), new T.MeshStandardMaterial({ color: '#e3f1ff', roughness: 0.5 }));
+    muroPala.position.y = 1.6;
+    muroPala.castShadow = muroPala.receiveShadow = true;
+    const cupola = new T.Mesh(new T.SphereGeometry(6.1, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2), new T.MeshStandardMaterial({ color: '#a9d6f5', roughness: 0.15, metalness: 0.25 }));
+    cupola.position.y = 3.2;
+    cupola.scale.y = 0.6;
+    cupola.castShadow = true;
+    const capNeve = new T.Mesh(new T.SphereGeometry(3.2, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), neveMat);
+    capNeve.position.y = 5.65;
+    capNeve.scale.y = 0.35;
+    pala.add(muroPala, cupola, capNeve, scatola(1.8, 2.3, 0.3, new T.MeshStandardMaterial({ color: '#2d4f8a' }), 0, 1.15, 5.95));
+    const vetroPala = vetroSpeciale();
+    for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2 + Math.PI / 10;
+        if (Math.abs(Math.sin(a) - 1) < 0.05) continue;
+        const f = scatola(0.9, 1, 0.1, vetroPala, Math.sin(a) * 6.02, 2, Math.cos(a) * 6.02);
+        f.rotation.y = a;
+        pala.add(f);
+    }
+    const scrittaPala = cartello('PALAGHIACCIO', 4, '#2d4f8a');
+    scrittaPala.position.set(0, 2.85, 6.08);
+    pala.add(scrittaPala);
+    speciale(pala, '.palaghiaccio', 0, 52, A(7), { distanza: 21, alto: 3 });
+
+    // Il coro in piazza, rivolto verso chi guarda
+    const coro3D = new T.Group();
+    [['#c0392b', '#2e7d5b'], ['#2d4f8a', '#c0392b'], ['#7d4e9e', '#f4d03f'], ['#2e7d5b', '#c0392b'], ['#b5652f', '#2d4f8a']].forEach(([giacca, cappello], i) => {
+        const p = personaggio(giacca, cappello, i % 2 ? '#e3b393' : '#f2d2bd');
+        p.position.set((i - 2) * 0.9, 0, i % 2 ? -0.5 : 0);
+        p.add(scatola(0.4, 0.3, 0.06, bianco, 0, 0.95, 0.4));
+        coro3D.add(p);
+    });
+    const sCoro = speciale(coro3D, '.coro', 0, 15.5, 0.05, { entra: false, distanza: 9, alto: 1.4, alzo: 0.35, guardaFuori: true });
+
+    // Anche l'albero si tocca: parte lo Schiaccianoci
+    const sAlbero = speciale(albero, '.albero', 0, 0, 0, { entra: false, distanza: 30, alto: 6, alzo: 0.3 });
+
+    // La signora Natale, che aspetta alla porta della casa di Babbo Natale la sera del 24
+    const signora = new T.Group();
+    const vestito = new T.MeshStandardMaterial({ color: '#b3202b', roughness: 0.7 });
+    const gonna = new T.Mesh(new T.ConeGeometry(0.6, 1.3, 16), vestito);
+    gonna.position.y = 0.65;
+    const busto = new T.Mesh(new T.CylinderGeometry(0.26, 0.36, 0.6, 12), vestito);
+    busto.position.y = 1.55;
+    const grembiule = scatola(0.5, 0.8, 0.05, bianco, 0, 0.75, 0.33);
+    grembiule.rotation.x = -0.2;
+    const testaS = new T.Mesh(new T.SphereGeometry(0.25, 14, 12), pelle);
+    testaS.position.y = 2.05;
+    const capelli = new T.Mesh(new T.SphereGeometry(0.27, 14, 12, 0, Math.PI * 2, 0, Math.PI / 2), new T.MeshStandardMaterial({ color: '#e8e8ee' }));
+    capelli.position.y = 2.08;
+    const chignon = new T.Mesh(new T.SphereGeometry(0.13, 10, 8), capelli.material);
+    chignon.position.set(0, 2.35, -0.1);
+    const tazza = new T.Mesh(new T.CylinderGeometry(0.09, 0.08, 0.18, 10), new T.MeshStandardMaterial({ color: '#fbf6ea' }));
+    tazza.position.set(0.35, 1.35, 0.25);
+    signora.add(gonna, busto, grembiule, testaS, capelli, chignon, tazza);
+    signora.children.forEach(m => (m.castShadow = true));
+    signora.visible = false;
+    const casa24 = case3D.find(c => c.giorno === 24);
+    signora.position.set(1.15, 0, casa24.d / 2 + 0.8);
+    casa24.gruppo.add(signora);
+
+    // Il trenino che fa il giro del paese sui suoi binari
+    const BINARI = 60;
+    [[BINARI - 0.9, BINARI + 0.9, '#9a8f86'], [BINARI - 0.55, BINARI - 0.42, '#5c6378'], [BINARI + 0.42, BINARI + 0.55, '#5c6378']].forEach(([da, a, c], i) => {
+        const anello = new T.Mesh(new T.RingGeometry(da, a, 160), new T.MeshStandardMaterial({ color: c, roughness: 0.9, metalness: i ? 0.5 : 0 }));
+        anello.rotation.x = -Math.PI / 2;
+        anello.position.y = 0.04 + i * 0.01;
+        anello.receiveShadow = true;
+        scena.add(anello);
+    });
+    const vagoni = [];
+    const locomotiva = new T.Group();
+    const caldaia = new T.Mesh(new T.CylinderGeometry(0.55, 0.55, 2.2, 16), new T.MeshStandardMaterial({ color: '#b3202b', roughness: 0.4 }));
+    caldaia.rotation.x = Math.PI / 2;
+    caldaia.position.set(0, 1.05, 0.4);
+    const ciminiera = new T.Mesh(new T.CylinderGeometry(0.22, 0.15, 0.7, 10), new T.MeshStandardMaterial({ color: '#2c2f45' }));
+    ciminiera.position.set(0, 1.85, 1.1);
+    const fanale = new T.Mesh(new T.SphereGeometry(0.16, 10, 8), lanternaMat);
+    fanale.position.set(0, 1.1, 1.55);
+    locomotiva.add(caldaia, ciminiera, fanale, scatola(1.3, 1.5, 1.1, new T.MeshStandardMaterial({ color: '#2e5b3f', roughness: 0.5 }), 0, 1.25, -0.95), scatola(1.5, 0.15, 1.3, neveMat, 0, 2.05, -0.95), scatola(1.2, 0.3, 3.2, ferro, 0, 0.4, 0));
+    vagoni.push(locomotiva);
+    ['#c0392b', '#2d4f8a', '#2e7d5b'].forEach(c => {
+        const v = new T.Group();
+        const vetroV = vetroSpeciale();
+        v.add(scatola(1.3, 1.3, 2.6, new T.MeshStandardMaterial({ color: c, roughness: 0.5 }), 0, 1.1, 0), scatola(1.45, 0.15, 2.8, neveMat, 0, 1.82, 0), scatola(1.35, 0.45, 2.0, vetroV, 0, 1.3, 0), scatola(1.1, 0.3, 2.6, ferro, 0, 0.35, 0));
+        vagoni.push(v);
+    });
+    vagoni.forEach(v => {
+        v.children.forEach(m => (m.castShadow = true));
+        scena.add(v);
+    });
+
     const SCIA = 70;
     const sciaPos = new Float32Array(SCIA * 3), sciaCol = new Float32Array(SCIA * 3);
     const sciaGeo = new T.BufferGeometry();
@@ -8148,9 +8464,10 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
     }
 
     // ---- Telecamera ----
-    const vista = { angolo: 0, alzo: 0.42, distanza: 70, centro: new T.Vector3(0, 3, 0) };
-    const meta = { angolo: 0, alzo: 0.42, distanza: 58, centro: new T.Vector3(0, 3, 0) };
-    let ultimoTocco = -1e9, casaVicina = null;
+    const PANORAMA = { alzo: 0.5, distanza: 76 };
+    const vista = { angolo: 0, alzo: PANORAMA.alzo, distanza: 95, centro: new T.Vector3(0, 3, 0) };
+    const meta = { angolo: 0, alzo: PANORAMA.alzo, distanza: PANORAMA.distanza, centro: new T.Vector3(0, 3, 0) };
+    let ultimoTocco = -1e9, vicinoA = null;
     const puntatori = new Map();
     let pizzico = null, spostato = 0;
     const vicino = (verso, da) => {
@@ -8158,26 +8475,28 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         while (verso - da < -Math.PI) verso += Math.PI * 2;
         return verso;
     };
-    function panorama(versoCasa = null) {
-        casaVicina = null;
+    // Dal panorama si guarda il paese dalla parte di una casa o di un edificio
+    function panorama(verso = null) {
+        vicinoA = null;
         meta.centro.set(0, 3, 0);
-        meta.alzo = 0.42;
-        meta.distanza = 58;
-        if (versoCasa) {
-            const p = versoCasa.gruppo.position;
-            meta.angolo = vicino(Math.atan2(p.z, p.x), vista.angolo);
-        }
+        meta.alzo = PANORAMA.alzo;
+        meta.distanza = PANORAMA.distanza;
+        // Usciti da un edificio lo si vede dall'altra parte del paese; da una casa, da dietro la casa
+        if (verso && verso.position.lengthSq() > 1) meta.angolo = vicino(Math.atan2(verso.position.z, verso.position.x) + (verso.userData.speciale ? Math.PI : 0), vista.angolo);
         ultimoTocco = performance.now();
     }
-    function avvicina(c) {
-        casaVicina = c;
-        const p = c.gruppo.position;
-        meta.centro.set(p.x, 2.6, p.z);
-        meta.angolo = vicino(Math.atan2(p.z, p.x) + Math.PI, vista.angolo);
-        meta.alzo = 0.3;
-        meta.distanza = 15;
+    // La telecamera si mette davanti alla porta (o, per il coro, davanti ai cantori)
+    function avvicina(gruppo, { distanza = 15, alto = 2.6, alzo = 0.3, fuori = false } = {}) {
+        vicinoA = gruppo;
+        const p = gruppo.position;
+        meta.centro.set(p.x, alto, p.z);
+        meta.angolo = vicino(Math.atan2(p.z, p.x) + (fuori ? 0 : Math.PI), vista.angolo);
+        meta.alzo = alzo;
+        meta.distanza = distanza;
         ultimoTocco = performance.now() + 1e9;
     }
+    const avvicinaCasa = c => avvicina(c.gruppo, { distanza: c.giorno === 24 ? 20 : 15, alto: c.giorno === 24 ? 3.4 : 2.6 });
+    const avvicinaSpeciale = s => avvicina(s.gruppo, { distanza: s.distanza, alto: s.alto, alzo: s.alzo, fuori: s === sCoro });
 
     canvas.addEventListener('pointerdown', e => {
         try {
@@ -8201,9 +8520,9 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         ultimoTocco = performance.now();
         if (puntatori.size === 2 && pizzico) {
             const [a, b] = [...puntatori.values()];
-            meta.distanza = T.MathUtils.clamp(pizzico.distanza * pizzico.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), 10, 110);
+            meta.distanza = T.MathUtils.clamp(pizzico.distanza * pizzico.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), 10, 130);
         } else if (spostato > 8) {
-            if (casaVicina) casaVicina = null;
+            if (vicinoA) vicinoA = null;
             meta.angolo -= dx * 0.006;
             meta.alzo = T.MathUtils.clamp(meta.alzo + dy * 0.004, 0.08, 1.25);
         }
@@ -8220,30 +8539,60 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
     canvas.addEventListener('wheel', e => {
         e.preventDefault();
         ultimoTocco = performance.now();
-        meta.distanza = T.MathUtils.clamp(meta.distanza * (1 + Math.sign(e.deltaY) * 0.1), 10, 110);
+        meta.distanza = T.MathUtils.clamp(meta.distanza * (1 + Math.sign(e.deltaY) * 0.1), 10, 130);
     }, { passive: false });
 
     const raggio = new T.Raycaster();
     function tocca(cx, cy) {
         const r = canvas.getBoundingClientRect();
         raggio.setFromCamera({ x: ((cx - r.left) / r.width) * 2 - 1, y: -((cy - r.top) / r.height) * 2 + 1 }, camera);
-        const colpi = raggio.intersectObjects(case3D.map(c => c.gruppo), true);
-        if (!colpi.length) return;
-        let o = colpi[0].object;
-        while (o && !o.userData.giorno) o = o.parent;
+        const colpi = raggio.intersectObjects([...case3D.map(c => c.gruppo), ...speciali.map(k => k.gruppo)], true);
+        // Contano solo le cose solide e visibili: non gli aloni di luce né le lucine spente
+        const visibile = n => {
+            for (; n; n = n.parent) if (!n.visible) return false;
+            return true;
+        };
+        const colpo = colpi.find(h => !h.object.isSprite && visibile(h.object));
+        if (!colpo) return;
+        let o = colpo.object;
+        while (o && !o.userData.giorno && !o.userData.speciale) o = o.parent;
+        const sp = speciali.find(k => k.gruppo === o);
+        if (sp) return toccaSpeciale(sp);
         const c = case3D.find(k => k.gruppo === o);
-        if (!c) return;
+        if (c) toccaCasa(c);
+    }
+
+    function toccaCasa(c) {
         if (c.stato === 'chiusa') {
             // Una casa ancora chiusa trema un po', e il villaggio dice quando si aprirà
             c.scossa = 1;
             onCasa(c.giorno);
             return;
         }
-        avvicina(c);
+        avvicinaCasa(c);
         c.aperturaPorta = 0.001;
         // La porta si apre, poi si entra dalla stessa porta del villaggio disegnato
         setTimeout(() => onCasa(c.giorno), 1100);
     }
+
+    // Gli edifici aprono la loro stanza; giostra, coro e albero suonano e si animano
+    function toccaSpeciale(sp) {
+        if (!sp.elemento) return;
+        if (!sp.entra) {
+            sp.fino = sp.fino > tempo ? 0 : tempo + 45;
+            return onSpeciale(sp.elemento);
+        }
+        avvicinaSpeciale(sp);
+        setTimeout(() => onSpeciale(sp.elemento), 900);
+    }
+
+    // Solo per le prove: tocca un edificio senza doverlo inquadrare
+    canvas.toccaPerProva = selettore => {
+        aggiornaCase();
+        if (typeof selettore === 'number') return toccaCasa(case3D.find(k => k.giorno === selettore));
+        const sp = speciali.find(k => k.elemento?.matches(selettore));
+        if (sp) toccaSpeciale(sp);
+    };
 
     function aggiornaCase() {
         case3D.forEach(c => {
@@ -8282,7 +8631,7 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
             aggiornaCase();
             applicaMomento();
         }
-        if (!calmo && performance.now() - ultimoTocco > 5000 && !casaVicina) meta.angolo += dt * 0.04;
+        if (!calmo && performance.now() - ultimoTocco > 5000 && !vicinoA) meta.angolo += dt * 0.04;
         const k = 1 - Math.pow(0.04, dt);
         vista.angolo += (meta.angolo - vista.angolo) * k;
         vista.alzo += (meta.alzo - vista.alzo) * k;
@@ -8296,7 +8645,6 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         camera.lookAt(vista.centro);
 
         palline.forEach((m, i) => m.color.copy(baseColori[i]).multiplyScalar(0.55 + 0.45 * Math.sin(tempo * 2.2 + i * 1.3)));
-        stella.rotation.y = tempo * 0.6;
         aloneStella.material.opacity = (buio ? 0.7 : 0.3) + Math.sin(tempo * 3) * 0.1;
 
         const a = tempo * 0.12, sy = 30 + Math.sin(tempo * 0.9) * 2;
@@ -8343,6 +8691,24 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
                 c.cardine.rotation.y = Math.min(0, c.cardine.rotation.y + dt * 2);
             }
         });
+        // Edifici: finestre accese di sera, ingranaggio, giostra, coro, trenino
+        vetriSpeciali.forEach(v => (v.emissiveIntensity = buio ? 1.2 : 0.35));
+        ingranaggio.rotation.z = tempo * 0.8;
+        const suona = sGiostra.fino > tempo;
+        giro.rotation.y += dt * (suona ? 0.9 : 0.25);
+        cavalli.forEach((cv, i) => (cv.position.y = 1.6 + Math.sin(tempo * (suona ? 3 : 1.5) + i) * 0.35));
+        const canta = sCoro.fino > tempo;
+        coro3D.children.forEach((p, i) => {
+            p.position.y = canta ? Math.abs(Math.sin(tempo * 4 + i * 0.7)) * 0.18 : 0;
+            p.rotation.z = canta ? Math.sin(tempo * 2 + i) * 0.06 : 0;
+        });
+        stella.rotation.y = tempo * (sAlbero.fino > tempo ? 2.4 : 0.6);
+        const giroTreno = tempo * 0.035;
+        vagoni.forEach((v, i) => {
+            const a = giroTreno - i * 0.055;
+            v.position.set(Math.cos(a) * BINARI, 0, Math.sin(a) * BINARI);
+            v.lookAt(Math.cos(a + 0.01) * BINARI, 0, Math.sin(a + 0.01) * BINARI);
+        });
         renderer.render(scena, camera);
     }
 
@@ -8355,7 +8721,7 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
             aggiornaCase();
             applicaMomento();
             const c = case3D.find(k => k.giorno === versoGiorno);
-            panorama(c);
+            panorama(c?.gruppo);
             if (c) vista.angolo = meta.angolo;
             orologio.getDelta();
             requestAnimationFrame(ciclo);
@@ -8366,7 +8732,20 @@ function creaPaese3D(contenitore, { onCasa, statoCasa, momento }) {
         // Usciti da una casa si chiude la porta e si torna a guardare il paese
         fuori() {
             case3D.forEach(c => (c.aperturaPorta = 0));
-            if (casaVicina) panorama(casaVicina);
+            if (vicinoA) panorama(vicinoA);
+        },
+        // Il villaggio porta lo sguardo su un edificio o una casa (il tour, il finale del 24…)
+        guarda(elemento) {
+            if (!attivo || !elemento) return;
+            const sp = speciali.find(k => k.elemento === elemento);
+            if (sp) return avvicinaSpeciale(sp);
+            const c = case3D.find(k => k.giorno === Number(elemento.dataset?.giorno));
+            if (c) avvicinaCasa(c);
+        },
+        // La signora Natale alla porta della casa 24, che si apre per lei
+        signora(si) {
+            signora.visible = si;
+            casa24.aperturaPorta = si ? 0.001 : 0;
         },
         panorama: () => panorama()
     };
@@ -8690,7 +9069,7 @@ function creaVillaggio(contenitore, opzioni) {
 
         seguiTreno = false;
         // Con la slitta personale si arriva davanti alla casa correndo sulla strada
-        if (slittaMia) {
+        if (slittaMia && !contenitore.classList.contains('vista-3d')) {
             inApertura = true;
             await corsaMia(Number(casa.dataset.x) - 80);
             inApertura = false;
@@ -8718,6 +9097,7 @@ function creaVillaggio(contenitore, opzioni) {
 
     // Si entra in stazione come in una casa: la vista si avvicina alla porta
     async function entraInStazione(stazione) {
+        paese3D?.guarda(stazione);
         if (inApertura) return;
         inApertura = true;
         seguiTreno = false;
@@ -8730,6 +9110,7 @@ function creaVillaggio(contenitore, opzioni) {
 
     // Si entra nella bancarella del mercatino a guardare la nonna che cucina
     async function entraNellaBancarella(banco) {
+        paese3D?.guarda(banco);
         if (inApertura) return;
         inApertura = true;
         seguiTreno = false;
@@ -8742,6 +9123,7 @@ function creaVillaggio(contenitore, opzioni) {
 
     // Si entra nel palazzetto del ghiaccio: parte la musica e i pattinatori girano
     async function entraNelPalaghiaccio(palazzetto) {
+        paese3D?.guarda(palazzetto);
         if (inApertura) return;
         inApertura = true;
         seguiTreno = false;
@@ -8758,6 +9140,7 @@ function creaVillaggio(contenitore, opzioni) {
 
     // Si entra in un edificio del quartiere di Babbo Natale: la vista si avvicina alla porta
     async function entraNelQuartiere(edificio) {
+        paese3D?.guarda(edificio);
         if (inApertura) return;
         inApertura = true;
         seguiTreno = false;
@@ -8773,6 +9156,7 @@ function creaVillaggio(contenitore, opzioni) {
 
     // Si entra nella bancarella degli addobbi
     async function entraNelNegozio(banco) {
+        paese3D?.guarda(banco);
         if (inApertura) return;
         inApertura = true;
         seguiTreno = false;
@@ -8962,6 +9346,8 @@ function creaVillaggio(contenitore, opzioni) {
         signoraAllaPorta?.remove();
         signoraAllaPorta = disegnaSignoraNatale(mondo, x + 4 * s, y + 2, s * 1.1);
         modoFumetto = 'finale';
+        paese3D?.guarda(casa);
+        paese3D?.signora(true);
         facciaGuida.textContent = '🤶';
         nomeGuida.textContent = 'La signora Natale';
         testoGuida.textContent = 'Che bello vederti qui! Hai fatto tutto il viaggio fino alla nostra casa… Entra, ti ho preparato una cioccolata calda!';
@@ -8986,6 +9372,7 @@ function creaVillaggio(contenitore, opzioni) {
         await avvicinaA(casaFinale, 900);
         signoraAllaPorta?.remove();
         signoraAllaPorta = null;
+        paese3D?.signora(false);
         entraDentro(cucina);
         inApertura = false;
     }
@@ -9099,6 +9486,7 @@ function creaVillaggio(contenitore, opzioni) {
         fumettoGuida.classList.add('nascosto');
         if (tappaTour < TAPPE_SLITTA.length) {
             const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour].edificio);
+            paese3D?.guarda(edificio);
             await viaggioSlitta(Number(edificio.getAttribute('transform').match(/translate\(([\d.-]+)/)[1]) - 90);
             parla(TAPPE_SLITTA[tappaTour].testo, { entra: true, scelta: Boolean(TAPPE_SLITTA[tappaTour].scelta) });
             return;
@@ -9514,6 +9902,9 @@ function creaVillaggio(contenitore, opzioni) {
                 await caricaThree();
                 paese3D ??= creaPaese3D(contenitore, {
                     onCasa: giorno => apriCasa(mondo.querySelector(`.casa[data-giorno="${giorno}"]`)),
+                    // Gli edifici 3D bussano alla stessa porta di quelli disegnati
+                    onSpeciale: elemento => elemento.dispatchEvent(new MouseEvent('click', { bubbles: true })),
+                    trova: (selettore, indice = 0) => mondo.querySelectorAll(selettore)[indice] ?? null,
                     statoCasa: statoCasa3D,
                     momento: () => MOMENTI.find(m => contenitore.classList.contains(`momento-${m}`)) ?? 'notte'
                 });
