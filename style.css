@@ -2348,3 +2348,40 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .slitta-tour-corpo { animation: none; }
 }
+
+/* ---- La storia della renna ---- */
+.scena .storia-renna {
+    position: absolute;
+    left: 50%;
+    bottom: 3%;
+    z-index: 3;
+    width: min(600px, 92%);
+    padding: 14px 20px 12px;
+    border: 3px solid #e8c766;
+    border-radius: 24px;
+    background: #fffdf6;
+    color: #3a2416;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, 30px) scale(0.9);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(.2, 1.3, .4, 1), opacity 0.25s;
+}
+.scena .storia-renna.apre { transform: translate(-50%, 0) scale(1); opacity: 1; }
+.scena .storia-renna h3 { margin: 0 0 4px; font-family: 'Mountains of Christmas', 'Brush Script MT', cursive; font-size: 1.8rem; color: #a3242c; }
+.scena .storia-renna .testo-storia { margin: 0; font-size: 1.05rem; line-height: 1.5; }
+.scena .storia-renna .chiudi-storia {
+    display: block;
+    margin: 10px auto 0;
+    border: 2px solid #c9a227;
+    border-radius: 999px;
+    background: #2e7d4a;
+    color: #fffaf0;
+    font: inherit;
+    font-weight: 800;
+    padding: 6px 18px;
+    cursor: pointer;
+}
+@media (max-width: 899px) {
+    .scena .storia-renna .testo-storia { font-size: 0.95rem; }
+}

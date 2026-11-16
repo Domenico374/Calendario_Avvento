@@ -2473,11 +2473,26 @@ function creaLaboratorio({ onEsci }) {
 
 // ---------- La stalla delle renne ----------
 const RENNE_STALLA = [
-    { nome: 'Cometa', pelo: '#8a5a36', collare: '#c0392b' },
-    { nome: 'Ballerino', pelo: '#a0703f', collare: '#2d4f8a' },
-    { nome: 'Rudolph', pelo: '#7a4b2e', collare: '#2e7d4a', naso: true },
-    { nome: 'Fulmine', pelo: '#94643c', collare: '#f4d03f' },
-    { nome: 'Cupido', pelo: '#a8794a', collare: '#e84393' }
+    {
+        nome: 'Cometa', pelo: '#8a5a36', collare: '#c0392b',
+        storia: "Sono Cometa, la più veloce della squadra! Mi chiamano così perché quando corro nel cielo lascio dietro di me una scia di stelline. Il mio cibo preferito? Licheni croccanti con una spolverata di neve fresca."
+    },
+    {
+        nome: 'Ballerino', pelo: '#a0703f', collare: '#2d4f8a',
+        storia: "Ciao, sono Ballerino! Prima di ogni partenza faccio una piroetta sul ghiaccio: porta fortuna a tutta la squadra. Gli elfi dicono che sono il più elegante della stalla… e io non li contraddico!"
+    },
+    {
+        nome: 'Rudolph', pelo: '#7a4b2e', collare: '#2e7d4a', naso: true,
+        storia: "Sono Rudolph, quello col naso rosso! Da piccolo il mio naso luminoso mi faceva sentire diverso. Poi una notte di nebbia fittissima Babbo Natale mi ha chiesto di guidare la slitta: il mio naso illuminava la strada! Da allora sono sempre il primo della fila."
+    },
+    {
+        nome: 'Fulmine', pelo: '#94643c', collare: '#f4d03f',
+        storia: "Sono Fulmine, la renna più forte del Polo Nord! Tiro la slitta anche quando il sacco dei regali è pieno fino all'orlo. Il mio segreto? Una carota a colazione e tanta allegria."
+    },
+    {
+        nome: 'Cupido', pelo: '#a8794a', collare: '#e84393',
+        storia: "Io sono Cupido, la renna più affettuosa! Il mio compito è controllare che ogni regalo parta con tanto amore dentro. Dicono che chi mi fa una carezza abbia fortuna per tutto l'anno."
+    }
 ];
 
 function disegnaStalla(mondo, x, y, scala) {
@@ -2609,9 +2624,32 @@ function creaStalla({ onEsci, onTocco }) {
     el('rect', { x: 450, y: 740, width: 700, height: 70, rx: 14, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 3 }, cartello);
     el('text', { x: 800, y: 784, 'text-anchor': 'middle', 'font-size': 22, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#3a2416' }, cartello).textContent = 'Donato, Donnola, Freccia e Saltarello sono fuori ad allenarsi!';
 
-    // Toccata, la renna fa sì con la testa, suonano i campanelli e spunta un cuore
-    renne.forEach(r => {
+    // Il fumetto con la storia della renna toccata
+    const storia = Object.assign(document.createElement('div'), { className: 'storia-renna', hidden: true });
+    storia.setAttribute('role', 'dialog');
+    const nomeStoria = document.createElement('h3');
+    const testoStoria = Object.assign(document.createElement('p'), { className: 'testo-storia' });
+    const chiudiStoria = Object.assign(document.createElement('button'), { type: 'button', className: 'chiudi-storia', textContent: 'Ciao ciao! 👋' });
+    storia.append(nomeStoria, testoStoria, chiudiStoria);
+    nodo.append(storia);
+    const nascondiStoria = () => { storia.hidden = true; storia.classList.remove('apre'); };
+    chiudiStoria.addEventListener('click', nascondiStoria);
+    storia.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape') {
+            evento.stopPropagation();
+            nascondiStoria();
+        }
+    });
+
+    // Toccata, la renna fa sì con la testa, suonano i campanelli, spunta un cuore e racconta la sua storia
+    renne.forEach((r, i) => {
         const saluta = () => {
+            const renna = RENNE_STALLA[i];
+            nomeStoria.textContent = `${renna.naso ? '🔴' : '🦌'} ${renna.nome}`;
+            testoStoria.textContent = renna.storia;
+            storia.setAttribute('aria-label', `La storia di ${renna.nome}`);
+            storia.hidden = false;
+            requestAnimationFrame(() => storia.classList.add('apre'));
             onTocco();
             r.classList.remove('saluta');
             r.getBBox();
@@ -2631,6 +2669,7 @@ function creaStalla({ onEsci, onTocco }) {
         nodo,
         // La notte del 24 le renne sono partite con la slitta
         mostra(sonoPartite) {
+            nascondiStoria();
             renne.forEach(r => r.setAttribute('display', sonoPartite ? 'none' : 'inline'));
             vuoti.forEach(v => v.setAttribute('display', sonoPartite ? 'inline' : 'none'));
             partite.setAttribute('display', sonoPartite ? 'inline' : 'none');
