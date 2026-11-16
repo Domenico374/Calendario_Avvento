@@ -2224,3 +2224,40 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .tour .traballa, .scena .tour .piroetta-tour, .scena .tour .disco-hockey, .scena .tour .coriandolo, .scena .tour .scintilla-ghiaccio { animation: none; }
 }
+
+/* ---- Lo scarto del regalo: trema, la carta si strappa, il fiocco vola, esplode la festa ---- */
+.scena .trema .scatola { animation: trema 0.45s ease-in-out; }
+@keyframes trema {
+    0%, 100% { transform: rotate(0) scale(1); }
+    20% { transform: rotate(-6deg) scale(1.04, 0.96); }
+    40% { transform: rotate(6deg) scale(0.97, 1.04); }
+    60% { transform: rotate(-5deg) scale(1.05, 0.95); }
+    80% { transform: rotate(4deg) scale(1.02); }
+}
+.scena .pezzo-carta { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.scena .scartato .carta-intera { opacity: 0; }
+.scena .scartato .pezzo-carta { opacity: 1; animation: 0.9s cubic-bezier(.2, .8, .3, 1) forwards; }
+.scena .scartato .pezzo-1 { animation-name: pezzo-1; }
+.scena .scartato .pezzo-2 { animation-name: pezzo-2; }
+.scena .scartato .pezzo-3 { animation-name: pezzo-3; }
+.scena .scartato .pezzo-4 { animation-name: pezzo-4; }
+@keyframes pezzo-1 { to { transform: translate(-220px, -150px) rotate(-70deg); opacity: 0; } }
+@keyframes pezzo-2 { to { transform: translate(230px, -140px) rotate(60deg); opacity: 0; } }
+@keyframes pezzo-3 { to { transform: translate(-210px, 90px) rotate(-40deg); opacity: 0; } }
+@keyframes pezzo-4 { to { transform: translate(220px, 100px) rotate(45deg); opacity: 0; } }
+.scena .fiocco-regalo { transform-box: fill-box; transform-origin: center; transition: transform 0.9s cubic-bezier(.2, 1, .3, 1), opacity 0.6s ease 0.4s; }
+.scena .scartato .fiocco-regalo { transform: translate(-120px, -220px) rotate(-300deg) scale(0.7); opacity: 0; }
+.scena .raggi-regalo { opacity: 0; transform-box: fill-box; transform-origin: center; transition: opacity 0.8s ease 0.2s; }
+.scena .scartato .raggi-regalo { opacity: 1; animation: raggi 12s linear infinite; }
+@keyframes raggi { to { transform: rotate(360deg); } }
+.scena .coriandolo-regalo { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.scena .scartato .coriandolo-regalo { animation: coriandolo-regalo 1.9s cubic-bezier(.15, .7, .4, 1) forwards; }
+@keyframes coriandolo-regalo {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(0.4); }
+    35% { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(calc(var(--r) * 0.5)) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 280px)) rotate(var(--r)) scale(0.9); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .trema .scatola, .scena .scartato .pezzo-carta, .scena .scartato .raggi-regalo, .scena .scartato .coriandolo-regalo { animation: none; }
+    .scena .scartato .pezzo-carta, .scena .scartato .coriandolo-regalo { opacity: 0; }
+}

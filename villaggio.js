@@ -2997,6 +2997,44 @@ const RICETTE = {
     }
 };
 
+// Il suono dello scarto: un fruscio di carta e un arpeggio di campanelline che sale
+function suonaMeraviglia() {
+    const Contesto = window.AudioContext || window.webkitAudioContext;
+    if (!Contesto) return;
+    const contesto = new Contesto();
+    const t0 = contesto.currentTime + 0.05;
+    // Il fruscio della carta strappata
+    const buffer = contesto.createBuffer(1, Math.ceil(contesto.sampleRate * 0.4), contesto.sampleRate);
+    const dati = buffer.getChannelData(0);
+    for (let i = 0; i < dati.length; i++) dati[i] = (Math.random() * 2 - 1) * (1 - i / dati.length);
+    const rumore = contesto.createBufferSource();
+    rumore.buffer = buffer;
+    const filtro = contesto.createBiquadFilter();
+    filtro.type = 'highpass';
+    filtro.frequency.value = 1800;
+    const gr = contesto.createGain();
+    gr.gain.value = 0.12;
+    rumore.connect(filtro).connect(gr).connect(contesto.destination);
+    rumore.start(t0 + 0.4);
+    // Le campanelline
+    ['C6', 'E6', 'G6', 'C7', 'E7', 'G7'].forEach((nota, i) => {
+        const t = t0 + 0.45 + i * 0.09;
+        [[1, 0.16], [2.76, 0.05], [5.4, 0.02]].forEach(([multiplo, volume]) => {
+            const o = contesto.createOscillator();
+            const g = contesto.createGain();
+            o.type = 'sine';
+            o.frequency.value = frequenza(nota) * multiplo;
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(volume, t + 0.005);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+            o.connect(g).connect(contesto.destination);
+            o.start(t);
+            o.stop(t + 1.3);
+        });
+    });
+    setTimeout(() => contesto.close(), 2600);
+}
+
 // La scheda della ricetta: un foglio di quaderno che compare sopra la stanza
 function creaRicettario(nodo) {
     const scheda = Object.assign(document.createElement('div'), { className: 'scheda-ricetta', hidden: true });
@@ -4953,6 +4991,24 @@ function creaInterno({ onScarta, onEsci }) {
 
     const regalo = el('g', { class: 'regalo', transform: 'translate(800 800)', tabindex: 0, role: 'button', 'aria-label': 'Apri il regalo' }, svg);
     el('ellipse', { class: 'luce-regalo', cx: 0, cy: -170, rx: 260, ry: 220, fill: 'url(#luce-regalo)' }, regalo);
+    // Raggi di luce che girano piano dietro al regalo aperto
+    const raggiRegalo = el('g', { class: 'raggi-regalo' }, el('g', { transform: 'translate(0 -170)' }, regalo));
+    for (let i = 0; i < 14; i++) {
+        const a = (i / 14) * Math.PI * 2, b = a + 0.12;
+        el('path', { d: `M0 0 L${(Math.cos(a) * 460).toFixed(1)} ${(Math.sin(a) * 460).toFixed(1)} L${(Math.cos(b) * 460).toFixed(1)} ${(Math.sin(b) * 460).toFixed(1)} Z`, fill: '#fff3c4', opacity: i % 2 ? 0.22 : 0.35 }, raggiRegalo);
+    }
+    // Stelline e coriandoli che esplodono in alto e poi ricadono
+    let semeFesta = 21;
+    const casoFesta = () => (semeFesta = (semeFesta * 16807) % 2147483647) / 2147483647;
+    const festaRegalo = el('g', { class: 'festa-regalo' }, regalo);
+    for (let i = 0; i < 64; i++) {
+        const angolo = -Math.PI * (0.08 + casoFesta() * 0.84);
+        const distanza = 180 + casoFesta() * 320;
+        const stile = `--dx:${(Math.cos(angolo) * distanza).toFixed(0)}px;--dy:${(Math.sin(angolo) * distanza).toFixed(0)}px;--r:${(casoFesta() * 720 - 360).toFixed(0)}deg;animation-delay:${(casoFesta() * 0.2).toFixed(2)}s`;
+        const colore = ['#ffe066', '#ff5a4f', '#6fd3ff', '#7dff9a', '#ff9de2', '#ffffff'][i % 6];
+        if (i % 3 === 0) el('path', { class: 'coriandolo-regalo', d: stellaPiccola(0, -160, 9 + casoFesta() * 6), fill: colore, style: stile }, festaRegalo);
+        else el('rect', { class: 'coriandolo-regalo', x: -5, y: -164, width: 10, height: 7, rx: 1.5, fill: colore, style: stile }, festaRegalo);
+    }
     const scintille = el('g', { class: 'scintille' }, regalo);
     for (let i = 0; i < 30; i++) {
         const angolo = -Math.PI * (0.05 + caso() * 0.9);
@@ -4965,13 +5021,31 @@ function creaInterno({ onScarta, onEsci }) {
     }
     const scatola = el('g', { class: 'scatola' }, regalo);
     el('ellipse', { cx: 0, cy: 4, rx: 140, ry: 16, fill: 'rgba(0,0,0,0.3)' }, scatola);
-    const carta = el('rect', { x: -110, y: -150, width: 220, height: 150, rx: 6 }, scatola);
-    el('rect', { x: -110, y: -150, width: 220, height: 150, rx: 6, fill: 'url(#ombra-muro)' }, scatola);
-    const nastroBase = el('rect', { x: -16, y: -150, width: 32, height: 150 }, scatola);
+    // La scatola di cartone che resta quando la carta si strappa, con la luce che esce da dentro
+    const interna = el('g', { class: 'scatola-interna' }, scatola);
+    el('rect', { x: -110, y: -150, width: 220, height: 150, rx: 6, fill: '#e9d4ad' }, interna);
+    el('rect', { x: -110, y: -150, width: 220, height: 18, fill: '#c9a27c' }, interna);
+    el('path', { d: 'M-60 -100 l 30 22 M40 -60 l 26 -18 M-20 -40 l 10 18', stroke: '#b8925f', 'stroke-width': 2 }, interna);
+    const carta = el('rect', { class: 'carta-intera', x: -110, y: -150, width: 220, height: 150, rx: 6 }, scatola);
+    el('rect', { class: 'carta-intera', x: -110, y: -150, width: 220, height: 150, rx: 6, fill: 'url(#ombra-muro)' }, scatola);
+    const nastroBase = el('rect', { class: 'carta-intera', x: -16, y: -150, width: 32, height: 150 }, scatola);
+    // I pezzi di carta strappata, con i bordi frastagliati: compaiono al posto della carta e volano via
+    const pezzi = [
+        'M-110 -150 H4 L-6 -128 L7 -104 L-3 -82 L-14 -70 L-40 -82 L-70 -68 L-110 -78 Z',
+        'M4 -150 H110 V-80 L80 -66 L50 -80 L20 -68 L-3 -82 L7 -104 L-6 -128 Z',
+        'M-110 -78 L-70 -68 L-40 -82 L-14 -70 L-3 -82 L8 -60 L-4 -36 L6 -14 L-2 0 H-110 Z',
+        'M-3 -82 L20 -68 L50 -80 L80 -66 L110 -80 V0 H-2 L6 -14 L-4 -36 L8 -60 Z'
+    ].map((d, i) => {
+        const pezzo = el('g', { class: `pezzo-carta pezzo-${i + 1}` }, scatola);
+        el('path', { class: 'colore-carta', d }, pezzo);
+        el('path', { d, fill: 'url(#ombra-muro)' }, pezzo);
+        el('path', { d, fill: 'none', stroke: '#ffffff', 'stroke-width': 1.5, opacity: 0.5 }, pezzo);
+        return pezzo;
+    });
     const coperchio = el('g', { class: 'coperchio' }, scatola);
     const cartaCoperchio = el('rect', { x: -124, y: -190, width: 248, height: 44, rx: 6 }, coperchio);
     const nastroCoperchio = el('rect', { x: -16, y: -190, width: 32, height: 44 }, coperchio);
-    const fiocco = el('g', {}, coperchio);
+    const fiocco = el('g', { class: 'fiocco-regalo' }, coperchio);
     const anelli = [
         el('path', { d: 'M0 -192 q -70 -60 -80 -20 q -6 30 80 20 Z' }, fiocco),
         el('path', { d: 'M0 -192 q 70 -60 80 -20 q 6 30 -80 20 Z' }, fiocco),
@@ -4984,8 +5058,13 @@ function creaInterno({ onScarta, onEsci }) {
     function scarta() {
         if (scartato) return;
         scartato = true;
-        nodo.classList.add('scartato');
-        setTimeout(() => onScarta(giornoMostrato), 1100);
+        suonaMeraviglia();
+        nodo.classList.add('trema');
+        setTimeout(() => {
+            nodo.classList.remove('trema');
+            nodo.classList.add('scartato');
+        }, 450);
+        setTimeout(() => onScarta(giornoMostrato), 2000);
     }
 
     regalo.addEventListener('click', scarta);
@@ -5007,6 +5086,7 @@ function creaInterno({ onScarta, onEsci }) {
         mostra(giorno) {
             const { carta: colore, nastro } = CARTE_REGALO[giorno % CARTE_REGALO.length];
             carta.setAttribute('fill', colore);
+            pezzi.forEach(pezzo => pezzo.querySelector('.colore-carta').setAttribute('fill', colore));
             cartaCoperchio.setAttribute('fill', scurisci(colore, 0.08));
             [nastroBase, nastroCoperchio, ...anelli].forEach(parte => parte.setAttribute('fill', nastro));
             data.textContent = `${giorno} dicembre`;
@@ -5016,7 +5096,7 @@ function creaInterno({ onScarta, onEsci }) {
             personaggio.mostra(giorno);
             giornoMostrato = giorno;
             scartato = false;
-            nodo.classList.remove('scartato');
+            nodo.classList.remove('scartato', 'trema');
             nodo.hidden = false;
             requestAnimationFrame(() => {
                 nodo.classList.add('visibile');
