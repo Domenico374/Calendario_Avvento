@@ -88,6 +88,14 @@ function disegnaDefinizioni(svg) {
     const unisci = el('feMerge', {}, bagliore);
     el('feMergeNode', { in: 'b' }, unisci);
     el('feMergeNode', { in: 'SourceGraphic' }, unisci);
+    const fumoMorbido = el('radialGradient', { id: 'fumo-morbido' }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#f1f4fb', 'stop-opacity': 0.95 }, fumoMorbido);
+    el('stop', { offset: '60%', 'stop-color': '#e3e9f6', 'stop-opacity': 0.5 }, fumoMorbido);
+    el('stop', { offset: '100%', 'stop-color': '#e3e9f6', 'stop-opacity': 0 }, fumoMorbido);
+    const riflesso = el('linearGradient', { id: 'riflesso-ghiaccio', x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#ffffff', 'stop-opacity': 0.75 }, riflesso);
+    el('stop', { offset: '55%', 'stop-color': '#ffffff', 'stop-opacity': 0.08 }, riflesso);
+    el('stop', { offset: '100%', 'stop-color': '#ffffff', 'stop-opacity': 0 }, riflesso);
     // Foschia della lontananza: le cose lontane si fanno più chiare e azzurre
     const foschia = el('linearGradient', { id: 'foschia', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
     el('stop', { class: 'stop-foschia', offset: '0%', 'stop-color': '#e3ebfb', 'stop-opacity': 0 }, foschia);
@@ -283,10 +291,13 @@ function disegnaTerreno(mondo) {
     el('path', { d: 'M-200 583 L5600 583', stroke: '#8d98b8', 'stroke-width': 3 }, mondo);
     for (let x = -200; x < 5600; x += 18) el('rect', { x, y: 573, width: 6, height: 13, fill: '#7a6a5a', opacity: 0.6 }, mondo);
 
-    // Laghetto ghiacciato
+    // Laghetto ghiacciato, con il bordo in ombra e i riflessi del cielo
     el('ellipse', { cx: 700, cy: 615, rx: 190, ry: 42, fill: '#c3d1ec' }, mondo);
     el('ellipse', { cx: 700, cy: 612, rx: 175, ry: 35, fill: 'url(#ghiaccio)' }, mondo);
     el('path', { d: 'M600 605 q 40 -8 80 0 M720 620 q 50 -6 90 2', stroke: '#fff', 'stroke-width': 3, fill: 'none', opacity: 0.8 }, mondo);
+    el('ellipse', { cx: 700, cy: 606, rx: 172, ry: 30, fill: 'none', stroke: '#8fa9d6', 'stroke-width': 4, opacity: 0.45 }, mondo);
+    el('ellipse', { cx: 650, cy: 604, rx: 120, ry: 18, fill: 'url(#riflesso-ghiaccio)' }, mondo);
+    el('path', { d: 'M560 618 l 70 -14 M585 626 l 40 -8 M760 606 l 60 -10 M790 616 l 34 -6', stroke: '#ffffff', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: 0.55 }, mondo);
 
     // Ruscello che scende verso il basso
     el('path', { transform: `translate(${QUARTIERE.largo} 0)`, d: 'M2860 560 C 2840 620, 2900 660, 2870 720 S 2930 820, 2900 920 L2960 920 C 2990 820, 2930 760, 2945 720 S 2900 620, 2905 560 Z', fill: 'url(#ghiaccio)' }, mondo);
@@ -568,11 +579,21 @@ function disegnaAbete(genitore, x, y, scala, colore) {
     const g = el('g', { transform: `translate(${x} ${y}) scale(${scala})` }, genitore);
     el('path', { d: 'M-18 2 L18 2 L70 -10 L40 -12 Z', fill: '#2d3c78', opacity: 0.18, filter: 'url(#ombra-morbida)' }, g);
     el('rect', { x: -4, y: -10, width: 8, height: 12, fill: '#4a3426' }, g);
-    [[0, 46, 34], [-22, 38, 28], [-42, 28, 20]].forEach(([dy, larghezza, altezza]) => {
-        el('path', { d: `M${-larghezza / 2} ${dy - 8} L0 ${dy - 8 - altezza} L${larghezza / 2} ${dy - 8} Z`, fill: colore }, g);
-        el('path', { d: `M0 ${dy - 8 - altezza} L${larghezza / 2} ${dy - 8} L${larghezza / 8} ${dy - 6} Z`, fill: '#0b1440', opacity: 0.22 }, g);
-        el('path', { d: `M${-larghezza / 4} ${dy - 8 - altezza / 2} L0 ${dy - 8 - altezza} L${larghezza / 4} ${dy - 8 - altezza / 2} Z`, fill: '#f4f8ff' }, g);
+    el('rect', { x: 0, y: -10, width: 4, height: 12, fill: '#2e2018' }, g);
+    // Quattro palchi di rami, dal più largo in basso al più stretto in cima
+    [[0, 54, 30], [-15, 45, 27], [-30, 35, 25], [-45, 25, 24]].forEach(([dy, w, h]) => {
+        const by = dy - 6, cima = by - h;
+        let bordo = '';
+        for (let k = 0; k <= 6; k++) bordo += ` L${(-w / 2 + (k * w) / 6).toFixed(1)} ${(by + (k % 2 ? 4 : 0)).toFixed(1)}`;
+        el('path', { d: `M0 ${cima}${bordo} Z`, fill: colore }, g);
+        // Il lato destro in ombra e un filo di luce sul lato sinistro
+        el('path', { d: `M0 ${cima} L${w / 2} ${by} L${w / 2 - w / 6} ${by + 4} L${w * 0.04} ${by + 3} Z`, fill: '#0b1440', opacity: 0.24 }, g);
+        el('path', { d: `M0 ${cima} L${-w / 2} ${by}`, stroke: '#ffffff', 'stroke-width': 1.4, opacity: 0.25 }, g);
+        // La neve posata sul lato illuminato del ramo
+        el('path', { d: `M0 ${cima} Q${(-w * 0.18).toFixed(1)} ${(cima + h * 0.45).toFixed(1)} ${(-w * 0.46).toFixed(1)} ${by - 1} Q${(-w * 0.32).toFixed(1)} ${by - 6} ${(-w * 0.18).toFixed(1)} ${by - 3} Q${(-w * 0.08).toFixed(1)} ${(by - h * 0.32).toFixed(1)} ${(w * 0.06).toFixed(1)} ${(cima + h * 0.25).toFixed(1)} Z`, fill: '#f4f8ff' }, g);
+        el('circle', { cx: (w * 0.22).toFixed(1), cy: by - 2, r: 2.4, fill: '#f4f8ff' }, g);
     });
+    el('path', { d: 'M0 -82 l3 6 h-6 Z', fill: '#f4f8ff' }, g);
     return g;
 }
 
@@ -616,6 +637,7 @@ function ghiaccioli(corpo, x1, y1, x2, y2, quanti) {
         const gy = y1 + (y2 - y1) * t;
         const lunghezza = 5 + caso() * 9;
         el('path', { d: `M${gx - 2.5} ${gy} L${gx} ${gy + lunghezza} L${gx + 2.5} ${gy} Z`, fill: '#eaf6ff', stroke: '#c4def2', 'stroke-width': 0.6 }, corpo);
+        el('path', { d: `M${gx - 1.2} ${gy + 1} L${gx - 0.2} ${gy + lunghezza * 0.7}`, stroke: '#ffffff', 'stroke-width': 0.9, 'stroke-linecap': 'round' }, corpo);
     }
 }
 
@@ -710,7 +732,9 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
         // Ombra della gronda sul timpano e tavola di bordo
         el('path', { d: `M${-w / 2 - 4} ${-h + 3} L0 ${-h - rh + 5} L${w / 2 + 4} ${-h + 3}`, fill: 'none', stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 6 }, corpo);
         el('path', { d: `M${-w / 2 - 9} ${-h + 1} L0 ${-h - rh - 1} L${w / 2 + 9} ${-h + 1}`, fill: 'none', stroke: scurisci(colori.tetto, 0.45), 'stroke-width': 6, 'stroke-linejoin': 'round' }, corpo);
+        el('path', { d: `M${-w / 2 - 10} ${-h + 2} L0 ${-h - rh - 1} L${w / 2 + 10} ${-h + 2}`, fill: 'none', stroke: '#b3c3e3', 'stroke-width': 10, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, corpo);
         el('path', { d: `M${-w / 2 - 10} ${-h - 2} L0 ${-h - rh - 5} L${w / 2 + 10} ${-h - 2}`, fill: 'none', stroke: '#fbfdff', 'stroke-width': 9, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, corpo);
+        el('path', { d: `M${-w / 2 - 8} ${-h - 4} L0 ${-h - rh - 7}`, fill: 'none', stroke: '#ffffff', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.9 }, corpo);
         el('path', { d: `M0 ${-h - rh - 3} L${dx} ${-h - rh - dy - 3}`, stroke: '#fbfdff', 'stroke-width': 9, 'stroke-linecap': 'round' }, corpo);
         ghiaccioli(corpo, -w / 2 - 8, -h + 4, -w / 2 + 14, -h - 10, 2);
         ghiaccioli(corpo, w / 2 - 14, -h - 10, w / 2 + 8, -h + 4, 2);
@@ -737,7 +761,7 @@ function disegnaCasa(mondo, giorno, x, y, scala, tipo, speciale = {}) {
         el('rect', { x: cx - 2, y: cima + 9, width: 19, height: 5, fill: '#5d4037' }, corpo);
         el('path', { d: `M${cx - 3} ${cima + 10} q 4 -7 11 -6 q 7 -1 11 6 Z`, fill: '#fbfdff' }, corpo);
         const fumo = el('g', { class: 'fumo' }, corpo);
-        for (let i = 0; i < 3; i++) el('circle', { cx: cx + 7, cy: cima + 4, r: 7, fill: '#dfe6f5' }, fumo);
+        for (let i = 0; i < 3; i++) el('circle', { cx: cx + 7, cy: cima + 4, r: 11, fill: 'url(#fumo-morbido)' }, fumo);
     }
 
     // ---- Lucine di festa sul tetto: si accendono quando la casa è stata aperta ----
