@@ -4187,9 +4187,18 @@ function avvolgiTesto(testo, massimo) {
 function creaSala({ onParti, benvenuto = '' }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
-    const parti = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: 'Sì, partiamo! 🚂' });
-    nodo.append(svg, parti);
-    parti.addEventListener('click', onParti);
+    // Si sceglie chi fa da guida nel tour in slitta, oppure si esplora da soli
+    const partenze = Object.assign(document.createElement('div'), { className: 'partenze' });
+    const domanda = Object.assign(document.createElement('p'), { className: 'domanda-guida', textContent: 'Chi ti accompagna sulla slitta?' });
+    const conElfo = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♂️ Parto con l\'elfo' });
+    const conElfa = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♀️ Parto con l\'elfa' });
+    const daSolo = Object.assign(document.createElement('button'), { type: 'button', className: 'esploro', textContent: 'Esploro per conto mio' });
+    partenze.append(domanda, conElfo, conElfa, daSolo);
+    nodo.append(svg, partenze);
+    const parti = conElfo;
+    conElfo.addEventListener('click', () => onParti('elfo'));
+    conElfa.addEventListener('click', () => onParti('elfa'));
+    daSolo.addEventListener('click', () => onParti(null));
 
     const defs = el('defs', {}, svg);
     const vetro = el('clipPath', { id: 'vetro-sala' }, defs);
@@ -5475,7 +5484,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         },
         onEsci: () => esciDallaCasa()
     });
-    const sala = creaSala({ onParti: () => parti(), benvenuto });
+    const sala = creaSala({ onParti: guida => parti(guida), benvenuto });
     const bancone = creaBancone({ onEsci: () => esciDalBancone() });
     const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
     const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
@@ -5792,6 +5801,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         torna();
         stanza.nascondi();
         adattaVista();
+        if (slittaTour) {
+            posizionaSlitta(xSlitta);
+            fumettoGuida.classList.remove('nascosto');
+        }
     }
 
     function esciDallaPista() {
@@ -5807,11 +5820,163 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         adattaVista();
     }
 
-    // "Sì, partiamo!": si torna al villaggio, davanti alla casa di oggi (o alla prima)
-    function parti() {
+
+    // ---- Il tour in slitta con la guida ----
+    // Dalla stazione la slitta porta il passeggero all'ufficio postale, al laboratorio e alla stalla
+    const yStrada = profiloStrada(mondo);
+    const GUIDE = {
+        elfo: { nome: 'Fiocco', icona: '🧝‍♂️', giacca: '#2e7d5b', cappello: '#c0392b', capelli: '#c9984a', amica: false },
+        elfa: { nome: 'Brina', icona: '🧝‍♀️', giacca: '#7d4e9e', cappello: '#6fd3ff', capelli: '#8a5a2b', amica: true }
+    };
+    const fumettoGuida = Object.assign(document.createElement('div'), { className: 'guida-fumetto', hidden: true });
+    const facciaGuida = Object.assign(document.createElement('span'), { className: 'guida-faccia' });
+    const nomeGuida = Object.assign(document.createElement('p'), { className: 'guida-nome' });
+    const testoGuida = Object.assign(document.createElement('p'), { className: 'guida-testo' });
+    const bottoniGuida = Object.assign(document.createElement('div'), { className: 'guida-bottoni' });
+    const entraGuida = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-entra', textContent: '🚪 Entra' });
+    const avantiGuida = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-avanti', textContent: 'Prossima tappa ▶' });
+    const saltaGuida = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-salta', textContent: 'Salta il tour' });
+    bottoniGuida.append(entraGuida, avantiGuida, saltaGuida);
+    const testaFumetto = document.createElement('div');
+    testaFumetto.append(nomeGuida, testoGuida);
+    fumettoGuida.append(facciaGuida, testaFumetto, bottoniGuida);
+    contenitore.append(fumettoGuida);
+
+    let slittaTour = null, tappaTour = -1, guidaScelta = null, xSlitta = 0, animSlitta = null;
+
+    function disegnaSlittaTour(guida) {
+        const g = el('g', { class: 'slitta-tour', 'pointer-events': 'none' }, mondo);
+        const corpo = el('g', { class: 'slitta-tour-corpo' }, g);
+        el('ellipse', { cx: 40, cy: 6, rx: 150, ry: 12, fill: 'rgba(40,60,110,0.3)' }, corpo);
+        // Le renne davanti, con le redini
+        el('path', { d: 'M38 -40 Q 90 -46 150 -52', stroke: '#8a5a1f', 'stroke-width': 1.5, fill: 'none' }, corpo);
+        rennaVolante(el('g', { transform: 'translate(110 -14) scale(1.6)' }, corpo), 0, 0, true, false);
+        rennaVolante(el('g', { transform: 'translate(160 -20) scale(1.6)' }, corpo), 0, 0, false, true);
+        // La guida seduta davanti, il posto del passeggero dietro con la coperta
+        const elfo = disegnaElfo(corpo, 2, -26, 0.42, { giacca: guida.giacca, cappello: guida.cappello, capelli: guida.capelli });
+        if (guida.amica) {
+            el('path', { d: 'M-15 -96 q -10 18 -6 38 M15 -96 q 10 18 6 38', stroke: guida.capelli, 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, elfo.g);
+            el('circle', { cx: -21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
+            el('circle', { cx: 21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
+        }
+        elfo.braccio.classList.add('saluta');
+        el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26 L48 6 L-62 6 Z', fill: '#b3202b' }, corpo);
+        el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26', stroke: '#e8c766', 'stroke-width': 3, fill: 'none' }, corpo);
+        el('path', { d: 'M-44 -40 q 20 -14 40 0 Z', fill: '#2e7d4a' }, corpo);
+        el('path', { d: 'M-44 -40 q 20 -14 40 0', stroke: '#f4d03f', 'stroke-width': 2, 'stroke-dasharray': '4 4', fill: 'none' }, corpo);
+        el('text', { x: -24, y: -14, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, corpo).textContent = '★ TU ★';
+        el('path', { d: 'M-62 6 L-58 14 M30 6 L26 14 M-80 14 H40 Q56 14 54 2', stroke: '#e8c766', 'stroke-width': 3.5, fill: 'none', 'stroke-linecap': 'round' }, corpo);
+        el('circle', { class: 'luce-calda', cx: 0, cy: -30, r: 90, fill: 'url(#alone)', opacity: 0.35 }, corpo);
+        return g;
+    }
+
+    function posizionaSlitta(x) {
+        xSlitta = x;
+        const y = yStrada(x) + 10;
+        slittaTour?.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(scalaPer(y) * 1.3).toFixed(3)})`);
+        posizione = limita(x - larghezzaVista * 0.38);
+        applica();
+    }
+
+    function viaggioSlitta(arrivo, durata = 2600) {
+        return new Promise(fatto => {
+            cancelAnimationFrame(animSlitta);
+            const da = xSlitta;
+            if (movimentoRidotto) {
+                posizionaSlitta(arrivo);
+                return fatto();
+            }
+            slittaTour?.classList.add('in-corsa');
+            const inizio = performance.now();
+            setTimeout(() => { posizionaSlitta(arrivo); fatto(); }, durata + 600);
+            const passo = adesso => {
+                const t = Math.min(1, (adesso - inizio) / durata);
+                posizionaSlitta(da + (arrivo - da) * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2));
+                if (t < 1) animSlitta = requestAnimationFrame(passo);
+                else {
+                    slittaTour?.classList.remove('in-corsa');
+                    fatto();
+                }
+            };
+            animSlitta = requestAnimationFrame(passo);
+        });
+    }
+
+    const TAPPE_SLITTA = [
+        { edificio: '.posta', testo: "Ecco l'ufficio postale di Babbo Natale! Qui puoi scrivere la tua letterina… e c'è anche un sacco della posta con il tuo nome." },
+        { edificio: '.laboratorio', testo: "Questo è il laboratorio degli elfi: qui nascono tutti i regali. Dentro c'è anche un tour in minibus!" },
+        { edificio: '.stalla', testo: "Ed ecco la stalla delle renne: ci sono Rudolph e le sue amiche. Sono loro che tirano la slitta di Babbo Natale!" }
+    ];
+
+    function parla(testo, { entra = false, ultima = false } = {}) {
+        testoGuida.textContent = testo;
+        entraGuida.hidden = !entra;
+        avantiGuida.textContent = ultima ? 'Inizia il viaggio ✨' : tappaTour < 0 ? 'Partiamo! ▶' : 'Prossima tappa ▶';
+        saltaGuida.hidden = ultima;
+        fumettoGuida.hidden = false;
+        fumettoGuida.classList.remove('nascosto');
+        avantiGuida.focus({ preventScroll: true });
+    }
+
+    async function prossimaTappa() {
+        tappaTour++;
+        fumettoGuida.classList.add('nascosto');
+        if (tappaTour < TAPPE_SLITTA.length) {
+            const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour].edificio);
+            await viaggioSlitta(Number(edificio.getAttribute('transform').match(/translate\(([\d.-]+)/)[1]) - 90);
+            parla(TAPPE_SLITTA[tappaTour].testo, { entra: true });
+            return;
+        }
+        if (tappaTour === TAPPE_SLITTA.length) {
+            await viaggioSlitta(xSlitta + 260, 1600);
+            const oggi = !modifica && aperti >= 1 && aperti <= 24
+                ? `oggi ti aspetta la casa numero ${aperti}`
+                : 'dal 1° dicembre si apre una casa al giorno';
+            parla(`Il tour è finito! Ora il villaggio è tutto tuo: ${oggi}. Buon viaggio e buon Natale!`, { ultima: true });
+            return;
+        }
+        fineTour();
+    }
+
+    function fineTour() {
+        cancelAnimationFrame(animSlitta);
+        fumettoGuida.hidden = true;
+        slittaTour?.classList.add('se-ne-va');
+        const vecchia = slittaTour;
+        setTimeout(() => vecchia?.remove(), 900);
+        slittaTour = null;
+        tappaTour = -1;
+        try { localStorage.setItem('villaggio_tour_fatto', '1'); } catch { /* niente memoria: pazienza */ }
+        const casa = mondo.querySelector(`.casa[data-giorno="${Math.max(1, Math.min(aperti, 24))}"]`);
+        centraSu(Number(casa?.dataset.x ?? PIAZZA.x));
+    }
+
+    function avviaTourSlitta(chi) {
+        guidaScelta = GUIDE[chi];
+        slittaTour?.remove();
+        slittaTour = disegnaSlittaTour(guidaScelta);
+        tappaTour = -1;
+        facciaGuida.textContent = guidaScelta.icona;
+        nomeGuida.textContent = guidaScelta.nome;
+        posizionaSlitta(STAZIONE.x + 80);
+        parla(`Ciao, sono ${guidaScelta.nome}! Sali sulla slitta: ti porto a scoprire il quartiere di Babbo Natale, proprio qui dietro la stazione.`);
+    }
+
+    avantiGuida.addEventListener('click', prossimaTappa);
+    saltaGuida.addEventListener('click', fineTour);
+    entraGuida.addEventListener('click', () => {
+        const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour]?.edificio);
+        if (!edificio) return;
+        fumettoGuida.classList.add('nascosto');
+        entraNelQuartiere(edificio);
+    });
+
+    // Dalla stazione: con la guida parte il tour in slitta, da soli si va davanti alla casa di oggi
+    function parti(guida) {
         torna();
         sala.nascondi();
         adattaVista();
+        if (guida) return avviaTourSlitta(guida);
         const casa = mondo.querySelector(`.casa[data-giorno="${Math.max(1, Math.min(aperti, 24))}"]`);
         centraSu(Number(casa?.dataset.x ?? PIAZZA.x));
     }
@@ -6099,6 +6264,12 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         // Il treno è arrivato: la stazione brilla e invita a entrare
         mondo.querySelector('.stazione').classList.add('invita');
         seguiTreno = false;
+        // Chi arriva per la prima volta viene accompagnato dentro la stazione, a scegliere la guida
+        let giaFatto = true;
+        try { giaFatto = Boolean(localStorage.getItem('villaggio_tour_fatto')); } catch { /* senza memoria non si insiste */ }
+        if (!modifica && !giaFatto && segui) setTimeout(() => {
+            if (!inApertura && !contenitore.classList.contains('dentro') && !slittaTour) entraInStazione(mondo.querySelector('.stazione'));
+        }, 1400);
         while (contenitore.isConnected) {
             await pausa(12000);
             await corsa(STAZIONE.fermata, MONDO + 400, 14000, false);

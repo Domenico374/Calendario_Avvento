@@ -2261,3 +2261,90 @@ body::before {
     .scena .trema .scatola, .scena .scartato .pezzo-carta, .scena .scartato .raggi-regalo, .scena .scartato .coriandolo-regalo { animation: none; }
     .scena .scartato .pezzo-carta, .scena .scartato .coriandolo-regalo { opacity: 0; }
 }
+
+/* ---- In stazione: la scelta della guida ---- */
+.scena .sala .partenze {
+    position: absolute;
+    left: 50%;
+    bottom: 4%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 94%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.scena .sala .partenze .partenza { position: static; transform: none; font-size: 1.15em; padding: 12px 24px; }
+.scena .sala .domanda-guida {
+    flex-basis: 100%;
+    margin: 0;
+    text-align: center;
+    color: #ffe9a8;
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+.scena .sala .esploro {
+    border: 2px solid #ffd36b;
+    border-radius: 999px;
+    background: rgba(26, 13, 8, 0.75);
+    color: #ffe9a8;
+    font: inherit;
+    font-weight: bold;
+    padding: 10px 18px;
+    cursor: pointer;
+}
+/* ---- Il tour in slitta con la guida ---- */
+.scena .slitta-tour-corpo { animation: slitta-tour 1.4s ease-in-out infinite alternate; }
+.scena .slitta-tour.in-corsa .slitta-tour-corpo { animation-duration: 0.35s; }
+@keyframes slitta-tour { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+.scena .slitta-tour.se-ne-va { opacity: 0; transition: opacity 0.8s; }
+.scena .guida-fumetto {
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    z-index: 2;
+    transform: translateX(-50%);
+    width: min(660px, 94%);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+    align-items: start;
+    padding: 12px 16px;
+    border: 3px solid #e8c766;
+    border-radius: 18px;
+    background: rgba(255, 253, 246, 0.97);
+    color: #3a2416;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    transition: opacity 0.3s, transform 0.3s;
+}
+.scena .guida-fumetto.nascosto { opacity: 0; transform: translate(-50%, -20px); pointer-events: none; }
+.scena.dentro .guida-fumetto { display: none; }
+.scena .guida-faccia { font-size: 2.6rem; line-height: 1; grid-row: span 2; }
+.scena .guida-nome { margin: 0; font-family: 'Mountains of Christmas', 'Brush Script MT', cursive; font-size: 1.5rem; color: #a3242c; }
+.scena .guida-testo { margin: 0; font-size: 1.02rem; line-height: 1.45; }
+.scena .guida-bottoni { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.scena .guida-bottoni button {
+    border: 2px solid #c9a227;
+    border-radius: 999px;
+    background: #fffaf0;
+    color: #3a2416;
+    font: inherit;
+    font-weight: 800;
+    padding: 6px 14px;
+    cursor: pointer;
+}
+.scena .guida-bottoni .guida-avanti { background: #c0392b; color: #fffaf0; }
+.scena .guida-bottoni .guida-entra { background: #2e7d4a; color: #fffaf0; }
+.scena .guida-bottoni .guida-salta { margin-left: auto; font-weight: 600; opacity: 0.8; }
+@media (max-width: 899px) {
+    .scena .guida-faccia { font-size: 2rem; }
+    .scena .guida-testo { font-size: 0.92rem; }
+    .scena .sala .partenze .partenza { font-size: 1rem; padding: 10px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .slitta-tour-corpo { animation: none; }
+}
