@@ -1244,7 +1244,8 @@ function disegnaCoro(mondo, x, y, scala) {
         class: 'coro', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
         'aria-label': 'Il coro del villaggio: clicca per sentirlo cantare'
     }, mondo);
-    el('ellipse', { class: 'alone-coro', cx: 0, cy: -30, rx: 80, ry: 60, fill: 'url(#alone)' }, coro);
+    // L'alone non si tocca: sul telefono copriva la porta della casa 24
+    el('ellipse', { class: 'alone-coro', cx: 0, cy: -30, rx: 80, ry: 60, fill: 'url(#alone)', 'pointer-events': 'none' }, coro);
     // Le note escono a turno dal coro e salgono nel cielo
     ['♪', '♫', '♪', '♬', '♫', '♪'].forEach((nota, i) => {
         el('text', { class: 'nota-coro', x: -40 + i * 16, y: -70 - (i % 2) * 8, 'font-size': 15 + (i % 3) * 3, style: `animation-delay:${(i * 0.7).toFixed(1)}s` }, coro).textContent = nota;
