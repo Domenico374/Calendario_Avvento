@@ -3944,9 +3944,13 @@ function disegnaPaese(mondo) {
     DAVANTI.forEach((x, i) => elementi.push({ x, y: yStrada(x) + 88 + caso() * 18, tipo: 'casa', forma: TIPI_DAVANTI[i % TIPI_DAVANTI.length] }));
     // Da sinistra a destra: 1, 2, 3...
     [...elementi].sort((a, b) => a.x - b.x).forEach((elemento, i) => { elemento.giorno = i + 1; });
-    // La casa 11 era sopra i binari del trenino: scende un po', verso la strada
+    // La casa 11 era sopra i binari del trenino: scende verso la strada...
     const casaUndici = elementi.find(elemento => elemento.giorno === 11);
-    if (casaUndici) casaUndici.y = Math.max(casaUndici.y, BINARI_Y + 48);
+    if (casaUndici) {
+        casaUndici.y = Math.max(casaUndici.y, BINARI_Y + 68);
+        // ...e si sposta un po' a sinistra, per non finire sopra la casa 12
+        casaUndici.x -= 60;
+    }
     elementi.push({ x: PIAZZA.x - 70, y: PIAZZA.y, tipo: 'albero' }, { x: PIAZZA.x + 100, y: PIAZZA.y - 18, tipo: 'casaBabbo' });
 
     // Lampioni lungo la strada, pupazzi e qualche abete
@@ -7704,7 +7708,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             for (let i = 0; i < 14; i++) el('path', { d: stellaPiccola(-90 - i * 18, -20 + Math.sin(i) * 12, 5 - i * 0.2), fill: i % 2 ? '#fff6c8' : '#ffd36b', style: `animation-delay:${(-i * 0.1).toFixed(1)}s` }, scia);
         } else {
             el('path', { class: 'luce-rudolph', d: 'M150 -30 L330 -60 L330 30 Z', fill: 'url(#cono-luce)', opacity: 0.8 }, corpo);
-            el('ellipse', { class: 'luce-rudolph', cx: 260, cy: 6, rx: 80, ry: 14, fill: '#ff6b5a', opacity: 0.35 }, corpo);
+            // Un piccolo alone attaccato al naso (prima era una macchia ovale sulla strada che copriva le case)
+            el('circle', { class: 'luce-rudolph', cx: 168, cy: -36, r: 9, fill: '#ff6b5a', opacity: 0.45 }, corpo);
         }
         el('path', { d: 'M38 -40 Q 90 -46 140 -50', stroke: '#8a5a1f', 'stroke-width': 1.5, fill: 'none' }, corpo);
         rennaVolante(el('g', { transform: 'translate(124 -16) scale(1.7)' }, corpo), 0, 0, false, renna === 'rudolph');
