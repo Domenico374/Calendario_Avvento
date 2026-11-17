@@ -7716,7 +7716,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26 L48 6 L-62 6 Z', fill: '#b3202b' }, corpo);
         el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26', stroke: '#e8c766', 'stroke-width': 3, fill: 'none' }, corpo);
         el('path', { d: 'M-44 -40 q 20 -14 40 0 Z', fill: '#2e7d4a' }, corpo);
-        el('text', { x: -10, y: -16, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, corpo).textContent = '★ TU ★';
+        el('text', { class: 'scritta-tu', x: -10, y: -16, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, corpo).textContent = '★ TU ★';
         // Il passeggero seduto, con berretto e sciarpa: compare quando si sale a bordo
         const passeggero = el('g', { class: 'passeggero' }, corpo);
         el('path', { d: 'M-34 -44 q 0 -26 18 -26 q 18 0 18 26 Z', fill: '#2d4f8a' }, passeggero);
@@ -7920,7 +7920,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26', stroke: '#e8c766', 'stroke-width': 3, fill: 'none' }, corpo);
         el('path', { d: 'M-44 -40 q 20 -14 40 0 Z', fill: '#2e7d4a' }, corpo);
         el('path', { d: 'M-44 -40 q 20 -14 40 0', stroke: '#f4d03f', 'stroke-width': 2, 'stroke-dasharray': '4 4', fill: 'none' }, corpo);
-        el('text', { x: -24, y: -14, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, corpo).textContent = '★ TU ★';
+        el('text', { class: 'scritta-tu', x: -24, y: -14, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, corpo).textContent = '★ TU ★';
         el('path', { d: 'M-62 6 L-58 14 M30 6 L26 14 M-80 14 H40 Q56 14 54 2', stroke: '#e8c766', 'stroke-width': 3.5, fill: 'none', 'stroke-linecap': 'round' }, corpo);
         el('circle', { class: 'luce-calda', cx: 0, cy: -30, r: 90, fill: 'url(#alone)', opacity: 0.35 }, corpo);
         return g;
@@ -7930,6 +7930,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     function posizionaSlitta(x) {
         const y = yStrada(x) + 10;
         if (Math.abs(x - xSlitta) > 0.5) versoSlitta = x < xSlitta ? -1 : 1;
+        slittaTour?.classList.toggle('verso-sinistra', versoSlitta < 0);
         const k = scalaPer(y) * 1.3;
         xSlitta = x;
         slittaTour?.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(k * versoSlitta).toFixed(3)} ${k.toFixed(3)})`);

@@ -2401,6 +2401,9 @@ body::before {
 .scena.momento-notte .luce-rudolph, .scena.momento-tramonto .luce-rudolph { opacity: 0.8; }
 .scena .slitta-mia.in-corsa .slitta-tour-corpo { animation-duration: 0.35s; }
 .scena .slitta-mia.verso-sinistra .slitta-tour-corpo { scale: -1 1; }
+/* La scritta sulla slitta si rigira, così si legge anche quando la slitta va verso sinistra */
+.scena .slitta-mia.verso-sinistra .scritta-tu,
+.scena .slitta-tour.verso-sinistra .scritta-tu { scale: -1 1; transform-box: fill-box; transform-origin: center; }
 .scena .slitta-mia.vola-via .slitta-tour-corpo { animation: vola-via 4s ease-in forwards; }
 @keyframes vola-via { 0% { translate: 0 0; opacity: 1; } 80% { opacity: 1; } 100% { translate: 900px -700px; opacity: 0; } }
 .scena .storia-renna .bottoni-storia { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
