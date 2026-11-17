@@ -2536,19 +2536,19 @@ function creaLaboratorio({ onEsci }) {
     };
     banco(230, 820, 240);
     GIOCATTOLI[4](el('g', { transform: 'translate(190 750) scale(1.5)' }, svg));
-    const martello = disegnaElfo(svg, 300, 830, 1.5, { giacca: '#2e7d5b', cappello: '#c0392b' });
+    const martello = disegnaElfo(svg, 305, 845, 1.85, { giacca: '#2e7d5b', cappello: '#c0392b' });
     el('path', { d: 'M30 -48 l 18 -18 M42 -72 l 14 12', stroke: '#6d4630', 'stroke-width': 4, 'stroke-linecap': 'round' }, martello.braccio);
     el('rect', { x: 38, y: -80, width: 22, height: 10, rx: 2, fill: '#5d6280', transform: 'rotate(40 49 -75)' }, martello.braccio);
     martello.braccio.classList.add('martella');
     // Elfo che legge la lista dei bambini buoni
-    const lettore = disegnaElfo(svg, 1360, 830, 1.5, { giacca: '#c0392b', cappello: '#2e7d5b', capelli: '#5a3b2a' });
+    const lettore = disegnaElfo(svg, 1350, 850, 1.85, { giacca: '#c0392b', cappello: '#2e7d5b', capelli: '#5a3b2a' });
     el('path', { d: 'M1388 755 h70 v120 q -36 10 -70 0 Z', fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 2 }, svg);
     el('text', { x: 1423, y: 778, 'text-anchor': 'middle', 'font-size': 8.5, 'font-weight': 'bold', fill: '#a3242c', 'font-family': 'Georgia, serif' }, svg).textContent = 'BAMBINI BUONI';
     for (let k = 0; k < 7; k++) el('path', { d: `M1396 ${792 + k * 11} h54`, stroke: '#7a6a5a', 'stroke-width': 2 }, svg);
     for (let k = 0; k < 7; k++) el('path', { d: `M1398 ${789 + k * 11} l3 3 l5 -6`, stroke: '#2e7d4a', 'stroke-width': 2, fill: 'none' }, svg);
     lettore.braccio.classList.add('saluta');
     // Elfo che mette il fiocco ai pacchi appena usciti
-    const fiocco = disegnaElfo(svg, 1050, 830, 1.4, { giacca: '#7d4e9e', cappello: '#f4d03f', capelli: '#2b1d14' });
+    const fiocco = disegnaElfo(svg, 1045, 848, 1.75, { giacca: '#7d4e9e', cappello: '#f4d03f', capelli: '#2b1d14' });
     fiocco.braccio.classList.add('martella');
     pacco(el('g', { transform: 'translate(1110 780) scale(1.2)' }, svg), CARTE_PACCHI[3]);
     // Pila di regali finiti
@@ -3769,6 +3769,38 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
     for (let i = 0; i < 16; i++) el('circle', { class: 'fiocco-finestra', cx: 1000 + ((i * 67) % 260), cy: 140, r: 2 + (i % 3), fill: '#fff', style: `animation-delay:-${(i * 0.41 % 5).toFixed(2)}s;animation-duration:${(4 + (i % 3)).toFixed(1)}s` }, svg);
     el('path', { d: 'M1130 134 v192 M994 230 h272', stroke: '#efe6d2', 'stroke-width': 7 }, svg);
     el('path', { d: 'M980 120 q 150 40 300 0', stroke: '#1f5c34', 'stroke-width': 14, fill: 'none' }, svg);
+    // Una ghirlanda con le lucine lungo tutta la parete
+    el('path', { d: 'M-200 40 q 250 60 500 0 q 250 60 500 0 q 250 60 500 0 q 250 60 500 0', stroke: '#1f5c34', 'stroke-width': 16, fill: 'none' }, svg);
+    for (let i = 0; i < 28; i++) {
+        const lx = -190 + i * 70, t = ((lx + 200) % 500) / 500;
+        el('circle', { class: 'pallina', cx: lx, cy: 40 + 120 * t * (1 - t) + 10, r: 7, fill: COLORI_FESTA[i % COLORI_FESTA.length], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.37) % 2).toFixed(2)}s` }, svg);
+    }
+    // L'orologio sulla parete, sopra la sedia
+    el('circle', { cx: 700, cy: 372, r: 36, fill: '#6d4630' }, svg);
+    el('circle', { cx: 700, cy: 372, r: 30, fill: '#fbf6ea' }, svg);
+    for (let k = 0; k < 12; k++) {
+        const a = k * Math.PI / 6;
+        el('circle', { cx: 700 + Math.sin(a) * 23, cy: 372 - Math.cos(a) * 23, r: k % 3 ? 1.6 : 3, fill: '#5a3420' }, svg);
+    }
+    el('path', { d: 'M700 372 V353 M700 372 L713 378', stroke: '#3a2416', 'stroke-width': 4, 'stroke-linecap': 'round' }, svg);
+    el('path', { d: 'M681 337 q 19 -12 38 0', stroke: '#c0392b', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, svg);
+    // La mensola con i barattoli dei biscotti e un omino di pan di zenzero
+    el('rect', { x: 760, y: 410, width: 250, height: 14, rx: 4, fill: '#a0663a' }, svg);
+    el('path', { d: 'M786 424 l 14 20 M984 424 l -14 20', stroke: '#6d4630', 'stroke-width': 8 }, svg);
+    [[770, '#c0392b', '#d9a066'], [834, '#2e7d4a', '#8a5a3c']].forEach(([bx, tappo, biscotto]) => {
+        el('rect', { x: bx, y: 346, width: 56, height: 64, rx: 12, fill: 'rgba(225,240,255,0.55)', stroke: '#e7f1fa', 'stroke-width': 2 }, svg);
+        el('rect', { x: bx + 4, y: 336, width: 48, height: 14, rx: 5, fill: tappo }, svg);
+        [[16, 394], [38, 394], [27, 376]].forEach(([dx, by]) => el('circle', { cx: bx + dx, cy: by, r: 10, fill: biscotto, stroke: '#7a4a24', 'stroke-width': 1.5 }, svg));
+    });
+    const omino = el('g', { transform: 'translate(930 410)' }, svg);
+    el('circle', { cx: 0, cy: -52, r: 13, fill: '#b8733a' }, omino);
+    el('path', { d: 'M-10 -40 h20 l 16 10 l -4 8 l -12 -6 v14 l 10 14 l -8 6 l -12 -14 l -12 14 l -8 -6 l 10 -14 v-14 l -12 6 l -4 -8 Z', fill: '#b8733a' }, omino);
+    el('path', { d: 'M-5 -54 h0.1 M5 -54 h0.1 M-5 -47 q 5 4 10 0', stroke: '#fff', 'stroke-width': 3, 'stroke-linecap': 'round', fill: 'none' }, omino);
+    [-32, -24].forEach(by => el('circle', { cx: 0, cy: by, r: 2.5, fill: '#c0392b' }, omino));
+    // La candela rossa con la stellina
+    el('rect', { x: 976, y: 362, width: 16, height: 48, rx: 3, fill: '#c0392b' }, svg);
+    el('path', { d: 'M984 362 q -8 -12 0 -22 q 8 10 0 22 Z', class: 'fiamma', fill: '#ffb347' }, svg);
+    el('circle', { class: 'luce-calda', cx: 984, cy: 350, r: 34, fill: 'url(#alone)', opacity: 0.6 }, svg);
     // Il camino
     el('rect', { x: 120, y: 330, width: 340, height: 370, fill: '#8b5e3c' }, svg);
     el('rect', { x: 100, y: 310, width: 380, height: 34, rx: 6, fill: '#a0663a' }, svg);
@@ -3786,6 +3818,14 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
     el('rect', { x: 1360, y: 330, width: 200, height: 370, rx: 10, fill: '#efe6d2' }, svg);
     const porta = el('rect', { class: 'porta-cucina', x: 1374, y: 344, width: 172, height: 356, rx: 6, fill: '#6d4630' }, svg);
     el('circle', { cx: 1400, cy: 530, r: 7, fill: '#e2b93b' }, svg);
+    // La ghirlanda appesa alla porta
+    el('circle', { cx: 1460, cy: 440, r: 34, fill: 'none', stroke: '#1f5c34', 'stroke-width': 17 }, svg);
+    [0, 1, 2, 3, 4, 5, 6, 7].forEach(k => el('circle', { cx: 1460 + Math.cos(k * Math.PI / 4) * 34, cy: 440 + Math.sin(k * Math.PI / 4) * 34, r: 5, fill: k % 2 ? '#f4d03f' : '#e0262f' }, svg));
+    el('path', { d: 'M1460 472 l -20 12 l 4 -20 Z M1460 472 l 20 12 l -4 -20 Z', fill: '#c0392b' }, svg);
+    // Il tappeto sotto la tavola
+    el('ellipse', { cx: 760, cy: 780, rx: 420, ry: 62, fill: '#2e6b3f' }, svg);
+    el('ellipse', { cx: 760, cy: 780, rx: 380, ry: 50, fill: 'none', stroke: '#f4d03f', 'stroke-width': 4, 'stroke-dasharray': '14 10' }, svg);
+    el('ellipse', { cx: 760, cy: 780, rx: 300, ry: 34, fill: '#c0392b' }, svg);
     // La tavola con la cioccolata e i biscotti
     el('ellipse', { cx: 760, cy: 780, rx: 300, ry: 30, fill: 'rgba(0,0,0,0.25)' }, svg);
     el('rect', { x: 500, y: 600, width: 520, height: 26, rx: 6, fill: '#a0663a' }, svg);
@@ -3803,6 +3843,22 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
         el('circle', { cx: bx, cy: by, r: 14, fill: '#d9a066', stroke: '#b8803f', 'stroke-width': 2 }, svg);
         el('path', { d: stellaPiccola(bx, by, 6), fill: '#fbf6ea' }, svg);
     });
+    // Il gatto che dorme sul tappeto, vicino al fuoco
+    const gatto = el('g', { transform: 'translate(430 772)' }, svg);
+    el('path', { d: 'M40 6 q 40 -6 34 -26 q -6 -14 -20 -4', stroke: '#e08a3c', 'stroke-width': 10, fill: 'none', 'stroke-linecap': 'round' }, gatto);
+    el('ellipse', { cx: 0, cy: -8, rx: 46, ry: 22, fill: '#e08a3c' }, gatto);
+    el('circle', { cx: -40, cy: -14, r: 18, fill: '#e08a3c' }, gatto);
+    el('path', { d: 'M-54 -26 l 2 -18 l 12 12 Z M-34 -30 l 6 -16 l 8 14 Z', fill: '#e08a3c' }, gatto);
+    el('path', { d: 'M-48 -14 q 4 3 8 0 M-36 -14 q 4 3 8 0', stroke: '#5a3420', 'stroke-width': 2.5, fill: 'none', 'stroke-linecap': 'round' }, gatto);
+    [-16, 0, 16].forEach(dx => el('path', { d: `M${dx} -28 q 4 8 0 16`, stroke: '#c46f25', 'stroke-width': 4, fill: 'none' }, gatto));
+    // La casetta di pan di zenzero sulla tavola
+    const casetta = el('g', { transform: 'translate(960 600)' }, svg);
+    el('rect', { x: -34, y: -46, width: 68, height: 46, fill: '#b8733a' }, casetta);
+    el('path', { d: 'M-44 -42 L0 -82 L44 -42 Z', fill: '#8a4b22' }, casetta);
+    el('path', { d: 'M-44 -42 L0 -82 L44 -42', stroke: '#fffdf6', 'stroke-width': 6, fill: 'none', 'stroke-linejoin': 'round' }, casetta);
+    el('rect', { x: -9, y: -26, width: 18, height: 26, rx: 8, fill: '#5a3420' }, casetta);
+    [[-22, -32], [22, -32]].forEach(([fx, fy]) => el('rect', { x: fx - 7, y: fy - 7, width: 14, height: 14, fill: '#ffd36b', stroke: '#fffdf6', 'stroke-width': 2 }, casetta));
+    [[-26, -48, '#e0262f'], [0, -66, '#2e7d4a'], [26, -48, '#f4d03f']].forEach(([cx, cy, c]) => el('circle', { cx, cy, r: 5, fill: c }, casetta));
     // La signora Natale seduta alla tavola, sulla sua sedia di legno
     el('rect', { x: 452, y: 400, width: 18, height: 300, rx: 6, fill: '#6d4630' }, svg);
     el('rect', { x: 618, y: 400, width: 18, height: 300, rx: 6, fill: '#6d4630' }, svg);
@@ -3812,7 +3868,7 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
     const signora = el('g', { transform: 'translate(545 640) scale(1.3)' }, svg);
     disegnaPersonaggio(signora, 'mamma');
     // Babbo Natale entra dalla porta con l'ultimo dono
-    const babbo = el('g', { class: 'babbo-arriva', transform: 'translate(1180 700) scale(1.2)' }, svg);
+    const babbo = el('g', { class: 'babbo-arriva', transform: 'translate(1170 708) scale(1.55)' }, svg);
     disegnaPersonaggio(babbo, 'babbo');
     const dono = el('g', { transform: 'translate(-70 -110) scale(1.4)' }, babbo);
     pacco(dono, ['#f4d03f', '#c0392b'], 46, 40);

@@ -25,7 +25,7 @@ const MESSAGGI = [
     'La notte più lunga dell\'anno: tante stelle.',
     'Incarta un regalo con cura.',
     'Domani è la vigilia!',
-    'Buona vigilia di Natale! L\'albero della piazza si è acceso 🌟'
+    'Buona vigilia di Natale! 🌟 Ce l\'hai fatta: hai aperto tutte le 24 case del villaggio. L\'albero della piazza si è acceso, le renne sono pronte a partire e Babbo Natale sta per iniziare il suo lungo giro. Stasera spegni le luci, guarda fuori dalla finestra e ascolta bene: forse sentirai i campanelli della slitta. Grazie per aver fatto questo viaggio con noi. Buon Natale!'
 ];
 
 // Nella demo alcune case mostrano gli altri tipi di regalo: una foto e i link ai video
