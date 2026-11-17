@@ -1,4 +1,4 @@
-import { creaVillaggio } from './villaggio.js?v=20261117c';
+import { creaVillaggio } from './villaggio.js?v=20261118';
 
 // Configurazione
 const CONFIG = {
@@ -197,7 +197,7 @@ function apriFinestra(titolo) {
     $('btnChiudi').focus();
 }
 
-function chiudiModal() {
+function chiudiModal({ porte = true } = {}) {
     // Svuotare ferma anche audio, video e YouTube
     $('modal-corpo').replaceChildren();
     $('editor-campi').replaceChildren();
@@ -205,7 +205,7 @@ function chiudiModal() {
     $('avviso').hidden = true;
     $('modal').classList.remove('mostra');
     fermaRegistrazione();
-    villaggio?.chiudiPorte();
+    if (porte) villaggio?.chiudiPorte();
     giornoCorrente = null;
     raccogliContenuto = null;
 }
@@ -276,7 +276,11 @@ function disegnaVillaggio() {
             scriviMemoria(chiaveViste, [...viste]);
             apriGiorno(giorno, { suono: false });
         },
-        onChiusa: giorno => mostraMessaggio(`Pazienza! Questa casa si apre il ${nomeGiorno(giorno)} dicembre.`)
+        onChiusa: giorno => mostraMessaggio(`Pazienza! Questa casa si apre il ${nomeGiorno(giorno)} dicembre.`),
+        // Il finale del 24: il riquadro del dono si chiude prima dei fuochi
+        onChiudiDono: () => {
+            if ($('modal').classList.contains('mostra')) chiudiModal({ porte: false });
+        }
     });
 }
 

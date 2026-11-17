@@ -1123,12 +1123,12 @@ function disegnaCasaBabbo(mondo, x, y, scala) {
         el('path', { d: `M${px} 0 V-46 a7 7 0 0 ${px < 0 ? 0 : 1} ${px < 0 ? -14 : 14} 0`, fill: 'none', stroke: '#fbfdff', 'stroke-width': 6, 'stroke-linecap': 'round' }, corpo);
         el('path', { d: `M${px} 0 V-46 a7 7 0 0 ${px < 0 ? 0 : 1} ${px < 0 ? -14 : 14} 0`, fill: 'none', stroke: '#d63031', 'stroke-width': 6, 'stroke-dasharray': '5 5' }, corpo);
     });
-    // Cartello di legno
-    el('path', { d: 'M-116 0 V-50 M-60 0 V-50', stroke: '#5d3a22', 'stroke-width': 5 }, corpo);
-    el('rect', { x: -134, y: -84, width: 92, height: 38, rx: 4, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 2 }, corpo);
-    el('text', { x: -88, y: -68, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#fffaf0', 'font-family': 'Georgia, serif' }, corpo).textContent = 'CASA DI';
-    el('text', { x: -88, y: -53, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#ffd36b', 'font-family': 'Georgia, serif' }, corpo).textContent = 'BABBO NATALE';
-    el('path', { d: 'M-136 -84 q 46 -8 96 0', stroke: '#fbfdff', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, corpo);
+    // Cartello di legno, a destra accanto al sacco dei regali (a sinistra lo copriva l'albero)
+    el('path', { d: 'M112 0 V-50 M168 0 V-50', stroke: '#5d3a22', 'stroke-width': 5 }, corpo);
+    el('rect', { x: 94, y: -84, width: 92, height: 38, rx: 4, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 2 }, corpo);
+    el('text', { x: 140, y: -68, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#fffaf0', 'font-family': 'Georgia, serif' }, corpo).textContent = 'CASA DI';
+    el('text', { x: 140, y: -53, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#ffd36b', 'font-family': 'Georgia, serif' }, corpo).textContent = 'BABBO NATALE';
+    el('path', { d: 'M92 -84 q 46 -8 96 0', stroke: '#fbfdff', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, corpo);
     // Sacco dei regali accanto alla porta
     el('path', { d: 'M70 2 q -30 0 -24 -34 q 4 -16 24 -20 q 20 4 24 20 q 6 34 -24 34 Z', fill: '#a0663a' }, corpo);
     el('path', { d: 'M58 -50 q 12 -8 24 0', stroke: '#c0392b', 'stroke-width': 4, fill: 'none' }, corpo);
@@ -3887,6 +3887,9 @@ function disegnaPaese(mondo) {
     DAVANTI.forEach((x, i) => elementi.push({ x, y: yStrada(x) + 88 + caso() * 18, tipo: 'casa', forma: TIPI_DAVANTI[i % TIPI_DAVANTI.length] }));
     // Da sinistra a destra: 1, 2, 3...
     [...elementi].sort((a, b) => a.x - b.x).forEach((elemento, i) => { elemento.giorno = i + 1; });
+    // La casa 11 era sopra i binari del trenino: scende un po', verso la strada
+    const casaUndici = elementi.find(elemento => elemento.giorno === 11);
+    if (casaUndici) casaUndici.y = Math.max(casaUndici.y, BINARI_Y + 48);
     elementi.push({ x: PIAZZA.x - 70, y: PIAZZA.y, tipo: 'albero' }, { x: PIAZZA.x + 100, y: PIAZZA.y - 18, tipo: 'casaBabbo' });
 
     // Lampioni lungo la strada, pupazzi e qualche abete
@@ -3895,7 +3898,8 @@ function disegnaPaese(mondo) {
         if (Math.abs(x - PIAZZA.x) > 260 && libero) elementi.push({ x, y: yStrada(x) + 44, tipo: 'lampione' });
     }
     elementi.push({ x: PIAZZA.x - 210, y: PIAZZA.y + 30, tipo: 'pupazzo' }, { x: 920, y: 640, tipo: 'pupazzo' });
-    elementi.push({ x: PIAZZA.x - 60, y: PIAZZA.y + 118, tipo: 'cartello' });
+    // Il cartello dei giorni a sinistra, più in basso: davanti all'albero copriva le ballerine
+    elementi.push({ x: PIAZZA.x - 170, y: PIAZZA.y + 168, tipo: 'cartello' });
     elementi.push({ x: 0, y: 692, tipo: 'nebbia' });
     elementi.push({ x: PIAZZA.x + 180, y: PIAZZA.y + 66, tipo: 'coro' });
     // Pattinatori sul laghetto e mercatino vicino al ruscello
@@ -7204,7 +7208,7 @@ function momentoDiAdesso(adesso = new Date()) {
     return 'notte';
 }
 
-export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '' }) {
+export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {} }) {
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -7251,6 +7255,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             onApri(24);
         },
         onFine: () => {
+            // Il riquadro del dono si chiude da solo, così non copre i fuochi
+            onChiudiDono();
             torna();
             cucina.nascondi();
             adattaVista();
@@ -8302,7 +8308,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         try { giaFatto = Boolean(localStorage.getItem('villaggio_tour_fatto')); } catch { /* senza memoria non si insiste */ }
         if (!modifica && !giaFatto && segui) setTimeout(() => {
             if (!inApertura && !contenitore.classList.contains('dentro') && !slittaTour) entraInStazione(mondo.querySelector('.stazione'));
-        }, 1400);
+        }, 3500);
         while (contenitore.isConnected) {
             await pausa(12000);
             await corsa(STAZIONE.fermata, MONDO + 400, 14000, false);
@@ -8335,7 +8341,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (c.classList.contains('aperta')) return 'aperta';
         return c.classList.contains('oggi') ? 'oggi' : 'pronta';
     }
-    async function usa3D(si) {
+    async function usa3D(si, scelta = false) {
         if (si) {
             try {
                 await caricaThree();
@@ -8364,17 +8370,19 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             suggerimento.textContent = testo2D;
         }
         bottoneVista.textContent = si ? '🖼️ Vista 2D' : '🧊 Vista 3D';
-        try {
-            localStorage.setItem('villaggio_vista', si ? '3d' : '2d');
+        // Si ricorda solo la scelta fatta con il pulsante (la vecchia chiave 'villaggio_vista' si salvava da sola e si ignora)
+        if (scelta) try {
+            localStorage.setItem('villaggio_vista_scelta', si ? '3d' : '2d');
         } catch { /* la scelta vale solo per questa visita */ }
     }
     if (contenitore.dataset.vista === '3d') {
         contenitore.append(bottoneVista);
-        bottoneVista.addEventListener('click', () => usa3D(!contenitore.classList.contains('vista-3d')));
-        let preferita = '3d';
+        bottoneVista.addEventListener('click', () => usa3D(!contenitore.classList.contains('vista-3d'), true));
+        // Si parte nel villaggio disegnato, con il viaggio del treno; il 3D solo per chi l'ha scelto con il pulsante
+        let preferita = '2d';
         try {
-            preferita = localStorage.getItem('villaggio_vista') ?? '3d';
-        } catch { /* si parte in 3D */ }
+            preferita = localStorage.getItem('villaggio_vista_scelta') ?? '2d';
+        } catch { /* si parte in 2D */ }
         usa3D(preferita === '3d');
     }
 

@@ -3,10 +3,10 @@
 
 const MESSAGGI = [
     'Benvenuto nel villaggio! Da oggi ogni giorno si accende una casa.',
-    'Una tazza di cioccolata calda ti aspetta stasera ☕',
+    'I biscotti allo zenzero sono pronti 🍪',
     'Il primo addobbo è sempre il più bello.',
     'Oggi regala un sorriso a uno sconosciuto.',
-    'I biscotti allo zenzero sono pronti 🍪',
+    'Una tazza di cioccolata calda ti aspetta stasera ☕',
     'Buon San Nicola!',
     'Scrivi un biglietto a chi non senti da tempo.',
     'Buona Immacolata: oggi si fa l\'albero 🎄',
@@ -99,7 +99,9 @@ const villaggio = creaVillaggio(document.getElementById('villaggio'), {
         velo.hidden = false;
         document.getElementById('btnChiudi').focus();
     },
-    onChiusa: giorno => avviso(`Pazienza! Questa casa si apre il ${giorno === 1 ? '1°' : giorno} dicembre.`)
+    onChiusa: giorno => avviso(`Pazienza! Questa casa si apre il ${giorno === 1 ? '1°' : giorno} dicembre.`),
+    // Il finale del 24: il riquadro del dono si chiude prima dei fuochi
+    onChiudiDono: () => { velo.hidden = true; }
 });
 
 function chiudi() {
