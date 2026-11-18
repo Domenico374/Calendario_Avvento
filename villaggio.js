@@ -4698,14 +4698,26 @@ function avvolgiTesto(testo, massimo) {
     return righe;
 }
 
+// Le due guide del tour in slitta: Fiocco e Brina
+const GUIDE_TOUR = {
+    elfo: { nome: 'Fiocco', icona: '🧝‍♂️', giacca: '#2e7d5b', cappello: '#c0392b', capelli: '#c9984a', amica: false },
+    elfa: { nome: 'Brina', icona: '🧝‍♀️', giacca: '#7d4e9e', cappello: '#6fd3ff', capelli: '#8a5a2b', amica: true }
+};
+// L'elfa ha i capelli lunghi sotto il cappello, con due fermagli rosa
+function capelliElfa(elfo, capelli) {
+    el('path', { d: 'M-15 -96 q -10 18 -6 38 M15 -96 q 10 18 6 38', stroke: capelli, 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, elfo.g);
+    el('circle', { cx: -21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
+    el('circle', { cx: 21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
+}
+
 function creaSala({ onParti, benvenuto = '' }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
     // Si sceglie chi fa da guida nel tour in slitta
     const partenze = Object.assign(document.createElement('div'), { className: 'partenze' });
     const domanda = Object.assign(document.createElement('p'), { className: 'domanda-guida', textContent: 'Chi ti accompagna sulla slitta?' });
-    const conElfo = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♂️ Parto con l\'elfo' });
-    const conElfa = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '🧝‍♀️ Parto con l\'elfa' });
+    const conElfo = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: `${GUIDE_TOUR.elfo.icona} Parto con ${GUIDE_TOUR.elfo.nome}` });
+    const conElfa = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: `${GUIDE_TOUR.elfa.icona} Parto con ${GUIDE_TOUR.elfa.nome}` });
     partenze.append(domanda, conElfo, conElfa);
     // La scritta dell'annuncio, per chi ha l'audio spento
     const annuncio = Object.assign(document.createElement('p'), { className: 'annuncio-stazione', textContent: `📢 ${ANNUNCIO}` });
@@ -4725,9 +4737,16 @@ function creaSala({ onParti, benvenuto = '' }) {
         } catch { /* senza audio resta la scritta */ }
         timerAnnuncio = setTimeout(() => annuncio.classList.remove('si-vede'), 9000);
     }
-    const parti = conElfo;
-    conElfo.addEventListener('click', () => onParti('elfo'));
-    conElfa.addEventListener('click', () => onParti('elfa'));
+    // Si ricorda con chi si è partiti l'ultima volta (se il browser lo permette)
+    let preferita = 'elfo';
+    try { preferita = localStorage.getItem('villaggio_guida') === 'elfa' ? 'elfa' : 'elfo'; } catch { /* si parte da Fiocco */ }
+    const parti = preferita === 'elfa' ? conElfa : conElfo;
+    const scegli = chi => {
+        try { localStorage.setItem('villaggio_guida', chi); } catch { /* la scelta vale solo per questa visita */ }
+        onParti(chi);
+    };
+    conElfo.addEventListener('click', () => scegli('elfo'));
+    conElfa.addEventListener('click', () => scegli('elfa'));
 
     const defs = el('defs', {}, svg);
     const vetro = el('clipPath', { id: 'vetro-sala' }, defs);
@@ -4975,6 +4994,16 @@ function creaSala({ onParti, benvenuto = '' }) {
     };
     panca(420);
     panca(1180);
+    // Sulle panchine aspettano le due guide: a sinistra Fiocco, a destra Brina. Toccarle è come premere il loro pulsante
+    [['elfo', 420, conElfo], ['elfa', 1180, conElfa]].forEach(([chi, px, bottone]) => {
+        const guida = GUIDE_TOUR[chi];
+        const posto = el('g', { class: 'elfo-panchina', role: 'button', 'aria-label': `Parto con ${guida.nome}` }, svg);
+        const respiro = el('g', { class: 'respiro-elfo' }, posto);
+        const elfo = disegnaElfo(respiro, px, 736 + 32 * 1.5, 1.5, { giacca: guida.giacca, cappello: guida.cappello, capelli: guida.capelli });
+        if (guida.amica) capelliElfa(elfo, guida.capelli);
+        elfo.braccio.classList.add('saluta');
+        posto.addEventListener('click', () => bottone.click());
+    });
     fiocco(300, 668, 0.8);
     fiocco(1060, 668, 0.8);
     el('rect', { x: 560, y: 740, width: 80, height: 58, rx: 8, fill: '#7a4b2e' }, svg);
@@ -7878,10 +7907,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     // ---- Il tour in slitta con la guida ----
     // Dalla stazione la slitta porta il passeggero all'ufficio postale, al laboratorio e alla stalla
     const yStrada = profiloStrada(mondo);
-    const GUIDE = {
-        elfo: { nome: 'Fiocco', icona: '🧝‍♂️', giacca: '#2e7d5b', cappello: '#c0392b', capelli: '#c9984a', amica: false },
-        elfa: { nome: 'Brina', icona: '🧝‍♀️', giacca: '#7d4e9e', cappello: '#6fd3ff', capelli: '#8a5a2b', amica: true }
-    };
+    const GUIDE = GUIDE_TOUR;
     const fumettoGuida = Object.assign(document.createElement('div'), { className: 'guida-fumetto', hidden: true });
     const facciaGuida = Object.assign(document.createElement('span'), { className: 'guida-faccia' });
     const nomeGuida = Object.assign(document.createElement('p'), { className: 'guida-nome' });
@@ -7910,11 +7936,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         rennaVolante(el('g', { transform: 'translate(160 -20) scale(1.6)' }, corpo), 0, 0, false, true);
         // La guida seduta davanti, il posto del passeggero dietro con la coperta
         const elfo = disegnaElfo(corpo, 2, -26, 0.42, { giacca: guida.giacca, cappello: guida.cappello, capelli: guida.capelli });
-        if (guida.amica) {
-            el('path', { d: 'M-15 -96 q -10 18 -6 38 M15 -96 q 10 18 6 38', stroke: guida.capelli, 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, elfo.g);
-            el('circle', { cx: -21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
-            el('circle', { cx: 21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
-        }
+        if (guida.amica) capelliElfa(elfo, guida.capelli);
         elfo.braccio.classList.add('saluta');
         el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26 L48 6 L-62 6 Z', fill: '#b3202b' }, corpo);
         el('path', { d: 'M-70 -2 Q-80 -50 -60 -54 L-44 -44 L36 -44 Q52 -44 54 -26', stroke: '#e8c766', 'stroke-width': 3, fill: 'none' }, corpo);

@@ -2536,3 +2536,16 @@ body::before {
 @media (max-width: 600px) {
     .sala .annuncio-stazione { font-size: 0.85rem; top: 54px; }
 }
+
+/* ---- Le due guide sedute sulle panchine della stazione ---- */
+.scena .sala .elfo-panchina { cursor: pointer; }
+.scena .sala .respiro-elfo { transform-box: fill-box; transform-origin: 50% 100%; animation: respiro-elfo 3.2s ease-in-out infinite; }
+.scena .sala .elfo-panchina:nth-of-type(2n) .respiro-elfo { animation-delay: -1.6s; }
+@keyframes respiro-elfo { 0%, 100% { scale: 1 1; } 50% { scale: 1.01 1.03; } }
+@media (prefers-reduced-motion: reduce) {
+    .scena .sala .respiro-elfo, .scena .sala .elfo-panchina .braccio-elfo { animation: none; }
+}
+/* Telefono in verticale: i pulsanti delle guide stanno sopra il messaggio "Gira il telefono" */
+@media (max-width: 899px) and (orientation: portrait) {
+    .scena .sala .partenze { bottom: 72px; }
+}
