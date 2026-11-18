@@ -2618,3 +2618,10 @@ body::before {
     .scena .pista .menu-balletto { top: 138px; right: 10px; padding: 8px; }
     .scena .pista .menu-balletto button { padding: 6px 12px; font-size: 0.9rem; }
 }
+
+/* Durante il balletto i pattinatori escono piano dalla pista: restano solo le ballerine */
+.scena .pista .pattinatore-pista { transition: opacity 0.8s ease; }
+.scena .pista.in-balletto .pattinatore-pista { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .pista .pattinatore-pista { transition: none; }
+}

@@ -1986,7 +1986,10 @@ function creaPalaghiaccio({ onEsci }) {
     // I pattinatori, più grandi quando sono più vicini
     const pista = el('g', {}, svg);
     const figure = PATTINATORI_PISTA.map(c => ({ ...c, nodo: disegnaPattinatore(c) }));
-    figure.forEach(f => pista.append(f.nodo));
+    figure.forEach(f => {
+        f.nodo.classList.add('pattinatore-pista');
+        pista.append(f.nodo);
+    });
     // Le ballerine al centro della pista: aspettano in cerchio e danzano quando si sceglie un balletto
     sfumatureTutu(svg);
     const ballerine = Array.from({ length: 5 }, (_, i) => ({ ...disegnaBallerina(i), fase: (i / 5) * Math.PI * 2 }));
@@ -2064,6 +2067,7 @@ function creaPalaghiaccio({ onEsci }) {
     nodo.append(sceltaBalletto, menuBalletto);
     function fermaIlBalletto() {
         balletto = null;
+        nodo.classList.remove('in-balletto');
         fermaBallettoPista?.();
         fermaBallettoPista = null;
         sceltaBalletto.textContent = '🩰 Scegli il balletto';
@@ -2073,6 +2077,7 @@ function creaPalaghiaccio({ onEsci }) {
         fermaIlBalletto();
         spegni();
         balletto = quale;
+        nodo.classList.add('in-balletto');
         sceltaBalletto.textContent = '⏹ Ferma il balletto';
         const finito = () => {
             if (balletto !== quale) return;
