@@ -7473,7 +7473,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
     const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
     const laboratorio = creaLaboratorio({ onEsci: () => esciDalQuartiere(laboratorio) });
-    const stalla = creaStalla({ onEsci: () => esciDalQuartiere(stalla), onTocco: () => onTocco(), onScegliRenna: nome => scegliRenna(nome) });
+    const stalla = creaStalla({ onEsci: () => esciDalQuartiere(stalla), onTocco: () => onTocco(), onScegliRenna: nome => {
+        scegliRenna(nome);
+        sceltaNellaStalla = true;
+    } });
     const cucina = creaCucinaNatale({
         onTocco: () => onTocco(),
         // Babbo Natale consegna l'ultimo dono: è la sorpresa del 24
@@ -7827,12 +7830,17 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         inApertura = false;
     }
 
+    // Vero quando la renna è stata scelta dentro la stalla: all'uscita il tour va avanti senza chiederla di nuovo
+    let sceltaNellaStalla = false;
     function esciDalQuartiere(stanza) {
         torna();
         stanza.nascondi();
         adattaVista();
+        const sceltaFatta = sceltaNellaStalla && stanza === stalla;
+        sceltaNellaStalla = false;
         if (slittaTour) {
             posizionaSlitta(xSlitta);
+            if (sceltaFatta && TAPPE_SLITTA[tappaTour]?.scelta) return prossimaTappa();
             fumettoGuida.classList.remove('nascosto');
         } else if (stanza === stalla && slittaMia) {
             // Usciti dalla stalla, la vista va sulla slitta con la renna appena scelta, che invita a salire
