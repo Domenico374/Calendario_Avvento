@@ -5562,9 +5562,10 @@ function creaInterno({ onScarta, onEsci }) {
     invito.textContent = 'Clicca il regalo per aprirlo';
 
     const regalo = el('g', { class: 'regalo', transform: 'translate(800 800)', tabindex: 0, role: 'button', 'aria-label': 'Apri il regalo' }, svg);
-    el('ellipse', { class: 'luce-regalo', cx: 0, cy: -170, rx: 260, ry: 220, fill: 'url(#luce-regalo)' }, regalo);
+    // Luce, raggi, coriandoli e scintille non si toccano: coprivano anche il libretto della ricetta e aprivano il pacco
+    el('ellipse', { class: 'luce-regalo', cx: 0, cy: -170, rx: 260, ry: 220, fill: 'url(#luce-regalo)', 'pointer-events': 'none' }, regalo);
     // Raggi di luce che girano piano dietro al regalo aperto
-    const raggiRegalo = el('g', { class: 'raggi-regalo' }, el('g', { transform: 'translate(0 -170)' }, regalo));
+    const raggiRegalo = el('g', { class: 'raggi-regalo' }, el('g', { transform: 'translate(0 -170)', 'pointer-events': 'none' }, regalo));
     for (let i = 0; i < 14; i++) {
         const a = (i / 14) * Math.PI * 2, b = a + 0.12;
         el('path', { d: `M0 0 L${(Math.cos(a) * 460).toFixed(1)} ${(Math.sin(a) * 460).toFixed(1)} L${(Math.cos(b) * 460).toFixed(1)} ${(Math.sin(b) * 460).toFixed(1)} Z`, fill: '#fff3c4', opacity: i % 2 ? 0.22 : 0.35 }, raggiRegalo);
@@ -5572,7 +5573,7 @@ function creaInterno({ onScarta, onEsci }) {
     // Stelline e coriandoli che esplodono in alto e poi ricadono
     let semeFesta = 21;
     const casoFesta = () => (semeFesta = (semeFesta * 16807) % 2147483647) / 2147483647;
-    const festaRegalo = el('g', { class: 'festa-regalo' }, regalo);
+    const festaRegalo = el('g', { class: 'festa-regalo', 'pointer-events': 'none' }, regalo);
     for (let i = 0; i < 64; i++) {
         const angolo = -Math.PI * (0.08 + casoFesta() * 0.84);
         const distanza = 180 + casoFesta() * 320;
@@ -5581,7 +5582,7 @@ function creaInterno({ onScarta, onEsci }) {
         if (i % 3 === 0) el('path', { class: 'coriandolo-regalo', d: stellaPiccola(0, -160, 9 + casoFesta() * 6), fill: colore, style: stile }, festaRegalo);
         else el('rect', { class: 'coriandolo-regalo', x: -5, y: -164, width: 10, height: 7, rx: 1.5, fill: colore, style: stile }, festaRegalo);
     }
-    const scintille = el('g', { class: 'scintille' }, regalo);
+    const scintille = el('g', { class: 'scintille', 'pointer-events': 'none' }, regalo);
     for (let i = 0; i < 30; i++) {
         const angolo = -Math.PI * (0.05 + caso() * 0.9);
         const distanza = 160 + caso() * 220;
