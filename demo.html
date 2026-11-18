@@ -2058,6 +2058,11 @@ body::before {
     .scena .parco-dentro .corpo-orso, .scena .parco-dentro .saluta-orso .testa-orso, .scena .parco-dentro .saltella > * { animation: none; }
 }
 
+/* ---- Il laghetto dei pattinatori si tocca ---- */
+.scena .laghetto { cursor: pointer; }
+.scena .laghetto:focus-visible { outline: none; }
+.scena .laghetto:focus-visible ellipse { stroke: rgba(255, 220, 140, 0.9); stroke-width: 4; }
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -3610,6 +3615,26 @@ function disegnaPattinatore(c) {
 }
 
 function disegnaPattinatori(mondo, cx, cy) {
+    // Dietro al laghetto: i paletti con il filo di lucine e il cartello
+    const dietro = el('g', { class: 'laghetto-decori', 'pointer-events': 'none' }, mondo);
+    const pali = [-170, -85, 0, 85, 170].map(dx => [cx + dx, cy - 38 + Math.abs(dx) * 0.12]);
+    pali.forEach(([px, py]) => {
+        el('rect', { x: px - 3, y: py - 46, width: 6, height: 48, rx: 2, fill: '#6d4630' }, dietro);
+        el('circle', { cx: px, cy: py - 48, r: 4, fill: '#fbfdff' }, dietro);
+    });
+    for (let i = 0; i < pali.length - 1; i++) {
+        const [x1, y1] = pali[i], [x2, y2] = pali[i + 1];
+        el('path', { d: `M${x1} ${y1 - 44} Q${(x1 + x2) / 2} ${(y1 + y2) / 2 - 22} ${x2} ${y2 - 44}`, stroke: '#1f5c34', 'stroke-width': 2, fill: 'none' }, dietro);
+        for (let k = 1; k <= 4; k++) {
+            const t = k / 5, lx = x1 + (x2 - x1) * t, ly = (1 - t) * (1 - t) * (y1 - 44) + 2 * t * (1 - t) * ((y1 + y2) / 2 - 22) + t * t * (y2 - 44);
+            el('circle', { class: 'lucina-mercato', cx: lx.toFixed(1), cy: (ly + 3).toFixed(1), r: 3, fill: COLORI_FESTA[(i * 4 + k) % COLORI_FESTA.length], style: `animation-delay:${((i + k) % 3 * 0.4).toFixed(1)}s` }, dietro);
+        }
+    }
+    el('path', { d: `M${cx + 204} ${cy - 4} V${cy - 44}`, stroke: '#6d4630', 'stroke-width': 5 }, dietro);
+    el('rect', { x: cx + 152, y: cy - 74, width: 104, height: 32, rx: 5, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 2 }, dietro);
+    el('text', { x: cx + 204, y: cy - 61, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 'bold', fill: '#fffaf0', 'font-family': 'Georgia, serif' }, dietro).textContent = 'LAGHETTO DEI';
+    el('text', { x: cx + 204, y: cy - 48, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 'bold', fill: '#ffd36b', 'font-family': 'Georgia, serif' }, dietro).textContent = 'PATTINATORI';
+    el('path', { d: `M${cx + 150} ${cy - 74} q 54 -8 108 0`, stroke: '#fbfdff', 'stroke-width': 4, fill: 'none', 'stroke-linecap': 'round' }, dietro);
     const lago = el('g', { class: 'pattinatori', 'pointer-events': 'none' }, mondo);
     // Le righe lasciate dai pattini sul ghiaccio
     [[0, 0, 128, 21], [8, -2, 104, 15], [-10, 3, 146, 25]].forEach(([dx, dy, rx, ry]) => {
@@ -3617,8 +3642,23 @@ function disegnaPattinatori(mondo, cx, cy) {
     });
     const RX = 128, RY = 21;
     const figure = PATTINATORI.map(c => ({ ...c, nodo: disegnaPattinatore(c) }));
+    // Il passeggero della slitta: scende sul ghiaccio solo quando si tocca il laghetto
+    const tu = { giacca: '#2d4f8a', pantaloni: '#2c2c3a', cappello: '#c0392b', sciarpa: '#c0392b', pelle: '#f2d2bd', velocita: 0.3, fase: 1.05, tu: true };
+    tu.nodo = disegnaPattinatore(tu);
+    tu.nodo.setAttribute('visibility', 'hidden');
+    figure.push(tu);
     figure.forEach(f => lago.append(f.nodo));
-    anima(lago, t => {
+    const etichetta = el('text', { 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#c0392b', stroke: '#fffaf0', 'stroke-width': 4, 'paint-order': 'stroke', visibility: 'hidden' }, lago);
+    etichetta.textContent = '★ TU ★';
+    // Il tempo del laghetto: scorre più svelto quando suona la musica (classe "veloce")
+    let tempo = 0, prima = null;
+    anima(lago, adesso => {
+        const veloce = lago.classList.contains('veloce');
+        tempo += (prima === null ? 0 : Math.min(0.1, adesso - prima)) * (veloce ? 2.2 : 1);
+        prima = adesso;
+        const t = tempo;
+        tu.nodo.setAttribute('visibility', veloce ? 'visible' : 'hidden');
+        etichetta.setAttribute('visibility', veloce ? 'visible' : 'hidden');
         for (const [i, f] of figure.entries()) {
             const a = f.fase + t * f.velocita;
             const x = cx + Math.cos(a) * RX * (f.piccolo ? 0.8 : 1);
@@ -3627,12 +3667,43 @@ function disegnaPattinatori(mondo, cx, cy) {
             const verso = Math.sin(a) > 0 ? 1 : -1;
             // Leggera inclinazione nelle curve e piccola spinta ritmica
             const spinta = Math.sin(t * 3 + i) * 2;
-            giraFigura(f.nodo, x + spinta * verso, y, scalaPer(y) * (f.piccolo ? 0.95 : 1.15), verso);
+            // Con la musica, a turno, una piroetta
+            const ciclo = (t * 0.22 + i * 0.29) % 1;
+            const piroetta = veloce && ciclo < 0.12 ? Math.cos((ciclo / 0.12) * Math.PI * 4) : 1;
+            const k = scalaPer(y) * (f.piccolo ? 0.95 : 1.15);
+            giraFigura(f.nodo, x + spinta * verso, y, k, verso * piroetta);
+            if (f.tu) {
+                etichetta.setAttribute('x', (x - 14 * k * verso).toFixed(1));
+                etichetta.setAttribute('y', (y - 74 * k).toFixed(1));
+            }
         }
         [...lago.children].filter(n => n.tagName === 'g')
             .sort((p, q) => p.transform.baseVal.consolidate().matrix.f - q.transform.baseVal.consolidate().matrix.f)
             .forEach(n => lago.append(n));
+        lago.append(etichetta);
     });
+    // Davanti: la panchina con chi guarda, le due lanterne e l'area da toccare
+    const davanti = el('g', { class: 'laghetto-decori', 'pointer-events': 'none' }, mondo);
+    [[cx - 205, cy + 14], [cx + 196, cy + 16]].forEach(([lx, ly]) => {
+        el('circle', { class: 'luce-calda', cx: lx, cy: ly - 50, r: 34, fill: 'url(#alone)', opacity: 0.8 }, davanti);
+        el('rect', { x: lx - 2.5, y: ly - 44, width: 5, height: 46, fill: '#3a2a22' }, davanti);
+        el('rect', { x: lx - 8, y: ly - 62, width: 16, height: 18, rx: 3, fill: '#ffd36b', stroke: '#3a2a22', 'stroke-width': 2.5 }, davanti);
+        el('path', { d: `M${lx - 10} ${ly - 62} L${lx} ${ly - 70} L${lx + 10} ${ly - 62} Z`, fill: '#3a2a22' }, davanti);
+    });
+    const panca = el('g', { transform: `translate(${cx - 120} ${cy + 46})` }, davanti);
+    el('ellipse', { cx: 0, cy: 3, rx: 46, ry: 5, fill: 'rgba(60,90,140,0.25)' }, panca);
+    el('path', { d: 'M-36 0 v-14 M36 0 v-14', stroke: '#3a2a22', 'stroke-width': 4 }, panca);
+    el('rect', { x: -42, y: -18, width: 84, height: 6, rx: 2, fill: '#8a5a3c' }, panca);
+    el('rect', { x: -42, y: -34, width: 84, height: 6, rx: 2, fill: '#a0663a' }, panca);
+    // Due amici seduti che guardano, di spalle
+    [[-16, '#c0392b', '#f4d03f', '#5a3b2a'], [16, '#2e7d4a', '#fbfdff', '#2b1d14']].forEach(([dx, giacca, cappello, capelli]) => {
+        el('path', { d: `M${dx - 11} -16 Q${dx - 12} -40 ${dx} -41 Q${dx + 12} -40 ${dx + 11} -16 Z`, fill: giacca }, panca);
+        el('circle', { cx: dx, cy: -48, r: 8, fill: capelli }, panca);
+        el('path', { d: `M${dx - 8} -50 Q${dx - 8} -60 ${dx} -60 Q${dx + 8} -60 ${dx + 8} -50 Z`, fill: cappello }, panca);
+        el('circle', { cx: dx, cy: -61, r: 3, fill: '#fbfdff' }, panca);
+    });
+    const area = el('g', { class: 'laghetto', tabindex: 0, role: 'button', 'aria-label': 'Il laghetto dei pattinatori: tocca per la musica e per pattinare anche tu' }, mondo);
+    el('ellipse', { cx, cy, rx: 200, ry: 42, fill: 'transparent' }, area);
     return lago;
 }
 
@@ -11030,6 +11101,7 @@ function creaVillaggio(contenitore, opzioni) {
         if (stazione) return entraInStazione(stazione);
         const renna = evento.target.closest('.renna');
         if (renna) return faiSaltare(renna);
+        if (evento.target.closest('.laghetto')) return animaIlLaghetto();
         const coro = evento.target.closest('.coro');
         if (coro) return cantaIlCoro(coro);
         const mercatoCoperto = evento.target.closest('.mercato-coperto');
@@ -11053,11 +11125,30 @@ function creaVillaggio(contenitore, opzioni) {
         if (casa) apriCasa(casa);
     });
 
+    // Toccato, il laghetto suona un valzer: i pattinatori vanno più svelti, fanno le piroette e scendi in pista anche tu
+    let fermaLaghetto = null;
+    function animaIlLaghetto() {
+        if (fermaLaghetto) return fermaLaghetto();
+        fermaCoro?.();
+        fermaBalletto?.();
+        fermaGiostra?.();
+        onTocco();
+        const lago = mondo.querySelector('.pattinatori');
+        lago?.classList.add('veloce');
+        contenitore.dispatchEvent(new CustomEvent('coro', { detail: { canta: true } }));
+        fermaLaghetto = suonaBrano({ melodia: JINGLE_BELLS_VALZER, bassi: BASSI_JINGLE, battito: 0.3, strumento: 'carillon' }, () => {
+            fermaLaghetto = null;
+            lago?.classList.remove('veloce');
+            contenitore.dispatchEvent(new CustomEvent('coro', { detail: { canta: false } }));
+        });
+    }
+
     // Cliccato, il coro canta "We Wish You a Merry Christmas"; un altro clic lo ferma.
     // Avvisa la pagina, così la musica di sottofondo si mette in pausa
     let fermaCoro = null;
     function cantaIlCoro(coro) {
         if (fermaCoro) return fermaCoro();
+        fermaLaghetto?.();
         fermaBalletto?.();
         fermaGiostra?.();
         coro.classList.add('canta');
@@ -11117,6 +11208,10 @@ function creaVillaggio(contenitore, opzioni) {
         const palazzetto = evento.target.closest('.palaghiaccio');
         const edificio = evento.target.closest('.posta, .laboratorio, .stalla');
         const negozioAddobbi = evento.target.closest('.negozio');
+        if (evento.target.closest('.laghetto') && (evento.key === 'Enter' || evento.key === ' ')) {
+            evento.preventDefault();
+            return animaIlLaghetto();
+        }
         const mercatoCoperto = evento.target.closest('.mercato-coperto');
         if (mercatoCoperto && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
@@ -11218,6 +11313,7 @@ function creaVillaggio(contenitore, opzioni) {
     // Il dispositivo se lo ricorda, così non ricompaiono ogni volta
     const TOCCABILI = [
         { chiave: 'coro', selettore: '.coro', x: 0, y: -100, k: 1.3 },
+        { chiave: 'laghetto', selettore: '.laghetto', x: 700, y: 548, k: 1.3 },
         { chiave: 'balletto', selettore: '.albero', x: 120, y: -90, k: 1.3 },
         { chiave: 'mercato', selettore: '.mercato-coperto', x: 0, y: -330, k: 1.8 },
         { chiave: 'parco', selettore: '.parco-animali', x: 0, y: -215, k: 1.8 },

@@ -2647,3 +2647,8 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .parco-dentro .corpo-orso, .scena .parco-dentro .saluta-orso .testa-orso, .scena .parco-dentro .saltella > * { animation: none; }
 }
+
+/* ---- Il laghetto dei pattinatori si tocca ---- */
+.scena .laghetto { cursor: pointer; }
+.scena .laghetto:focus-visible { outline: none; }
+.scena .laghetto:focus-visible ellipse { stroke: rgba(255, 220, 140, 0.9); stroke-width: 4; }
