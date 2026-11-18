@@ -1,4 +1,4 @@
-import { creaVillaggio } from './villaggio.js?v=20261118p';
+import { creaVillaggio } from './villaggio.js?v=20261118q';
 
 // Configurazione
 const CONFIG = {

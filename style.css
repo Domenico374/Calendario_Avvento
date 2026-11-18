@@ -2045,7 +2045,7 @@ body::before {
 .scena .addobbo-vendita:focus-visible { outline: none; }
 .scena .stella-alberello { transition: fill 0.6s; }
 .scena .stella-alberello.accesa { fill: #ffe066; filter: url(#bagliore); }
-.scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia {
+.scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia, .scena .pupazzo-dentro .ricomincia {
     position: absolute;
     top: 14px;
     right: 14px;
@@ -2059,7 +2059,7 @@ body::before {
     cursor: pointer;
 }
 @media (max-width: 899px) {
-    .scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
+    .scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia, .scena .pupazzo-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
 }
 
 /* ---- Luce e ombre ---- */
@@ -2652,3 +2652,16 @@ body::before {
 .scena .laghetto { cursor: pointer; }
 .scena .laghetto:focus-visible { outline: none; }
 .scena .laghetto:focus-visible ellipse { stroke: rgba(255, 220, 140, 0.9); stroke-width: 4; }
+
+/* ---- Costruisci il tuo pupazzo di neve ---- */
+.scena .pupazzo-neve, .scena .pupazzo-dentro .mucchio-neve, .scena .pupazzo-dentro .scelta-pupazzo { cursor: pointer; }
+.scena .pupazzo-neve:focus-visible, .scena .pupazzo-dentro .mucchio-neve:focus-visible, .scena .pupazzo-dentro .scelta-pupazzo:focus-visible { outline: none; filter: drop-shadow(0 0 8px rgba(255, 220, 140, 0.95)); }
+.scena .pupazzo-dentro { background: #2b3f7a; }
+.scena .pupazzo-dentro .mucchio-neve:hover { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)); }
+.scena .pupazzo-dentro .pannello-pupazzo { transition: opacity 0.4s; }
+.scena .pupazzo-dentro .pannello-pupazzo.spento { opacity: 0.35; pointer-events: none; }
+.scena .pupazzo-dentro .palla-nuova { transform-box: fill-box; transform-origin: 50% 100%; animation: palla-nuova 0.5s cubic-bezier(.3, 1.5, .5, 1) both; }
+@keyframes palla-nuova { from { scale: 0.2; opacity: 0; } to { scale: 1; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .scena .pupazzo-dentro .palla-nuova { animation: none; }
+}
