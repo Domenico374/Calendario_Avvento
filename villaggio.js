@@ -938,14 +938,13 @@ function disegnaAlbero(mondo, x, y, scala) {
     // L'albero della piazza è sempre acceso: il 24 è la casa di Babbo Natale, qui accanto
     const albero = el('g', {
         class: 'albero aperta', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
-        'aria-label': 'Il balletto intorno all\'albero: clicca per sentire la musica dello Schiaccianoci'
+        'aria-label': 'L\'albero di Natale della piazza: tocca per scoprire la sua storia'
     }, mondo);
     el('ellipse', { class: 'alone', cx: 0, cy: -140, rx: 170, ry: 200, fill: 'url(#alone)' }, albero);
     // Il laghetto ghiacciato dove danzano le ballerine
     el('ellipse', { cx: 0, cy: 0, rx: 128, ry: 34, fill: '#cfe0f5', stroke: '#a9c1e4', 'stroke-width': 3 }, albero);
     el('ellipse', { cx: -20, cy: -4, rx: 84, ry: 16, fill: '#eef5ff', opacity: 0.8 }, albero);
     el('path', { d: 'M-70 8 q 30 -6 60 2 M20 12 q 30 -8 56 -2', stroke: '#ffffff', 'stroke-width': 2, fill: 'none', opacity: 0.9 }, albero);
-    const dietro = el('g', { class: 'ballerine' }, albero);
     const corpo = el('g', { class: 'corpo' }, albero);
     el('rect', { x: -14, y: -30, width: 28, height: 32, fill: '#5d4037' }, corpo);
     [[0, 170, 90], [-60, 140, 80], [-115, 105, 70], [-165, 70, 60]].forEach(([dy, larghezza, altezza]) => {
@@ -959,8 +958,7 @@ function disegnaAlbero(mondo, x, y, scala) {
         el('circle', { class: 'lucina', cx: (caso() * 2 - 1) * meta, cy: yy, r: 5 }, corpo);
     }
     el('path', { class: 'puntale', d: 'M0 -280 l9 18 20 3 -15 13 4 20 -18 -10 -18 10 4 -20 -15 -13 20 -3 Z' }, corpo);
-    const davanti = el('g', { class: 'ballerine' }, albero);
-    danzaBallerine(albero, dietro, davanti);
+    // Le ballerine ora danzano sulla pista del palaghiaccio
     return albero;
 }
 
@@ -1279,6 +1277,19 @@ const BASSI_MERRY = [
     ['G2', 3], ['C3', 3], ['A2', 3], ['D3', 3], ['B2', 3], ['E3', 3], ['C3', 1.5], ['D3', 1.5], ['G2', 3],
     ['G2', 3], ['D3', 3], ['E3', 3], ['D3', 3], ['G2', 3], ['B2', 3], ['C3', 1.5], ['D3', 1.5], ['G2', 3]
 ];
+
+// Il tema dei cigni dal "Lago dei cigni" di Čajkovskij (l'oboe, in si minore), suonato due volte.
+// Nota e durata in battiti; i bassi sono uno per battuta da quattro
+const LAGO_DEI_CIGNI = (() => {
+    const frase = [
+        ['F#5', 2], ['B4', 0.5], ['C#5', 0.5], ['D5', 0.5], ['E5', 0.5],
+        ['F#5', 1.5], ['D5', 0.5], ['F#5', 1.5], ['D5', 0.5],
+        ['F#5', 1.5], ['B4', 0.5], ['D5', 0.5], ['B4', 0.5], ['G4', 0.5], ['D5', 0.5],
+        ['B4', 4]
+    ];
+    return [...frase, ...frase];
+})();
+const BASSI_CIGNI = ['B2', 'B2', 'G2', 'B2', 'B2', 'B2', 'G2', 'B2'];
 
 // "Danza della Fata Confetto" dallo Schiaccianoci di Čajkovskij, suonata come una celesta col pizzicato.
 // Nota e durata in battiti (null = pausa)
@@ -1976,6 +1987,27 @@ function creaPalaghiaccio({ onEsci }) {
     const pista = el('g', {}, svg);
     const figure = PATTINATORI_PISTA.map(c => ({ ...c, nodo: disegnaPattinatore(c) }));
     figure.forEach(f => pista.append(f.nodo));
+    // Le ballerine al centro della pista: aspettano in cerchio e danzano quando si sceglie un balletto
+    sfumatureTutu(svg);
+    const ballerine = Array.from({ length: 5 }, (_, i) => ({ ...disegnaBallerina(i), fase: (i / 5) * Math.PI * 2 }));
+    ballerine.forEach(b => pista.append(b.posto));
+    let tempoBallo = 0, ultimoBallo = 0, balletto = null;
+    const disponiBallerine = () => {
+        const t = tempoBallo;
+        for (const [i, b] of ballerine.entries()) {
+            const a = b.fase + t * 0.32;
+            const x = 800 + Math.cos(a) * 210, y = 640 + Math.sin(a) * 48;
+            const verso = Math.sin(a) > 0 ? 1 : -1;
+            // Durante il balletto: piroette a turno, piccoli salti e braccia che ondeggiano
+            const ciclo = (t * 0.25 + i * 0.37) % 1;
+            const piroetta = balletto && ciclo < 0.18 ? Math.cos((ciclo / 0.18) * Math.PI * 4) : 1;
+            const salto = balletto ? Math.abs(Math.sin(t * 2.6 + i)) * 3 : 0;
+            const k = 2.3 + (y - 600) / 100 * 0.25;
+            b.posto.setAttribute('transform', `translate(${x.toFixed(1)} ${(y - salto * k).toFixed(1)}) scale(${k.toFixed(3)})`);
+            b.giro.setAttribute('transform', `scale(${(verso * piroetta).toFixed(3)} 1)`);
+            b.braccia.setAttribute('d', bracciaBallerina(balletto ? Math.sin(t * 3 + i) * 3 : 0));
+        }
+    };
     const disponi = t => {
         for (const [i, f] of figure.entries()) {
             const a = f.fase + t * f.velocita * 1.3;
@@ -1985,6 +2017,7 @@ function creaPalaghiaccio({ onEsci }) {
             const k = (2.2 + (y - 500) / 260 * 1.6) * (f.piccolo ? 0.8 : 1);
             giraFigura(f.nodo, x + Math.sin(t * 3 + i) * 3 * verso, y, k, verso);
         }
+        disponiBallerine();
         [...pista.children]
             .sort((p1, p2) => p1.transform.baseVal.consolidate().matrix.f - p2.transform.baseVal.consolidate().matrix.f)
             .forEach(n => pista.append(n));
@@ -2000,6 +2033,9 @@ function creaPalaghiaccio({ onEsci }) {
     // Animazione e musica solo mentre si è dentro
     let ferma = null, giro = null, inizio = 0;
     const ballo = adesso => {
+        // Le ballerine vanno piano mentre aspettano, più svelte durante il balletto
+        tempoBallo += Math.min(0.1, Math.max(0, (adesso - ultimoBallo) / 1000)) * (balletto ? 2 : 0.35);
+        ultimoBallo = adesso;
         disponi((adesso - inizio) / 1000);
         giro = requestAnimationFrame(ballo);
     };
@@ -2013,7 +2049,53 @@ function creaPalaghiaccio({ onEsci }) {
         ferma = null;
         musica.textContent = '🎵 Accendi la musica';
     };
-    musica.addEventListener('click', () => (ferma ? spegni() : accendi()));
+    // Il balletto: si sceglie tra lo Schiaccianoci e il Lago dei cigni; intanto la musica della pista tace
+    let fermaBallettoPista = null;
+    const sceltaBalletto = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-balletto', textContent: '🩰 Scegli il balletto' });
+    const menuBalletto = Object.assign(document.createElement('div'), { className: 'menu-balletto', hidden: true });
+    menuBalletto.setAttribute('role', 'menu');
+    const BALLETTI = [['schiaccianoci', '🍬 Lo Schiaccianoci'], ['cigni', '🦢 Il lago dei cigni']];
+    BALLETTI.forEach(([quale, nome]) => {
+        const voce = Object.assign(document.createElement('button'), { type: 'button', textContent: nome });
+        voce.setAttribute('role', 'menuitem');
+        voce.addEventListener('click', () => avviaBalletto(quale));
+        menuBalletto.append(voce);
+    });
+    nodo.append(sceltaBalletto, menuBalletto);
+    function fermaIlBalletto() {
+        balletto = null;
+        fermaBallettoPista?.();
+        fermaBallettoPista = null;
+        sceltaBalletto.textContent = '🩰 Scegli il balletto';
+    }
+    function avviaBalletto(quale) {
+        menuBalletto.hidden = true;
+        fermaIlBalletto();
+        spegni();
+        balletto = quale;
+        sceltaBalletto.textContent = '⏹ Ferma il balletto';
+        const finito = () => {
+            if (balletto !== quale) return;
+            fermaIlBalletto();
+            if (!nodo.hidden) accendi();
+        };
+        fermaBallettoPista = quale === 'cigni'
+            ? suonaBrano({ melodia: LAGO_DEI_CIGNI, bassi: BASSI_CIGNI, battito: 0.5, strumento: 'organo' }, finito)
+            : suonaSchiaccianoci(finito);
+    }
+    sceltaBalletto.addEventListener('click', () => {
+        if (balletto) {
+            fermaIlBalletto();
+            accendi();
+            return;
+        }
+        menuBalletto.hidden = !menuBalletto.hidden;
+        if (!menuBalletto.hidden) menuBalletto.querySelector('button').focus({ preventScroll: true });
+    });
+    musica.addEventListener('click', () => {
+        if (balletto) fermaIlBalletto();
+        return ferma ? spegni() : accendi();
+    });
     // Il tour del palazzetto con Brina, l'elfa istruttrice
     const tour = creaTourGhiaccio(nodo);
     const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-tour-ghiaccio', textContent: '⛸ Fai il tour con l\'elfa' });
@@ -2026,7 +2108,7 @@ function creaPalaghiaccio({ onEsci }) {
             nodo.hidden = false;
             accendi();
             if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                inizio = performance.now();
+                inizio = ultimoBallo = performance.now();
                 giro = requestAnimationFrame(ballo);
             }
             requestAnimationFrame(() => {
@@ -2035,6 +2117,8 @@ function creaPalaghiaccio({ onEsci }) {
             });
         },
         nascondi() {
+            fermaIlBalletto();
+            menuBalletto.hidden = true;
             spegni();
             tour.chiudi();
             cancelAnimationFrame(giro);
@@ -8261,7 +8345,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         const banco = evento.target.closest('.bancarella');
         if (banco) return entraNellaBancarella(banco);
         const albero = evento.target.closest('.albero');
-        if (albero) return ballaLoSchiaccianoci(albero);
+        if (albero) return apriStoria();
         const giostra = evento.target.closest('.giostra');
         if (giostra) return suonaLaGiostra(giostra);
         const palazzetto = evento.target.closest('.palaghiaccio');
@@ -8345,7 +8429,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             else if (edificio) entraNelQuartiere(edificio);
             else if (giostra) suonaLaGiostra(giostra);
             else if (palazzetto) entraNelPalaghiaccio(palazzetto);
-            else if (albero) ballaLoSchiaccianoci(albero);
+            else if (albero) apriStoria();
             else if (banco) entraNellaBancarella(banco);
             else if (coro) cantaIlCoro(coro);
             else if (stazione) entraInStazione(stazione);
