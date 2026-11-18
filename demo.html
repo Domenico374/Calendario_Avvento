@@ -1455,7 +1455,7 @@ body::before {
 .scena .addobbo-vendita:focus-visible { outline: none; }
 .scena .stella-alberello { transition: fill 0.6s; }
 .scena .stella-alberello.accesa { fill: #ffe066; filter: url(#bagliore); }
-.scena .negozio-dentro .ricomincia {
+.scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia {
     position: absolute;
     top: 14px;
     right: 14px;
@@ -1469,7 +1469,7 @@ body::before {
     cursor: pointer;
 }
 @media (max-width: 899px) {
-    .scena .negozio-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
+    .scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
 }
 
 /* ---- Luce e ombre ---- */
@@ -2035,6 +2035,13 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .pista .pattinatore-pista { transition: none; }
 }
+
+/* ---- Il mercato di Natale: la grande casa, il salone con le casette e la casetta degli abiti ---- */
+.scena .mercato-coperto { cursor: pointer; }
+.scena .mercato-coperto:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+.scena .mercato-dentro .casetta-mercato, .scena .sartoria-dentro .capo-sartoria { cursor: pointer; }
+.scena .mercato-dentro .casetta-mercato:hover, .scena .mercato-dentro .casetta-mercato:focus-visible,
+.scena .sartoria-dentro .capo-sartoria:hover, .scena .sartoria-dentro .capo-sartoria:focus-visible { outline: none; filter: drop-shadow(0 0 10px rgba(255, 220, 140, 0.9)); }
 
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
@@ -3614,6 +3621,260 @@ function disegnaPattinatori(mondo, cx, cy) {
     return lago;
 }
 
+// ---- Il mercato di Natale: una grande casa di legno con dentro tutte le casette ----
+const CASETTE_MERCATO = [
+    { nome: 'Castagne', tetto: '#9b1d2a', banco: 'castagne', venditore: { giacca: '#3b3f58', cappello: '#c0392b', pelle: '#f0cfb6' } },
+    { nome: 'Frittelle', tetto: '#2d4f8a', banco: 'frittelle', venditore: { giacca: '#2d4f8a', cappello: '#e3e3ea', pelle: '#c48a66' } },
+    { nome: 'Cioccolata', tetto: '#2e6b3f', banco: 'cioccolata', venditore: { giacca: '#5b3a6b', cappello: '#e3e3ea', pelle: '#e3b393' } },
+    { nome: 'Addobbi', tetto: '#7d4e9e', banco: 'addobbi', venditore: { giacca: '#2e7d5b', cappello: '#c0392b', pelle: '#f6c9a8' } },
+    { nome: 'Candele', tetto: '#b5651d', banco: 'candele', venditore: { giacca: '#c0392b', cappello: '#2e7d4a', pelle: '#e3b393' } },
+    { nome: 'Abiti', tetto: '#a3242c', banco: 'abiti', venditore: { giacca: '#2d4f8a', cappello: '#f4d03f', pelle: '#f2d2bd' } }
+];
+
+function disegnaMercatoCoperto(mondo, x, y, scala) {
+    const g = el('g', {
+        class: 'mercato-coperto', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
+        'aria-label': 'Il mercato di Natale: entra a vedere le casette'
+    }, mondo);
+    // La slitta del tour si ferma a destra della casa, senza coprire la porta
+    g.dataset.cx = (x + 330 * scala).toFixed(0);
+    el('ellipse', { class: 'alone', cx: 0, cy: -130, rx: 300, ry: 180, fill: 'url(#alone)', opacity: 0.5 }, g);
+    el('ellipse', { cx: 0, cy: 6, rx: 250, ry: 16, fill: 'rgba(60,90,140,0.3)' }, g);
+    // Le pareti di legno
+    el('rect', { x: -220, y: -170, width: 440, height: 170, fill: '#7a4b2e' }, g);
+    el('rect', { x: -220, y: -170, width: 440, height: 170, fill: 'url(#tex-assi)' }, g);
+    el('path', { d: 'M-220 -170 V0 M220 -170 V0', stroke: '#4a2c1c', 'stroke-width': 8 }, g);
+    // Le finestre con la merce: a sinistra dolci e cioccolata, a destra addobbi e candele
+    [-150, 150].forEach((fx, lato) => {
+        el('rect', { x: fx - 46, y: -130, width: 92, height: 62, rx: 6, fill: '#ffd98a' }, g);
+        el('circle', { class: 'luce-calda', cx: fx, cy: -100, r: 60, fill: 'url(#alone)', opacity: 0.6 }, g);
+        el('path', { d: `M${fx - 46} -99 H${fx + 46} M${fx} -130 V-68`, stroke: '#5d3a22', 'stroke-width': 5 }, g);
+        el('rect', { x: fx - 52, y: -70, width: 104, height: 10, rx: 3, fill: '#fbfdff' }, g);
+        (lato ? ['#e74c3c', '#f4d03f', '#3498db', '#e84393'] : ['#6b3a1f', '#d9a066', '#5a3420', '#e0a94a'])
+            .forEach((c, i) => el('circle', { cx: fx - 32 + (i % 2) * 46 + (i > 1 ? 18 : 0), cy: i > 1 ? -78 : -110, r: 6, fill: c }, g));
+    });
+    // La grande porta ad arco, aperta, con la luce calda che esce
+    el('circle', { class: 'luce-calda', cx: 0, cy: -60, r: 120, fill: 'url(#alone)', opacity: 0.8 }, g);
+    el('path', { d: 'M-62 0 V-92 q 0 -52 62 -52 q 62 0 62 52 V0 Z', fill: '#5d3a22' }, g);
+    el('path', { d: 'M-52 0 V-90 q 0 -44 52 -44 q 52 0 52 44 V0 Z', fill: '#ffcf73' }, g);
+    // Dentro si intravedono i tettucci colorati delle casette
+    [['#9b1d2a', -32], ['#2e6b3f', 0], ['#7d4e9e', 32]].forEach(([c, dx]) => {
+        el('path', { d: `M${dx - 16} -44 L${dx} -62 L${dx + 16} -44 Z`, fill: c }, g);
+        el('rect', { x: dx - 13, y: -44, width: 26, height: 30, fill: '#a0663a' }, g);
+    });
+    el('path', { d: 'M-62 -112 q 62 -46 124 0', stroke: '#1f5c34', 'stroke-width': 10, fill: 'none', 'stroke-linecap': 'round' }, g);
+    [-46, -20, 6, 32, 54].forEach((lx, i) => el('circle', { class: 'lucina-mercato', cx: lx, cy: -126 - Math.sin(((lx + 62) / 124) * Math.PI) * 18, r: 3.5, fill: COLORI_FESTA[i % COLORI_FESTA.length], style: `animation-delay:${(i * 0.3).toFixed(1)}s` }, g));
+    // Il tetto a capanna con la neve e le lucine lungo il bordo
+    el('path', { d: 'M-252 -162 L0 -300 L252 -162 Z', fill: '#9b1d2a' }, g);
+    el('path', { d: 'M-252 -162 L0 -300 L252 -162', stroke: '#fbfdff', 'stroke-width': 16, fill: 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, g);
+    for (let i = 0; i <= 16; i++) {
+        const t = i / 16, lx = -244 + 488 * t, ly = -150 - 138 * (1 - Math.abs(2 * t - 1));
+        el('circle', { class: 'lucina-mercato', cx: lx.toFixed(1), cy: ly.toFixed(1), r: 4, fill: COLORI_FESTA[i % COLORI_FESTA.length], style: `animation-delay:${((i % 3) * 0.4).toFixed(1)}s` }, g);
+    }
+    // L'insegna
+    el('rect', { x: -150, y: -236, width: 300, height: 46, rx: 9, fill: '#fbf6ea', stroke: '#c9a227', 'stroke-width': 4 }, g);
+    el('text', { x: 0, y: -204, 'text-anchor': 'middle', 'font-size': 25, 'font-weight': 'bold', 'letter-spacing': 1, 'font-family': 'Georgia, serif', fill: '#9b1d2a' }, g).textContent = 'MERCATO DI NATALE';
+    return g;
+}
+
+// Dentro il mercato: un grande salone con sei casette in fila. Toccandone una si entra a vederla
+function creaMercato({ onEsci, onCasetta }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno mercato-dentro', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro il mercato di Natale: sei casette in fila' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    nodo.append(svg, esci);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    // Pareti di legno, travi del soffitto, festoni e lucine
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#4a2c1c' }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tavole-parete)' }, svg);
+    el('circle', { cx: 800, cy: 420, r: 760, fill: 'url(#alone)', opacity: 0.35 }, svg);
+    for (let i = -6; i <= 6; i++) el('path', { d: `M${800 + i * 150} -40 L${800 + i * 210} 220`, stroke: '#3a2416', 'stroke-width': 14 }, svg);
+    el('rect', { x: -1400, y: 206, width: 4400, height: 24, fill: '#3a2416' }, svg);
+    el('path', { d: 'M-200 250 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0', fill: 'none', stroke: '#1f5c34', 'stroke-width': 14 }, svg);
+    for (let i = 0; i < 26; i++) {
+        const lx = -170 + i * 75, t = ((lx + 200) % 300) / 300;
+        el('circle', { class: 'pallina', cx: lx, cy: 256 + 100 * t * (1 - t), r: 7, fill: COLORI_FESTA[i % COLORI_FESTA.length], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.37) % 2).toFixed(2)}s` }, svg);
+    }
+    // L'insegna del mercato
+    el('rect', { x: 520, y: 70, width: 560, height: 78, rx: 14, fill: '#9b1d2a', stroke: '#e8c766', 'stroke-width': 5 }, svg);
+    el('text', { x: 800, y: 124, 'text-anchor': 'middle', 'font-size': 40, 'font-weight': 'bold', 'letter-spacing': 3, 'font-family': 'Georgia, serif', fill: '#fffaf0' }, svg).textContent = 'MERCATO DI NATALE';
+    el('text', { class: 'invito', x: 800, y: 196, 'text-anchor': 'middle', 'font-size': 30, 'font-style': 'italic', 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = 'Tocca una casetta per entrare';
+    // Il pavimento di tavole
+    el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: '#6d4630' }, svg);
+    el('rect', { x: -1400, y: 700, width: 4400, height: 800, fill: 'url(#tavole-pavimento)' }, svg);
+    // Stelle di carta appese al soffitto, con la lucina dentro
+    [130, 420, 800, 1180, 1470].forEach((sx, i) => {
+        const sy = 330 + (i % 2) * 40;
+        el('path', { d: `M${sx} 230 V${sy - 30}`, stroke: '#c9a227', 'stroke-width': 2 }, svg);
+        el('circle', { class: 'luce-calda', cx: sx, cy: sy, r: 60, fill: 'url(#alone)', opacity: 0.7 }, svg);
+        el('path', { d: stellaPiccola(sx, sy, 30), fill: ['#ffd36b', '#ff9de2', '#fff4dc', '#6fd3ff', '#ffd36b'][i], stroke: '#c9a227', 'stroke-width': 2 }, svg);
+    });
+    // Le sei casette in fila, ognuna con la sua insegna e chi vende
+    CASETTE_MERCATO.forEach((b, i) => {
+        const cx = 160 + i * 256;
+        const posto = el('g', { class: 'casetta-mercato', 'data-tipo': b.banco, transform: `translate(${cx} 800)`, tabindex: 0, role: 'button', 'aria-label': `Casetta ${b.nome.toLowerCase()}: entra` }, svg);
+        el('ellipse', { cx: 0, cy: 0, rx: 118, ry: 14, fill: 'rgba(0,0,0,0.25)' }, posto);
+        disegnaBancarella(el('g', { transform: 'scale(2.5)' }, posto), 0, b);
+        const entra = () => onCasetta(b.banco);
+        posto.addEventListener('click', entra);
+        posto.addEventListener('keydown', evento => {
+            if (evento.key !== 'Enter' && evento.key !== ' ') return;
+            evento.preventDefault();
+            entra();
+        });
+    });
+
+    return {
+        nodo,
+        mostra() {
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
+}
+
+// La casetta degli abiti di Natale: si veste l'elfo davanti allo specchio
+const CAPI_SARTORIA = {
+    maglione: { nome: 'Maglione', colori: ['#c0392b', '#2e7d4a', '#2d4f8a', '#7d4e9e'] },
+    cappello: { nome: 'Cappello', colori: ['#c0392b', '#2e7d4a', '#f4d03f', '#6fd3ff'] },
+    sciarpa: { nome: 'Sciarpa', colori: ['#fbfdff', '#c0392b', '#f4d03f', '#2e7d4a'] }
+};
+const FRASI_SARTORIA = {
+    maglione: ['Che bel maglione!', 'Caldo e morbido, perfetto!'],
+    cappello: ['Questo cappello ti sta a pennello!', 'Ora sei un vero elfo!'],
+    sciarpa: ['Con la sciarpa niente freddo!', 'Che eleganza!']
+};
+
+function creaSartoria({ onEsci, onTocco }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno sartoria-dentro', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro la casetta degli abiti: si veste l\'elfo davanti allo specchio' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al mercato' });
+    const ricomincia = Object.assign(document.createElement('button'), { type: 'button', className: 'ricomincia', textContent: '🔄 Ricomincia' });
+    nodo.append(svg, esci, ricomincia);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    // Pareti di legno con le lucine
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: '#4a2c1c' }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tex-assi)', opacity: 0.7 }, svg);
+    el('rect', { x: -1400, y: -600, width: 4400, height: 2100, fill: 'url(#tavole-parete)' }, svg);
+    el('circle', { cx: 900, cy: 420, r: 700, fill: 'url(#alone)', opacity: 0.35 }, svg);
+    el('path', { d: 'M-200 60 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0 q 150 50 300 0', fill: 'none', stroke: '#1f5c34', 'stroke-width': 14 }, svg);
+    for (let i = 0; i < 24; i++) el('circle', { class: 'pallina', cx: -170 + i * 75, cy: 70 + Math.sin(((i * 75 + 30) % 300) / 300 * Math.PI) * 24, r: 7, fill: COLORI_FESTA[i % 5], filter: 'url(#bagliore)', style: `animation-delay:${((i * 0.37) % 2).toFixed(2)}s` }, svg);
+    // La lavagnetta
+    el('rect', { x: 120, y: 130, width: 320, height: 120, rx: 8, fill: '#8a5a3c' }, svg);
+    el('rect', { x: 132, y: 142, width: 296, height: 96, rx: 4, fill: '#24302a' }, svg);
+    el('text', { x: 280, y: 182, 'text-anchor': 'middle', 'font-size': 30, 'font-family': "'Brush Script MT', cursive", fill: '#fdf6dc' }, svg).textContent = 'Abiti di Natale';
+    el('text', { x: 280, y: 220, 'text-anchor': 'middle', 'font-size': 20, 'font-style': 'italic', 'font-family': 'Georgia, serif', fill: '#ffd36b' }, svg).textContent = 'provali tutti!';
+    // Il pavimento
+    el('rect', { x: -1400, y: 820, width: 4400, height: 700, fill: '#6d4630' }, svg);
+    el('rect', { x: -1400, y: 820, width: 4400, height: 700, fill: 'url(#tavole-pavimento)' }, svg);
+    // Lo specchio con la cornice dorata
+    el('ellipse', { cx: 1180, cy: 470, rx: 210, ry: 330, fill: '#c9a227' }, svg);
+    el('ellipse', { cx: 1180, cy: 470, rx: 190, ry: 310, fill: '#cfe6f5' }, svg);
+    el('path', { d: 'M1060 300 q 40 -60 90 -70 M1080 360 q 30 -50 70 -60', stroke: '#ffffff', 'stroke-width': 10, fill: 'none', opacity: 0.6, 'stroke-linecap': 'round' }, svg);
+    el('ellipse', { cx: 1180, cy: 836, rx: 190, ry: 18, fill: 'rgba(0,0,0,0.3)' }, svg);
+    // L'elfo che prova gli abiti, davanti allo specchio
+    const elfoGruppo = el('g', {}, svg);
+    // Il fumetto dell'elfo
+    const fumetto = el('g', {}, svg);
+    el('rect', { x: 760, y: 150, width: 330, height: 92, rx: 26, fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 3 }, fumetto);
+    el('path', { d: 'M1040 236 L1090 270 L1010 242 Z', fill: '#fffdf6', stroke: '#c9a227', 'stroke-width': 3, 'stroke-linejoin': 'round' }, fumetto);
+    const righe = [0, 1].map(i => el('text', { x: 925, y: 188 + i * 32, 'text-anchor': 'middle', 'font-size': 22, 'font-family': 'Georgia, serif', fill: '#3b2416' }, fumetto));
+    const dice = (a, b) => { righe[0].textContent = a; righe[1].textContent = b; };
+
+    // Gli abiti tra cui scegliere: tre righe, quattro colori per riga
+    const scelta = {};
+    const icona = (tipo, g, colore) => {
+        if (tipo === 'maglione') {
+            el('path', { d: 'M-28 -22 l14 -10 h28 l14 10 l10 24 l-14 5 l-4 -10 v36 h-40 v-36 l-4 10 l-14 -5 Z', fill: colore, stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 1.5 }, g);
+            el('path', { d: 'M-18 6 l6 -6 l6 6 l6 -6 l6 6 l6 -6 l6 6', stroke: '#fbfdff', 'stroke-width': 2.5, fill: 'none' }, g);
+        } else if (tipo === 'cappello') {
+            el('path', { d: 'M-24 16 L6 -32 L24 16 Z', fill: colore, stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 1.5 }, g);
+            el('rect', { x: -27, y: 12, width: 54, height: 10, rx: 5, fill: '#fbfdff' }, g);
+            el('circle', { cx: 7, cy: -34, r: 6, fill: '#fbfdff' }, g);
+        } else {
+            el('path', { d: 'M-30 -8 h60 v14 h-60 Z M8 6 v28 h14 v-28 Z', fill: colore, stroke: 'rgba(0,0,0,0.25)', 'stroke-width': 1.5 }, g);
+            el('path', { d: 'M8 26 h14 M-30 -1 h60', stroke: colore === '#fbfdff' ? '#c0392b' : '#fbfdff', 'stroke-width': 3, 'stroke-dasharray': '6 5' }, g);
+        }
+    };
+    const pulsanti = [];
+    Object.entries(CAPI_SARTORIA).forEach(([tipo, capo], riga) => {
+        const y = 380 + riga * 150;
+        el('text', { x: 120, y: y + 8, 'font-size': 26, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = capo.nome;
+        capo.colori.forEach((colore, j) => {
+            const g = el('g', { class: 'capo-sartoria', transform: `translate(${330 + j * 120} ${y})`, tabindex: 0, role: 'button', 'aria-label': `${capo.nome}: prova questo colore` }, svg);
+            const fondo = el('circle', { r: 50, fill: '#fffaf0', opacity: 0.12, stroke: '#e8c766', 'stroke-width': 0 }, g);
+            icona(tipo, g, colore);
+            pulsanti.push({ tipo, colore, fondo });
+            const prova = () => {
+                onTocco();
+                scelta[tipo] = colore;
+                ridisegna();
+                const frasi = FRASI_SARTORIA[tipo];
+                dice(frasi[0], frasi[1]);
+            };
+            g.addEventListener('click', prova);
+            g.addEventListener('keydown', evento => {
+                if (evento.key !== 'Enter' && evento.key !== ' ') return;
+                evento.preventDefault();
+                prova();
+            });
+        });
+    });
+    function ridisegna() {
+        elfoGruppo.replaceChildren();
+        const elfo = disegnaElfo(elfoGruppo, 1180, 830, 2.9, { giacca: scelta.maglione ?? '#2e7d5b', cappello: scelta.cappello ?? '#c0392b' });
+        elfo.braccio.classList.add('saluta');
+        if (scelta.sciarpa) {
+            el('path', { d: 'M-18 -80 q 18 12 36 0 l 1 9 q -19 13 -38 0 Z', fill: scelta.sciarpa, stroke: 'rgba(0,0,0,0.2)', 'stroke-width': 1 }, elfo.g);
+            el('path', { d: 'M6 -72 l 3 24 l 9 -1 l -3 -24 Z', fill: scelta.sciarpa, stroke: 'rgba(0,0,0,0.2)', 'stroke-width': 1 }, elfo.g);
+        }
+        pulsanti.forEach(({ tipo, colore, fondo }) => {
+            const attivo = scelta[tipo] === colore;
+            fondo.setAttribute('stroke-width', attivo ? 5 : 0);
+            fondo.setAttribute('opacity', attivo ? 0.35 : 0.12);
+        });
+    }
+    function riparti() {
+        delete scelta.maglione;
+        delete scelta.cappello;
+        delete scelta.sciarpa;
+        ridisegna();
+        dice('Ciao! Scegli maglione,', 'cappello e sciarpa per me!');
+    }
+    ricomincia.addEventListener('click', () => {
+        onTocco();
+        riparti();
+    });
+    riparti();
+
+    return {
+        nodo,
+        mostra() {
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
+}
+
 // ---- Il mercatino di Natale ----
 const BANCARELLE = [
     { nome: 'Castagne', tetto: '#9b1d2a', banco: 'castagne', venditore: { giacca: '#3b3f58', cappello: '#c0392b', pelle: '#f0cfb6' } },
@@ -3673,6 +3934,19 @@ function disegnaBancarella(genitore, x, b) {
         });
         el('circle', { cx: 0, cy: -60, r: 8, fill: 'none', stroke: '#1f5c34', 'stroke-width': 4 }, g);
         [0, 1, 2].forEach(i => el('circle', { cx: Math.cos(i * 2.1) * 8, cy: -60 + Math.sin(i * 2.1) * 8, r: 1.6, fill: '#e0262f' }, g));
+    } else if (b.banco === 'abiti') {
+        // Maglioncini piegati sul banco e cappelli appesi in alto
+        [[-30, '#c0392b'], [-12, '#2e7d4a'], [6, '#2d4f8a'], [24, '#f4d03f']].forEach(([cx, c]) => {
+            el('rect', { x: cx - 7, y: -40, width: 14, height: 7, rx: 1.5, fill: c }, g);
+            el('path', { d: `M${cx - 7} -37 h14`, stroke: '#fbfdff', 'stroke-width': 1.2, 'stroke-dasharray': '2 2' }, g);
+        });
+        [[-30, '#c0392b'], [-10, '#2e7d4a'], [10, '#7d4e9e'], [30, '#2d4f8a']].forEach(([cx, c], i) => {
+            el('path', { d: `M${cx} -78 v${6 + (i % 2) * 4}`, stroke: '#c9a227', 'stroke-width': 0.8 }, g);
+            const yy = -72 + (i % 2) * 4;
+            el('path', { d: `M${cx - 5} ${yy + 8} L${cx + 1} ${yy - 2} L${cx + 5} ${yy + 8} Z`, fill: c }, g);
+            el('rect', { x: cx - 6, y: yy + 7, width: 12, height: 3, rx: 1.5, fill: '#fbfdff' }, g);
+            el('circle', { cx: cx + 1, cy: yy - 3, r: 1.8, fill: '#fbfdff' }, g);
+        });
     } else {
         // Padella di ferro sul fuoco e piatto di frittelle con lo zucchero
         el('path', { d: 'M-36 -33 l3 -6 h20 l3 6 Z', fill: '#2f2f33' }, g);
@@ -6145,11 +6419,12 @@ function disegnaPaese(mondo) {
     // Il coro canta sul suo palchetto, davanti alla piazza dove c'è spazio e si vede bene
     elementi.push({ x: PIAZZA.x + 200, y: PIAZZA.y + 112, tipo: 'coro' });
     // Pattinatori sul laghetto e mercatino vicino al ruscello
-    elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: sposta(2764), y: 836, tipo: 'mercatino' });
+    elementi.push({ x: 700, y: 612, tipo: 'pattinatori' });
+    // Il mercato di Natale: una grande casa con dentro tutte le casette
+    elementi.push({ x: sposta(2764) - 150, y: 846, tipo: 'mercatoCoperto' });
     // Il quartiere di Babbo Natale, subito dopo la stazione
     elementi.push({ x: 2265, y: 812, tipo: 'posta' }, { x: 2540, y: 648, tipo: 'laboratorio' }, { x: 2815, y: 818, tipo: 'stalla' });
     // I negozietti di addobbi e candele, accanto al mercatino
-    elementi.push({ x: sposta(2764) - 300, y: 840, tipo: 'addobbi' });
     // Il luna park d'inverno, in fondo al paese
     elementi.push({ x: sposta(3745), y: 768, tipo: 'insegnaLuna' }, { x: sposta(4120), y: 650, tipo: 'palaghiaccio' }, { x: sposta(3960), y: 832, tipo: 'giostra' });
     [[3860, 600], [4330, 630], [4380, 880], [3700, 900]].forEach(([x, y]) => elementi.push({ x: sposta(x), y, tipo: 'abete' }));
@@ -6185,6 +6460,7 @@ function disegnaPaese(mondo) {
         else if (tipo === 'nebbia') disegnaNebbia(mondo, y);
         else if (tipo === 'pattinatori') disegnaPattinatori(mondo, x, y);
         else if (tipo === 'mercatino') disegnaMercatino(mondo, x, y, 0.86);
+        else if (tipo === 'mercatoCoperto') disegnaMercatoCoperto(mondo, x, y, 0.9);
         else if (tipo === 'giostra') disegnaGiostra(mondo, x, y, scala * 0.95);
         else if (tipo === 'posta') disegnaPosta(mondo, x, y, scala * 0.95);
         else if (tipo === 'addobbi') disegnaMercatinoAddobbi(mondo, x, y, 0.8);
@@ -8808,12 +9084,15 @@ function creaPaese3D(contenitore, { onCasa, onSpeciale, onSlitta = () => {}, sta
         g.add(chi);
         return g;
     }
-    [['Castagne', '#9b1d2a', ['#6b3a1e', '#7a4424', '#5d3218', '#6b3a1e', '#7a4424']], ['Cioccolata', '#2e6b3f', ['#5a3420', '#fbfdff', '#5a3420', '#fbfdff', '#5a3420']], ['Frittelle', '#2d4f8a', ['#e0a85a', '#d9984a', '#e0a85a', '#d9984a', '#e0a85a']]].forEach(([nome, colore, merce], i) => {
-        speciale(bancarella(nome, colore, merce), `.bancarella[data-tipo="${nome.toLowerCase()}"]`, 0, 50, A(4) + (i - 1) * 0.1, { distanza: 11, alto: 1.8 });
+    // Il mercato di Natale: una grande casa di legno con il tetto rosso, le lucine e due bancarelle sul davanti
+    const mercato3D = edificio({ w: 13, h: 4.6, d: 7, muro: '#8a5a3c', tetto: '#9b1d2a', testo: 'MERCATO DI NATALE', insegna: '#9b1d2a', rh: 3 });
+    [[-3.6, 'Castagne', '#9b1d2a', ['#6b3a1e', '#7a4424', '#5d3218', '#6b3a1e', '#7a4424']], [3.6, 'Addobbi', '#7d4e9e', ['#e0262f', '#f4d03f', '#3f7fd6', '#e84393', '#2e7d4a']]].forEach(([dx, nome, colore, merce]) => {
+        const b = bancarella(nome, colore, merce);
+        b.scale.setScalar(0.8);
+        b.position.set(dx, 0, 4.4);
+        mercato3D.add(b);
     });
-    [['Addobbi', '#7d4e9e', ['#e0262f', '#f4d03f', '#3f7fd6', '#e84393', '#2e7d4a']], ['Candele', '#b5651d', ['#fff4dc', '#ffd36b', '#fff4dc', '#ffd36b', '#fff4dc']]].forEach(([nome, colore, merce], i) => {
-        speciale(bancarella(nome, colore, merce), '.negozio', i, 50, A(4) + (i ? 0.2 : -0.2), { distanza: 11, alto: 1.8 });
-    });
+    speciale(mercato3D, '.mercato-coperto', 0, 51, A(4), { distanza: 22 });
 
     // La giostra con i cavalli che salgono e scendono
     const giostra3D = new T.Group();
@@ -9559,7 +9838,9 @@ function creaVillaggio(contenitore, opzioni) {
         onEsci: () => esciDallaCasa()
     });
     const sala = creaSala({ onParti: guida => parti(guida), benvenuto });
-    const bancone = creaBancone({ onEsci: () => esciDalBancone() });
+    const bancone = creaBancone({ onEsci: () => tornaAlMercato(bancone) });
+    const mercato = creaMercato({ onEsci: () => esciDalMercato(), onCasetta: tipo => apriCasetta(tipo) });
+    const sartoria = creaSartoria({ onEsci: () => tornaAlMercato(sartoria), onTocco: () => onTocco() });
     const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
     const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
     const laboratorio = creaLaboratorio({ onEsci: () => esciDalQuartiere(laboratorio) });
@@ -9588,12 +9869,14 @@ function creaVillaggio(contenitore, opzioni) {
             festaDiNatale();
         }
     });
-    const negozio = creaNegozio({ onEsci: () => esciDalQuartiere(negozio), onTocco: () => onTocco() });
-    [interno, sala, posta, laboratorio, stalla, negozio, cucina].forEach(stanza => atmosfera(stanza.nodo));
+    const negozio = creaNegozio({ onEsci: () => tornaAlMercato(negozio), onTocco: () => onTocco() });
+    // Dalle casette si torna nel salone del mercato
+    [bancone, negozio].forEach(stanza => { stanza.nodo.querySelector('.esci').textContent = '← Torna al mercato'; });
+    [interno, sala, posta, laboratorio, stalla, negozio, cucina, mercato, sartoria].forEach(stanza => atmosfera(stanza.nodo));
     atmosfera(pista.nodo, { polvere: false });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
-    contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo);
+    contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo, mercato.nodo, sartoria.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {
@@ -9956,6 +10239,39 @@ function creaVillaggio(contenitore, opzioni) {
         adattaVista();
     }
 
+    // ---- Il mercato di Natale: si entra nel salone, poi in una delle casette ----
+    async function entraNelMercato(edificio) {
+        paese3D?.guarda(edificio);
+        if (inApertura) return;
+        inApertura = true;
+        seguiTreno = false;
+        onTocco();
+        const [, x, y, s] = edificio.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
+        await avvicinaAlPunto(x, y - 90 * s, 260 * s, 800);
+        entraDentro(mercato);
+        inApertura = false;
+    }
+    function apriCasetta(tipo) {
+        onTocco();
+        mercato.nascondi();
+        if (tipo === 'castagne' || tipo === 'cioccolata' || tipo === 'frittelle') entraDentro(bancone, tipo);
+        else if (tipo === 'abiti') entraDentro(sartoria);
+        else entraDentro(negozio);
+    }
+    function tornaAlMercato(stanza) {
+        stanza.nascondi();
+        entraDentro(mercato);
+    }
+    function esciDalMercato() {
+        torna();
+        mercato.nascondi();
+        if (slittaTour) setTimeout(() => {
+            posizionaSlitta(xSlitta);
+            fumettoGuida.classList.remove('nascosto');
+        }, 50);
+        adattaVista();
+    }
+
 
 
     // ---- La slitta personale: Cometa o Rudolph portano il passeggero di casa in casa ----
@@ -10224,7 +10540,7 @@ function creaVillaggio(contenitore, opzioni) {
     const TAPPE_SLITTA = [
         { edificio: '.posta', testo: "Ecco l'ufficio postale di Babbo Natale! Qui puoi scrivere la tua letterina… e c'è anche un sacco della posta con il tuo nome." },
         { edificio: '.laboratorio', testo: "Questo è il laboratorio degli elfi: qui nascono tutti i regali. Dentro c'è anche un tour in minibus!" },
-        { edificio: '.bancarella[data-tipo="cioccolata"]', testo: "Facciamo una sosta ai mercatini! Le nonne preparano castagne, cioccolata calda e frittelle, e nei negozietti accanto trovi addobbi e candele per il tuo albero. Entra a vedere le nonne che cucinano, oppure tocca la bancarella che preferisci!", largo: true },
+        { edificio: '.mercato-coperto', testo: "Facciamo una sosta al mercato di Natale! In questa grande casa ci sono le casette delle castagne, delle frittelle, della cioccolata, degli addobbi, delle candele e degli abiti natalizi. Entra a dare un'occhiata!" },
         { edificio: '.stalla', testo: "Ed ecco la stalla delle renne! Ora scegli chi tirerà la tua slitta per andare di casa in casa: Cometa, la più veloce, o Rudolph, col naso che illumina la notte?", scelta: true }
     ];
 
@@ -10320,7 +10636,8 @@ function creaVillaggio(contenitore, opzioni) {
         const edificio = mondo.querySelector(TAPPE_SLITTA[tappaTour]?.edificio);
         if (!edificio) return;
         fumettoGuida.classList.add('nascosto');
-        if (edificio.classList.contains('bancarella')) entraNellaBancarella(edificio);
+        if (edificio.classList.contains('mercato-coperto')) entraNelMercato(edificio);
+        else if (edificio.classList.contains('bancarella')) entraNellaBancarella(edificio);
         else entraNelQuartiere(edificio);
     });
 
@@ -10440,6 +10757,8 @@ function creaVillaggio(contenitore, opzioni) {
         if (renna) return faiSaltare(renna);
         const coro = evento.target.closest('.coro');
         if (coro) return cantaIlCoro(coro);
+        const mercatoCoperto = evento.target.closest('.mercato-coperto');
+        if (mercatoCoperto) return entraNelMercato(mercatoCoperto);
         const banco = evento.target.closest('.bancarella');
         if (banco) return entraNellaBancarella(banco);
         const albero = evento.target.closest('.albero');
@@ -10521,6 +10840,11 @@ function creaVillaggio(contenitore, opzioni) {
         const palazzetto = evento.target.closest('.palaghiaccio');
         const edificio = evento.target.closest('.posta, .laboratorio, .stalla');
         const negozioAddobbi = evento.target.closest('.negozio');
+        const mercatoCoperto = evento.target.closest('.mercato-coperto');
+        if (mercatoCoperto && (evento.key === 'Enter' || evento.key === ' ')) {
+            evento.preventDefault();
+            return entraNelMercato(mercatoCoperto);
+        }
         if ((casa || stazione || coro || banco || albero || giostra || palazzetto || edificio || negozioAddobbi) && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
             if (negozioAddobbi) entraNelNegozio(negozioAddobbi);
@@ -10613,14 +10937,13 @@ function creaVillaggio(contenitore, opzioni) {
     const TOCCABILI = [
         { chiave: 'coro', selettore: '.coro', x: 0, y: -100, k: 1.3 },
         { chiave: 'balletto', selettore: '.albero', x: 120, y: -90, k: 1.3 },
-        { chiave: 'mercatino', selettore: '.bancarella', x: 0, y: -134, k: 1.8 },
+        { chiave: 'mercato', selettore: '.mercato-coperto', x: 0, y: -330, k: 1.8 },
         { chiave: 'renne', selettore: '.renna', x: 0, y: -100, k: 2.4 },
         { chiave: 'giostra', selettore: '.giostra', x: 0, y: -290, k: 1.6 },
         { chiave: 'palaghiaccio', selettore: '.palaghiaccio', x: 0, y: -270, k: 1.6 },
         { chiave: 'posta', selettore: '.posta', x: 0, y: -215, k: 1.6 },
         { chiave: 'laboratorio', selettore: '.laboratorio', x: 0, y: -262, k: 1.6 },
-        { chiave: 'stalla', selettore: '.stalla', x: 0, y: -236, k: 1.6 },
-        { chiave: 'addobbi', selettore: '.negozio', x: 0, y: -134, k: 1.8 }
+        { chiave: 'stalla', selettore: '.stalla', x: 0, y: -236, k: 1.6 }
     ];
     const leggiToccati = () => {
         try { return JSON.parse(localStorage.getItem('villaggio_toccati') || '[]'); } catch { return []; }

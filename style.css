@@ -2045,7 +2045,7 @@ body::before {
 .scena .addobbo-vendita:focus-visible { outline: none; }
 .scena .stella-alberello { transition: fill 0.6s; }
 .scena .stella-alberello.accesa { fill: #ffe066; filter: url(#bagliore); }
-.scena .negozio-dentro .ricomincia {
+.scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia {
     position: absolute;
     top: 14px;
     right: 14px;
@@ -2059,7 +2059,7 @@ body::before {
     cursor: pointer;
 }
 @media (max-width: 899px) {
-    .scena .negozio-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
+    .scena .negozio-dentro .ricomincia, .scena .sartoria-dentro .ricomincia { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.9rem; }
 }
 
 /* ---- Luce e ombre ---- */
@@ -2625,3 +2625,10 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
     .scena .pista .pattinatore-pista { transition: none; }
 }
+
+/* ---- Il mercato di Natale: la grande casa, il salone con le casette e la casetta degli abiti ---- */
+.scena .mercato-coperto { cursor: pointer; }
+.scena .mercato-coperto:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+.scena .mercato-dentro .casetta-mercato, .scena .sartoria-dentro .capo-sartoria { cursor: pointer; }
+.scena .mercato-dentro .casetta-mercato:hover, .scena .mercato-dentro .casetta-mercato:focus-visible,
+.scena .sartoria-dentro .capo-sartoria:hover, .scena .sartoria-dentro .capo-sartoria:focus-visible { outline: none; filter: drop-shadow(0 0 10px rgba(255, 220, 140, 0.9)); }
