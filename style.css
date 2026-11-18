@@ -2549,3 +2549,30 @@ body::before {
 @media (max-width: 899px) and (orientation: portrait) {
     .scena .sala .partenze { bottom: 72px; }
 }
+
+/* ---- La stella dell'albero della piazza: spenta fino al 24, poi si accende piano ---- */
+.scena .albero .puntale { transition: fill 1.6s ease, filter 1.6s ease; }
+.scena .albero:not(.stella-accesa) .puntale { fill: #8d8d6a; filter: drop-shadow(0 0 0 rgba(255, 214, 90, 0)); }
+.scena .albero.stella-accesa .puntale {
+    fill: #ffd84d;
+    filter: drop-shadow(0 0 7px rgba(255, 214, 90, 0.85));
+    animation: stella-piazza 3.2s ease-in-out 1.6s infinite;
+}
+@keyframes stella-piazza {
+    0%, 100% { filter: drop-shadow(0 0 7px rgba(255, 214, 90, 0.85)); }
+    50% { filter: drop-shadow(0 0 13px rgba(255, 214, 90, 1)); }
+}
+/* Il cartellino "Scopri la storia" accanto all'albero */
+.scena .cartello-storia { cursor: pointer; }
+.scena .cartello-storia:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+@media (prefers-reduced-motion: reduce) {
+    .scena .albero.stella-accesa .puntale { animation: none; }
+    .scena .albero .puntale { transition: none; }
+}
+/* Sul telefono stretto la scheda della storia sta tra le due frecce, senza coprirle */
+@media (max-width: 600px) {
+    .scena .fumetto-storia { top: 52px; left: 70px; right: 70px; width: auto; transform: none; grid-template-columns: 1fr; padding: 10px 12px; }
+    .scena .fumetto-storia .guida-faccia { display: none; }
+    .scena .fumetto-storia .guida-bottoni { grid-column: 1; }
+    .scena .fumetto-storia .guida-testo { font-size: 0.88rem; line-height: 1.38; }
+}

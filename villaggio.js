@@ -7507,6 +7507,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         // Il cartello in piazza conta i giorni che mancano a Natale
         const giornoCartello = modifica ? (new Date().getMonth() === 11 ? new Date().getDate() : 0) : aperti;
         const quantaNeve = Math.max(0.15, Math.min(1, giornoCartello / 24));
+        mondo.querySelector('.albero')?.classList.toggle('stella-accesa', giornoCartello >= 24);
         contenitore.style.setProperty('--neve', quantaNeve.toFixed(2));
         neve.dataset.quanta = quantaNeve.toFixed(2);
         const cartello = mondo.querySelector('.cartello-natale');
@@ -8298,6 +8299,77 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         }
     });
     aggiornaStato();
+
+    // ---- La storia dell'albero della piazza: un cartellino da toccare, tre schermate raccontate dalla guida ----
+    const STORIA_ALBERO = [
+        'Questo è l\'albero di Natale del villaggio. A dicembre si decora nelle case e in piazza, per portare un po\' di luce nelle notti più lunghe dell\'anno.',
+        'L\'usanza dell\'albero addobbato è cresciuta soprattutto nei paesi del Nord Europa, tanto tempo fa: un abete resta verde anche d\'inverno, ed era un segno di speranza. Poi si è diffusa in tutto il mondo.'
+    ];
+    const STELLA_SPENTA = 'In cima va la stella, che ricorda la stella cometa dei Magi. La nostra è ancora spenta: si accenderà la notte del 24, quando arriva il Natale.';
+    const STELLA_ACCESA = 'In cima va la stella, che ricorda la stella cometa dei Magi. Guarda: è accesa! Questa è la notte di Natale.';
+    const alberoPiazza = mondo.querySelector('.albero');
+    const fumettoStoria = Object.assign(document.createElement('div'), { className: 'guida-fumetto fumetto-storia', hidden: true });
+    fumettoStoria.setAttribute('role', 'dialog');
+    fumettoStoria.setAttribute('aria-label', 'La storia dell\'albero di Natale');
+    const facciaStoria = Object.assign(document.createElement('span'), { className: 'guida-faccia' });
+    const nomeStoria = Object.assign(document.createElement('p'), { className: 'guida-nome' });
+    const testoStoria = Object.assign(document.createElement('p'), { className: 'guida-testo' });
+    const bottoniStoria = Object.assign(document.createElement('div'), { className: 'guida-bottoni' });
+    const avantiStoria = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-avanti', textContent: 'Avanti ▶' });
+    const chiudiStoria = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-salta', textContent: 'Chiudi' });
+    bottoniStoria.append(avantiStoria, chiudiStoria);
+    const testaStoria = document.createElement('div');
+    testaStoria.append(nomeStoria, testoStoria);
+    fumettoStoria.append(facciaStoria, testaStoria, bottoniStoria);
+    contenitore.append(fumettoStoria);
+    let paginaStoria = 0;
+    function mostraPaginaStoria() {
+        const accesa = alberoPiazza?.classList.contains('stella-accesa');
+        testoStoria.textContent = paginaStoria < 2 ? STORIA_ALBERO[paginaStoria] : (accesa ? STELLA_ACCESA : STELLA_SPENTA);
+        avantiStoria.hidden = paginaStoria >= 2;
+        (paginaStoria >= 2 ? chiudiStoria : avantiStoria).focus({ preventScroll: true });
+    }
+    function apriStoria() {
+        // Racconta la guida del tour, se è stata scelta (altrimenti Fiocco)
+        let chi = guidaScelta === GUIDE.elfa ? 'elfa' : 'elfo';
+        if (!guidaScelta) {
+            try { if (localStorage.getItem('villaggio_guida') === 'elfa') chi = 'elfa'; } catch { /* resta Fiocco */ }
+        }
+        facciaStoria.textContent = GUIDE[chi].icona;
+        nomeStoria.textContent = GUIDE[chi].nome;
+        paginaStoria = 0;
+        fumettoStoria.hidden = false;
+        mostraPaginaStoria();
+    }
+    avantiStoria.addEventListener('click', () => {
+        paginaStoria++;
+        mostraPaginaStoria();
+    });
+    chiudiStoria.addEventListener('click', () => { fumettoStoria.hidden = true; });
+    fumettoStoria.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape') fumettoStoria.hidden = true;
+    });
+    if (alberoPiazza) {
+        // Il cartellino sta accanto all'albero, non dentro: toccare l'albero fa ancora partire il balletto
+        const [, ax, ay, as] = alberoPiazza.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
+        const cartellino = el('g', { class: 'cartello-storia', transform: `translate(${(ax - 150 * as).toFixed(1)} ${(ay - 150 * as).toFixed(1)}) scale(${(as * 1.2).toFixed(3)})`, tabindex: 0, role: 'button', 'aria-label': 'Scopri la storia dell\'albero di Natale' }, alberoPiazza.parentNode);
+        el('path', { d: 'M0 10 V40', stroke: '#5d3a22', 'stroke-width': 4 }, cartellino);
+        el('rect', { x: -46, y: -16, width: 92, height: 26, rx: 5, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 2 }, cartellino);
+        el('text', { x: 0, y: 2, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 'bold', fill: '#ffe9a8', 'font-family': 'Georgia, serif' }, cartellino).textContent = 'Scopri la storia';
+        const luccica = el('g', { class: 'scintilla-tocco', transform: 'translate(46 -16) scale(0.8)', 'pointer-events': 'none' }, cartellino);
+        el('circle', { r: 14, fill: 'url(#alone)' }, luccica);
+        el('path', { d: 'M0 -11 Q1.6 -1.6 11 0 Q1.6 1.6 0 11 Q-1.6 1.6 -11 0 Q-1.6 -1.6 0 -11 Z', fill: '#fff6c8' }, luccica);
+        cartellino.addEventListener('click', evento => {
+            evento.stopPropagation();
+            apriStoria();
+        });
+        cartellino.addEventListener('keydown', evento => {
+            if (evento.key !== 'Enter' && evento.key !== ' ') return;
+            evento.preventDefault();
+            evento.stopPropagation();
+            apriStoria();
+        });
+    }
 
     // ---- Le scintille: dicono cosa si può toccare ----
     // Una stellina che pulsa sopra coro, balletto, bancarelle e renne finché non le si tocca la prima volta.
