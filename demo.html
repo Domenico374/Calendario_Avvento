@@ -2043,6 +2043,21 @@ body::before {
 .scena .mercato-dentro .casetta-mercato:hover, .scena .mercato-dentro .casetta-mercato:focus-visible,
 .scena .sartoria-dentro .capo-sartoria:hover, .scena .sartoria-dentro .capo-sartoria:focus-visible { outline: none; filter: drop-shadow(0 0 10px rgba(255, 220, 140, 0.9)); }
 
+/* ---- Il parco del Polo Nord ---- */
+.scena .parco-animali, .scena .parco-dentro .animale-parco { cursor: pointer; }
+.scena .parco-animali:focus-visible, .scena .parco-dentro .animale-parco:focus-visible { outline: none; filter: drop-shadow(0 0 8px rgba(255, 220, 140, 0.95)); }
+.scena .parco-dentro { background: #0d1640; }
+.scena .parco-dentro .corpo-orso { transform-box: fill-box; transform-origin: 50% 100%; animation: respira-orso 3.4s ease-in-out infinite; }
+@keyframes respira-orso { 0%, 100% { scale: 1 1; } 50% { scale: 1.01 1.025; } }
+.scena .parco-dentro .saluta-orso .testa-orso { transform-box: fill-box; transform-origin: 20% 80%; animation: saluta-orso 0.6s ease-in-out 2 alternate; }
+@keyframes saluta-orso { from { rotate: 0deg; } to { rotate: -14deg; } }
+.scena .parco-dentro .saltella > * { animation: saltella-animale 0.5s ease-out 2; }
+@keyframes saltella-animale { 0%, 100% { translate: 0 0; } 50% { translate: 0 -18px; } }
+.scena .parco-dentro .corpo-pinguino { transform-box: fill-box; transform-origin: 50% 100%; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .parco-dentro .corpo-orso, .scena .parco-dentro .saluta-orso .testa-orso, .scena .parco-dentro .saltella > * { animation: none; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -3619,6 +3634,240 @@ function disegnaPattinatori(mondo, cx, cy) {
             .forEach(n => lago.append(n));
     });
     return lago;
+}
+
+// ---- Il parco del Polo Nord: orsi polari, pinguini e renne ----
+// Un orso polare di profilo, verso destra (k = grandezza)
+function disegnaOrso(genitore, x, y, k) {
+    const g = el('g', { transform: `translate(${x} ${y}) scale(${k})` }, genitore);
+    el('ellipse', { cx: 0, cy: 4, rx: 120, ry: 14, fill: 'rgba(60,90,140,0.25)' }, g);
+    const corpo = el('g', { class: 'corpo-orso' }, g);
+    // Zampe dietro e davanti
+    [[-70, 0], [-38, 0], [40, 0], [72, 0]].forEach(([zx], i) => el('rect', { x: zx - 15, y: -52, width: 30, height: 56, rx: 13, fill: i % 2 ? '#e3e9f3' : '#f4f7fd' }, corpo));
+    el('ellipse', { cx: 0, cy: -70, rx: 106, ry: 56, fill: '#f4f7fd' }, corpo);
+    el('path', { d: 'M-100 -60 q 100 50 200 0 q -10 30 -100 34 q -90 -4 -100 -34 Z', fill: '#dfe6f2' }, corpo);
+    el('circle', { cx: -102, cy: -86, r: 12, fill: '#f4f7fd' }, corpo);
+    // La testa con il muso
+    const testa = el('g', { class: 'testa-orso' }, corpo);
+    el('ellipse', { cx: 104, cy: -104, rx: 40, ry: 34, fill: '#f4f7fd' }, testa);
+    el('ellipse', { cx: 140, cy: -96, rx: 22, ry: 16, fill: '#eef2f8' }, testa);
+    el('circle', { cx: 92, cy: -134, r: 11, fill: '#f4f7fd' }, testa);
+    el('circle', { cx: 92, cy: -134, r: 5, fill: '#cfd8e6' }, testa);
+    el('ellipse', { cx: 158, cy: -100, rx: 7, ry: 5.5, fill: '#1c1c22' }, testa);
+    el('circle', { cx: 116, cy: -112, r: 4.5, fill: '#1c1c22' }, testa);
+    el('circle', { cx: 117.5, cy: -113.5, r: 1.4, fill: '#fff' }, testa);
+    el('path', { d: 'M146 -88 q 6 5 12 0', stroke: '#1c1c22', 'stroke-width': 2.5, fill: 'none', 'stroke-linecap': 'round' }, testa);
+    return g;
+}
+
+// Un pinguino in piedi (k = grandezza)
+function disegnaPinguino(genitore, x, y, k) {
+    const g = el('g', { transform: `translate(${x} ${y}) scale(${k})` }, genitore);
+    const corpo = el('g', { class: 'corpo-pinguino' }, g);
+    el('ellipse', { cx: 0, cy: 2, rx: 26, ry: 6, fill: 'rgba(60,90,140,0.25)' }, corpo);
+    el('path', { d: 'M-16 0 l -8 4 h 18 Z M16 0 l 8 4 h -18 Z', fill: '#f39c32' }, corpo);
+    el('ellipse', { cx: 0, cy: -44, rx: 26, ry: 44, fill: '#22263a' }, corpo);
+    el('ellipse', { cx: 0, cy: -36, rx: 17, ry: 34, fill: '#fbfdff' }, corpo);
+    el('path', { d: 'M-24 -60 q -14 18 -8 40 q 8 -12 10 -30 Z M24 -60 q 14 18 8 40 q -8 -12 -10 -30 Z', fill: '#22263a' }, corpo);
+    el('circle', { cx: -8, cy: -70, r: 4, fill: '#fff' }, corpo);
+    el('circle', { cx: 8, cy: -70, r: 4, fill: '#fff' }, corpo);
+    el('circle', { cx: -7, cy: -70, r: 2, fill: '#1c1c22' }, corpo);
+    el('circle', { cx: 9, cy: -70, r: 2, fill: '#1c1c22' }, corpo);
+    el('path', { d: 'M-6 -62 h12 l -6 9 Z', fill: '#f39c32' }, corpo);
+    return g;
+}
+
+// Il recinto del parco, nel villaggio: staccionata, laghetto, un orso e due pinguini
+function disegnaParcoAnimali(mondo, x, y, scala) {
+    const g = el('g', {
+        class: 'parco-animali', transform: `translate(${x} ${y}) scale(${scala})`, tabindex: 0, role: 'button',
+        'aria-label': 'Il parco del Polo Nord: entra a salutare orsi, pinguini e renne'
+    }, mondo);
+    // La slitta del tour si ferma a destra del recinto
+    g.dataset.cx = (x + 290 * scala).toFixed(0);
+    el('ellipse', { class: 'alone', cx: 0, cy: -60, rx: 230, ry: 120, fill: 'url(#alone)', opacity: 0.4 }, g);
+    el('ellipse', { cx: 0, cy: -20, rx: 200, ry: 48, fill: '#f4f8ff' }, g);
+    el('ellipse', { cx: 30, cy: -18, rx: 90, ry: 20, fill: '#a9d4f0', stroke: '#e6f4ff', 'stroke-width': 4 }, g);
+    disegnaOrso(g, -110, -18, 0.42);
+    disegnaPinguino(g, 70, -30, 0.7);
+    disegnaPinguino(g, 110, -24, 0.6);
+    // La staccionata davanti
+    for (let i = -6; i <= 6; i++) el('rect', { x: i * 32 - 4, y: -26 + Math.abs(i) * 1.5, width: 8, height: 34, rx: 2, fill: '#8a5a3c' }, g);
+    el('path', { d: 'M-196 -6 Q0 12 196 -6 M-196 10 Q0 28 196 10', stroke: '#6d4630', 'stroke-width': 6, fill: 'none' }, g);
+    el('path', { d: 'M-196 -10 Q0 8 196 -10', stroke: '#fbfdff', 'stroke-width': 4, fill: 'none', 'stroke-linecap': 'round' }, g);
+    // L'insegna ad arco
+    el('path', { d: 'M-120 -40 V-150 M120 -40 V-150', stroke: '#6d4630', 'stroke-width': 9 }, g);
+    el('rect', { x: -140, y: -186, width: 280, height: 42, rx: 8, fill: '#2d4f8a', stroke: '#e8c766', 'stroke-width': 4 }, g);
+    el('text', { x: 0, y: -158, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fffaf0' }, g).textContent = 'PARCO DEL POLO NORD';
+    el('path', { d: 'M-144 -186 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0 q 12 -10 24 0', fill: '#fbfdff' }, g);
+    return g;
+}
+
+// Dentro il parco: un paesaggio di neve e ghiaccio. Toccando gli animali, si muovono e raccontano qualcosa
+const FRASI_PARCO = {
+    orso: [
+        'Sono un orso polare! Sotto la pelliccia bianca, la mia pelle è nera: così sto più al caldo.',
+        'Nuoto benissimo: posso restare in acqua anche ore, tra un pezzo di ghiaccio e l\'altro!'
+    ],
+    cucciolo: [
+        'Io sono il cucciolo! Quando sono nato ero piccolo come un porcellino d\'India.',
+        'Sto sempre vicino alla mamma: mi insegna a camminare sul ghiaccio.'
+    ],
+    pinguino: [
+        'Noi pinguini viviamo al Polo Sud… siamo venuti in vacanza da Babbo Natale!',
+        'Non sappiamo volare, ma nuotiamo velocissimi. Guarda come scivolo sulla pancia!',
+        'Il nostro vestito bianco e nero ci aiuta a nasconderci nel mare.'
+    ],
+    renna: [
+        'Anche noi renne viviamo al freddo: i nostri zoccoli larghi sono come racchette da neve.',
+        'D\'inverno cerchiamo i licheni sotto la neve: sono la nostra merenda preferita!'
+    ]
+};
+const NOMI_PARCO = { orso: 'L\'orso polare', cucciolo: 'Il cucciolo d\'orso', pinguino: 'Il pinguino', renna: 'La renna' };
+
+function creaParco({ onEsci, onTocco }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno parco-dentro', hidden: true });
+    const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Il parco del Polo Nord: orsi polari, pinguini e renne sulla neve' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    nodo.append(svg, esci);
+    esci.addEventListener('click', onEsci);
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+
+    const defs = el('defs', {}, svg);
+    const cielo = el('linearGradient', { id: 'cielo-parco', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el('stop', { offset: '0%', 'stop-color': '#0d1640' }, cielo);
+    el('stop', { offset: '100%', 'stop-color': '#3a5a9a' }, cielo);
+    // Cielo con l'aurora boreale e le stelle
+    el('rect', { x: -1400, y: -600, width: 4400, height: 1300, fill: 'url(#cielo-parco)' }, svg);
+    for (let i = 0; i < 40; i++) el('circle', { cx: (i * 97) % 1700 - 50, cy: 20 + (i * 53) % 260, r: 1.5 + (i % 3) * 0.6, fill: '#ffffff', opacity: 0.8 }, svg);
+    el('path', { d: 'M-100 200 q 300 -140 600 -40 q 300 100 600 -60 q 300 -120 600 20', stroke: '#7dff9a', 'stroke-width': 60, fill: 'none', opacity: 0.25, 'stroke-linecap': 'round' }, svg);
+    el('path', { d: 'M-100 240 q 300 -120 600 -20 q 300 90 600 -50', stroke: '#6fd3ff', 'stroke-width': 30, fill: 'none', opacity: 0.2, 'stroke-linecap': 'round' }, svg);
+    // Tutto il paesaggio sta un po' più in alto, così sugli schermi larghi gli animali non finiscono sul bordo
+    const terra = el('g', { transform: 'translate(0 -90)' }, svg);
+    // Iceberg e montagne di ghiaccio lontane
+    el('path', { d: 'M-200 520 L80 330 L240 450 L420 300 L640 520 Z', fill: '#cfe3f5' }, terra);
+    el('path', { d: 'M900 520 L1120 340 L1260 430 L1440 280 L1800 520 Z', fill: '#cfe3f5' }, terra);
+    el('path', { d: 'M80 330 L140 380 L60 400 Z M420 300 L470 350 L400 370 Z M1440 280 L1500 340 L1420 350 Z', fill: '#ffffff' }, terra);
+    // La neve
+    el('rect', { x: -1400, y: 500, width: 4400, height: 1000, fill: '#f4f8ff' }, terra);
+    el('path', { d: 'M-1400 500 Q 400 470 800 505 T 3000 500 V 540 H -1400 Z', fill: '#e6eef9' }, terra);
+    // Il laghetto ghiacciato con l'acqua scura al centro, dove si tuffano i pinguini
+    el('ellipse', { cx: 820, cy: 740, rx: 380, ry: 90, fill: '#bfe0f5', stroke: '#e6f4ff', 'stroke-width': 6 }, terra);
+    el('ellipse', { cx: 860, cy: 750, rx: 200, ry: 46, fill: '#2a6aa8' }, terra);
+    el('path', { d: 'M700 748 q 40 -8 80 0 M880 762 q 40 -8 80 0', stroke: '#9fd0f2', 'stroke-width': 4, fill: 'none', opacity: 0.8 }, terra);
+    // Lo scivolo di neve dei pinguini, a destra
+    el('path', { d: 'M1500 760 L1480 560 Q 1400 540 1330 600 Q 1200 700 1080 740 Z', fill: '#ffffff', stroke: '#d6e4f5', 'stroke-width': 4 }, terra);
+    el('path', { d: 'M1460 585 Q 1380 580 1320 625 Q 1200 710 1090 742', stroke: '#a9d4f0', 'stroke-width': 14, fill: 'none', 'stroke-linecap': 'round' }, terra);
+
+    // L'insegna
+    el('rect', { x: 560, y: 40, width: 480, height: 66, rx: 12, fill: '#2d4f8a', stroke: '#e8c766', 'stroke-width': 5 }, svg);
+    el('text', { x: 800, y: 84, 'text-anchor': 'middle', 'font-size': 32, 'font-weight': 'bold', 'letter-spacing': 2, 'font-family': 'Georgia, serif', fill: '#fffaf0' }, svg).textContent = 'PARCO DEL POLO NORD';
+    el('text', { class: 'invito', x: 800, y: 146, 'text-anchor': 'middle', 'font-size': 28, 'font-style': 'italic', 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8' }, svg).textContent = 'Tocca gli animali per salutarli';
+
+    // Gli animali: le renne in fondo, gli orsi a sinistra, i pinguini sullo scivolo e in riva al lago
+    disegnaRenna(terra, 640, 560, 0.85, {});
+    disegnaRenna(terra, 1000, 575, 0.75, { naso: '#c0392b', collare: '#2e7d4a' });
+    const renne = [...terra.querySelectorAll(':scope > .renna')];
+    // Un'area invisibile intorno a ogni renna: si toccano facilmente anche tra le zampe
+    renne.forEach(renna => renna.prepend(el('rect', { x: -60, y: -120, width: 120, height: 126, fill: 'transparent' })));
+    const orso = disegnaOrso(terra, 330, 770, 1.15);
+    const cucciolo = disegnaOrso(terra, 560, 800, 0.6);
+    const pinguini = [[1420, 590, 1.05], [1150, 760, 1.15], [1250, 790, 1.25], [1030, 820, 1.1]].map(([px, py, k]) => ({ g: disegnaPinguino(terra, px, py, k), px, py, k }));
+
+    // Il fumetto, uno alla volta, sopra l'animale toccato
+    let fumetto = null, timer = null;
+    const contatori = {};
+    function parla(chi, ax, ay) {
+        ay -= 90;
+        clearTimeout(timer);
+        fumetto?.remove();
+        const lista = FRASI_PARCO[chi];
+        const n = contatori[chi] = ((contatori[chi] ?? -1) + 1) % lista.length;
+        const righe = [];
+        lista[n].split(' ').forEach(parola => {
+            const ultima = righe[righe.length - 1];
+            if (ultima && (ultima + ' ' + parola).length <= 30) righe[righe.length - 1] = ultima + ' ' + parola;
+            else righe.push(parola);
+        });
+        const larghezza = 400, altezza = 50 + righe.length * 28;
+        const sx = Math.max(20, Math.min(1580 - larghezza, ax - larghezza / 2)), sy = Math.max(170, ay - altezza - 40);
+        fumetto = el('g', { class: 'fumetto-gatto', 'pointer-events': 'none' }, svg);
+        const coda = Math.max(sx + 30, Math.min(sx + larghezza - 30, ax));
+        el('path', { d: `M${sx + 14} ${sy} H${sx + larghezza - 14} q 14 0 14 14 V${sy + altezza - 14} q 0 14 -14 14 H${coda + 14} l-14 26 l-10 -26 H${sx + 14} q -14 0 -14 -14 V${sy + 14} q 0 -14 14 -14 Z`, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 3 }, fumetto);
+        el('text', { x: sx + 18, y: sy + 28, 'font-size': 19, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#9b1d2a' }, fumetto).textContent = NOMI_PARCO[chi];
+        righe.forEach((riga, i) => el('text', { x: sx + 18, y: sy + 56 + i * 28, 'font-size': 22, 'font-family': 'Georgia, serif', fill: '#3b2a1a' }, fumetto).textContent = riga);
+        timer = setTimeout(() => { fumetto?.remove(); fumetto = null; }, 8000);
+    }
+    const muovi = (g, classe) => {
+        g.classList.remove(classe);
+        void g.getBBox();
+        g.classList.add(classe);
+        setTimeout(() => g.classList.remove(classe), 1200);
+    };
+    const tocca = (g, azione) => {
+        g.classList.add('animale-parco');
+        g.setAttribute('tabindex', 0);
+        g.setAttribute('role', 'button');
+        g.addEventListener('click', azione);
+        g.addEventListener('keydown', evento => {
+            if (evento.key !== 'Enter' && evento.key !== ' ') return;
+            evento.preventDefault();
+            azione();
+        });
+    };
+    tocca(orso, () => { onTocco(); muovi(orso, 'saluta-orso'); parla('orso', 380, 600); });
+    tocca(cucciolo, () => { onTocco(); muovi(cucciolo, 'saltella'); parla('cucciolo', 590, 700); });
+    renne.forEach((renna, i) => tocca(renna, () => { onTocco(); muovi(renna, 'saltella'); parla('renna', i ? 1000 : 640, i ? 470 : 460); }));
+    // Il pinguino in cima allo scivolo scende sulla pancia fino al lago, poi torna su
+    const SCIVOLO = [[1420, 590], [1330, 628], [1200, 708], [1090, 744]];
+    let scivola = false;
+    pinguini.forEach(({ g, px, py, k }, i) => tocca(g, () => {
+        onTocco();
+        parla('pinguino', px, py - 110 * k);
+        if (i !== 0 || scivola || matchMedia('(prefers-reduced-motion: reduce)').matches) return muovi(g, 'saltella');
+        scivola = true;
+        const corpo = g.querySelector('.corpo-pinguino');
+        const inizio = performance.now();
+        const passo = adesso => {
+            const t = Math.min(1, (adesso - inizio) / 1800);
+            // Discesa sulla pancia, poi un salto nell'acqua e il ritorno in cima
+            const tratto = Math.min(SCIVOLO.length - 1.001, t * 1.6 * (SCIVOLO.length - 1));
+            const a = Math.floor(tratto), f = tratto - a;
+            const [x1, y1] = SCIVOLO[a], [x2, y2] = SCIVOLO[a + 1];
+            if (t < 0.62) {
+                g.setAttribute('transform', `translate(${(x1 + (x2 - x1) * f).toFixed(1)} ${(y1 + (y2 - y1) * f).toFixed(1)}) scale(${k})`);
+                corpo.setAttribute('transform', 'rotate(-70) translate(30 0)');
+            } else if (t < 0.8) {
+                const s = (t - 0.62) / 0.18;
+                g.setAttribute('transform', `translate(${(1090 - s * 120).toFixed(1)} ${(744 + Math.sin(s * Math.PI) * -60 + s * 10).toFixed(1)}) scale(${(k * (1 - s * 0.6)).toFixed(3)})`);
+            } else {
+                corpo.removeAttribute('transform');
+                g.setAttribute('transform', `translate(${px} ${py}) scale(${k})`);
+                scivola = false;
+                return;
+            }
+            requestAnimationFrame(passo);
+        };
+        requestAnimationFrame(passo);
+    }));
+
+    return {
+        nodo,
+        mostra() {
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            clearTimeout(timer);
+            fumetto?.remove();
+            fumetto = null;
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+        }
+    };
 }
 
 // ---- Il mercato di Natale: una grande casa di legno con dentro tutte le casette ----
@@ -6422,6 +6671,8 @@ function disegnaPaese(mondo) {
     elementi.push({ x: 700, y: 612, tipo: 'pattinatori' });
     // Il mercato di Natale: una grande casa con dentro tutte le casette
     elementi.push({ x: sposta(2764) - 150, y: 846, tipo: 'mercatoCoperto' });
+    // Il parco del Polo Nord, davanti al laboratorio degli elfi
+    elementi.push({ x: 2540, y: 868, tipo: 'parcoAnimali' });
     // Il quartiere di Babbo Natale, subito dopo la stazione
     elementi.push({ x: 2265, y: 812, tipo: 'posta' }, { x: 2540, y: 648, tipo: 'laboratorio' }, { x: 2815, y: 818, tipo: 'stalla' });
     // I negozietti di addobbi e candele, accanto al mercatino
@@ -6461,6 +6712,7 @@ function disegnaPaese(mondo) {
         else if (tipo === 'pattinatori') disegnaPattinatori(mondo, x, y);
         else if (tipo === 'mercatino') disegnaMercatino(mondo, x, y, 0.86);
         else if (tipo === 'mercatoCoperto') disegnaMercatoCoperto(mondo, x, y, 0.9);
+        else if (tipo === 'parcoAnimali') disegnaParcoAnimali(mondo, x, y, 0.85);
         else if (tipo === 'giostra') disegnaGiostra(mondo, x, y, scala * 0.95);
         else if (tipo === 'posta') disegnaPosta(mondo, x, y, scala * 0.95);
         else if (tipo === 'addobbi') disegnaMercatinoAddobbi(mondo, x, y, 0.8);
@@ -9841,6 +10093,7 @@ function creaVillaggio(contenitore, opzioni) {
     const bancone = creaBancone({ onEsci: () => tornaAlMercato(bancone) });
     const mercato = creaMercato({ onEsci: () => esciDalMercato(), onCasetta: tipo => apriCasetta(tipo) });
     const sartoria = creaSartoria({ onEsci: () => tornaAlMercato(sartoria), onTocco: () => onTocco() });
+    const parco = creaParco({ onEsci: () => esciDalParco(), onTocco: () => onTocco() });
     const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
     const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
     const laboratorio = creaLaboratorio({ onEsci: () => esciDalQuartiere(laboratorio) });
@@ -9876,7 +10129,7 @@ function creaVillaggio(contenitore, opzioni) {
     atmosfera(pista.nodo, { polvere: false });
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
-    contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo, mercato.nodo, sartoria.nodo);
+    contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo, mercato.nodo, sartoria.nodo, parco.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {
@@ -10262,6 +10515,26 @@ function creaVillaggio(contenitore, opzioni) {
         stanza.nascondi();
         entraDentro(mercato);
     }
+    async function entraNelParco(recinto) {
+        paese3D?.guarda(recinto);
+        if (inApertura) return;
+        inApertura = true;
+        seguiTreno = false;
+        onTocco();
+        const [, x, y, s] = recinto.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
+        await avvicinaAlPunto(x, y - 60 * s, 220 * s, 800);
+        entraDentro(parco);
+        inApertura = false;
+    }
+    function esciDalParco() {
+        torna();
+        parco.nascondi();
+        if (slittaTour) setTimeout(() => {
+            posizionaSlitta(xSlitta);
+            fumettoGuida.classList.remove('nascosto');
+        }, 50);
+        adattaVista();
+    }
     function esciDalMercato() {
         torna();
         mercato.nascondi();
@@ -10541,6 +10814,7 @@ function creaVillaggio(contenitore, opzioni) {
         { edificio: '.posta', testo: "Ecco l'ufficio postale di Babbo Natale! Qui puoi scrivere la tua letterina… e c'è anche un sacco della posta con il tuo nome." },
         { edificio: '.laboratorio', testo: "Questo è il laboratorio degli elfi: qui nascono tutti i regali. Dentro c'è anche un tour in minibus!" },
         { edificio: '.mercato-coperto', testo: "Facciamo una sosta al mercato di Natale! In questa grande casa ci sono le casette delle castagne, delle frittelle, della cioccolata, degli addobbi, delle candele e degli abiti natalizi. Entra a dare un'occhiata!" },
+        { edificio: '.parco-animali', testo: "Ecco il parco del Polo Nord! Qui vivono gli orsi polari, i pinguini e qualche renna. Lo sai che i pinguini in realtà vivono al Polo Sud? Questi sono venuti in vacanza da Babbo Natale! Entra a salutarli." },
         { edificio: '.stalla', testo: "Ed ecco la stalla delle renne! Ora scegli chi tirerà la tua slitta per andare di casa in casa: Cometa, la più veloce, o Rudolph, col naso che illumina la notte?", scelta: true }
     ];
 
@@ -10637,6 +10911,7 @@ function creaVillaggio(contenitore, opzioni) {
         if (!edificio) return;
         fumettoGuida.classList.add('nascosto');
         if (edificio.classList.contains('mercato-coperto')) entraNelMercato(edificio);
+        else if (edificio.classList.contains('parco-animali')) entraNelParco(edificio);
         else if (edificio.classList.contains('bancarella')) entraNellaBancarella(edificio);
         else entraNelQuartiere(edificio);
     });
@@ -10759,6 +11034,8 @@ function creaVillaggio(contenitore, opzioni) {
         if (coro) return cantaIlCoro(coro);
         const mercatoCoperto = evento.target.closest('.mercato-coperto');
         if (mercatoCoperto) return entraNelMercato(mercatoCoperto);
+        const recinto = evento.target.closest('.parco-animali');
+        if (recinto) return entraNelParco(recinto);
         const banco = evento.target.closest('.bancarella');
         if (banco) return entraNellaBancarella(banco);
         const albero = evento.target.closest('.albero');
@@ -10844,6 +11121,11 @@ function creaVillaggio(contenitore, opzioni) {
         if (mercatoCoperto && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
             return entraNelMercato(mercatoCoperto);
+        }
+        const recinto = evento.target.closest('.parco-animali');
+        if (recinto && (evento.key === 'Enter' || evento.key === ' ')) {
+            evento.preventDefault();
+            return entraNelParco(recinto);
         }
         if ((casa || stazione || coro || banco || albero || giostra || palazzetto || edificio || negozioAddobbi) && (evento.key === 'Enter' || evento.key === ' ')) {
             evento.preventDefault();
@@ -10938,6 +11220,7 @@ function creaVillaggio(contenitore, opzioni) {
         { chiave: 'coro', selettore: '.coro', x: 0, y: -100, k: 1.3 },
         { chiave: 'balletto', selettore: '.albero', x: 120, y: -90, k: 1.3 },
         { chiave: 'mercato', selettore: '.mercato-coperto', x: 0, y: -330, k: 1.8 },
+        { chiave: 'parco', selettore: '.parco-animali', x: 0, y: -215, k: 1.8 },
         { chiave: 'renne', selettore: '.renna', x: 0, y: -100, k: 2.4 },
         { chiave: 'giostra', selettore: '.giostra', x: 0, y: -290, k: 1.6 },
         { chiave: 'palaghiaccio', selettore: '.palaghiaccio', x: 0, y: -270, k: 1.6 },

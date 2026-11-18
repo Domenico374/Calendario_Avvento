@@ -2632,3 +2632,18 @@ body::before {
 .scena .mercato-dentro .casetta-mercato, .scena .sartoria-dentro .capo-sartoria { cursor: pointer; }
 .scena .mercato-dentro .casetta-mercato:hover, .scena .mercato-dentro .casetta-mercato:focus-visible,
 .scena .sartoria-dentro .capo-sartoria:hover, .scena .sartoria-dentro .capo-sartoria:focus-visible { outline: none; filter: drop-shadow(0 0 10px rgba(255, 220, 140, 0.9)); }
+
+/* ---- Il parco del Polo Nord ---- */
+.scena .parco-animali, .scena .parco-dentro .animale-parco { cursor: pointer; }
+.scena .parco-animali:focus-visible, .scena .parco-dentro .animale-parco:focus-visible { outline: none; filter: drop-shadow(0 0 8px rgba(255, 220, 140, 0.95)); }
+.scena .parco-dentro { background: #0d1640; }
+.scena .parco-dentro .corpo-orso { transform-box: fill-box; transform-origin: 50% 100%; animation: respira-orso 3.4s ease-in-out infinite; }
+@keyframes respira-orso { 0%, 100% { scale: 1 1; } 50% { scale: 1.01 1.025; } }
+.scena .parco-dentro .saluta-orso .testa-orso { transform-box: fill-box; transform-origin: 20% 80%; animation: saluta-orso 0.6s ease-in-out 2 alternate; }
+@keyframes saluta-orso { from { rotate: 0deg; } to { rotate: -14deg; } }
+.scena .parco-dentro .saltella > * { animation: saltella-animale 0.5s ease-out 2; }
+@keyframes saltella-animale { 0%, 100% { translate: 0 0; } 50% { translate: 0 -18px; } }
+.scena .parco-dentro .corpo-pinguino { transform-box: fill-box; transform-origin: 50% 100%; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .parco-dentro .corpo-orso, .scena .parco-dentro .saluta-orso .testa-orso, .scena .parco-dentro .saltella > * { animation: none; }
+}
