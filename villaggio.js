@@ -1250,7 +1250,15 @@ function disegnaCoro(mondo, x, y, scala) {
     ['♪', '♫', '♪', '♬', '♫', '♪'].forEach((nota, i) => {
         el('text', { class: 'nota-coro', x: -40 + i * 16, y: -70 - (i % 2) * 8, 'font-size': 15 + (i % 3) * 3, style: `animation-delay:${(i * 0.7).toFixed(1)}s` }, coro).textContent = nota;
     });
-    CANTORI.forEach((c, i) => disegnaCantore(coro, c, i));
+    // Il palchetto di legno con la ghirlanda e le lucine: il coro si nota da lontano
+    el('ellipse', { cx: 0, cy: 18, rx: 88, ry: 9, fill: 'rgba(0,0,0,0.25)' }, coro);
+    el('rect', { x: -80, y: -2, width: 160, height: 18, rx: 4, fill: '#8a5a3c', stroke: '#5d3a22', 'stroke-width': 2 }, coro);
+    el('path', { d: 'M-80 7 H80 M-40 -2 V16 M0 -2 V16 M40 -2 V16', stroke: '#6d4630', 'stroke-width': 1.5 }, coro);
+    el('path', { d: 'M-82 -2 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 8 -6 16 0 q 6 -4 2 0', fill: '#fbfdff' }, coro);
+    el('path', { d: 'M-78 6 q 39 12 78 0 q 39 12 78 0', stroke: '#1f5c34', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, coro);
+    [-58, -29, 0, 29, 58].forEach((lx, i) => el('circle', { class: 'lucina-cartello', cx: lx, cy: 10 + (i % 2 ? 1 : 3), r: 3, fill: COLORI_FESTA[i % COLORI_FESTA.length], style: `animation-delay:${(i * 0.3).toFixed(1)}s` }, coro));
+    const cantori = el('g', { transform: 'translate(0 -4)' }, coro);
+    CANTORI.forEach((c, i) => disegnaCantore(cantori, c, i));
     return coro;
 }
 
@@ -3962,7 +3970,8 @@ function disegnaPaese(mondo) {
     // Il cartello dei giorni a sinistra, più in basso: davanti all'albero copriva le ballerine
     elementi.push({ x: PIAZZA.x - 170, y: PIAZZA.y + 168, tipo: 'cartello' });
     elementi.push({ x: 0, y: 692, tipo: 'nebbia' });
-    elementi.push({ x: PIAZZA.x + 180, y: PIAZZA.y + 66, tipo: 'coro' });
+    // Il coro canta sul suo palchetto, davanti alla piazza dove c'è spazio e si vede bene
+    elementi.push({ x: PIAZZA.x + 200, y: PIAZZA.y + 112, tipo: 'coro' });
     // Pattinatori sul laghetto e mercatino vicino al ruscello
     elementi.push({ x: 700, y: 612, tipo: 'pattinatori' }, { x: sposta(2764), y: 836, tipo: 'mercatino' });
     // Il quartiere di Babbo Natale, subito dopo la stazione
