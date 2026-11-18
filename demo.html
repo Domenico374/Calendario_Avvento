@@ -1987,6 +1987,14 @@ body::before {
     .scena .fumetto-storia .guida-testo { font-size: 0.88rem; line-height: 1.38; }
 }
 
+/* ---- Il gatto del salotto racconta la sua storia ---- */
+.scena .gatto-salotto { cursor: pointer; }
+.scena .gatto-salotto:focus-visible { outline: none; filter: drop-shadow(0 0 6px rgba(255, 220, 140, 0.9)); }
+.scena .fumetto-gatto { animation: fumetto 0.4s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+    .scena .fumetto-gatto { animation: none; }
+}
+
 @media (max-width: 600px) {
     .scena .freccia { width: 42px; height: 42px; font-size: 1.7em; }
     .scena .suggerimento { font-size: 0.85rem; white-space: nowrap; }
@@ -7446,7 +7454,7 @@ function creaInterno({ onScarta, onEsci }) {
     el('stop', { offset: '0%', 'stop-color': '#f2b268' }, peloGatto);
     el('stop', { offset: '55%', 'stop-color': '#d4823a' }, peloGatto);
     el('stop', { offset: '100%', 'stop-color': '#a35a20' }, peloGatto);
-    const gatto = el('g', { transform: 'translate(1100 654) scale(1.1)' }, svg);
+    const gatto = el('g', { class: 'gatto-salotto', transform: 'translate(1100 654) scale(1.1)', tabindex: 0, role: 'button', 'aria-label': 'Il gatto Cannella: toccalo per sentire la sua storia' }, svg);
     el('ellipse', { cx: 4, cy: 5, rx: 66, ry: 9, fill: 'rgba(0,0,0,0.28)' }, gatto);
     const respiro = el('g', { class: 'respiro' }, gatto);
     const striscia = { stroke: '#a3551a', 'stroke-width': 3.6, fill: 'none', 'stroke-linecap': 'round', opacity: 0.85 };
@@ -7487,6 +7495,47 @@ function creaInterno({ onScarta, onEsci }) {
     el('path', { d: 'M-13 -2.5 l-1 2 M-9 -1.5 v2 M5 -3.5 l-1 2 M9 -2.5 v2', stroke: '#3b2412', 'stroke-width': 0.9 }, testa);
     // Baffi
     el('path', { d: 'M-13 6 l-20 -3 M-13 8 l-20 2 M-12 10 l-17 6 M3 6 l14 -4 M3 8 l15 1', stroke: '#fbf3e6', 'stroke-width': 0.9, opacity: 0.85, 'stroke-linecap': 'round' }, testa);
+
+    // Toccando il gatto, racconta la sua storia: una frase per volta, in un fumetto sopra di lui
+    // (a destra della scritta "Clicca il regalo", che arriva fino a x 1068, e a sinistra del fumetto della poltrona)
+    const STORIA_GATTO = [
+        'Miao… Sono Cannella, il gatto di casa. Dormo vicino al fuoco: è il posto più caldo del villaggio!',
+        'Tanti anni fa ero un gattino perso nella neve. Un elfo mi ha trovato e mi ha portato qui, accanto al camino.',
+        'Da allora ogni notte faccio la guardia ai regali. Shh… non dite a nessuno che ogni tanto mi addormento!'
+    ];
+    let fraseGatto = 0, fumettoGatto = null, timerGatto = null;
+    function chiudiFumettoGatto() {
+        clearTimeout(timerGatto);
+        fumettoGatto?.remove();
+        fumettoGatto = null;
+    }
+    function parlaIlGatto(evento) {
+        evento.stopPropagation();
+        chiudiFumettoGatto();
+        const frase = STORIA_GATTO[fraseGatto];
+        fraseGatto = (fraseGatto + 1) % STORIA_GATTO.length;
+        const righe = [];
+        frase.split(' ').forEach(parola => {
+            const ultima = righe[righe.length - 1];
+            if (ultima && (ultima + ' ' + parola).length <= 20) righe[righe.length - 1] = ultima + ' ' + parola;
+            else righe.push(parola);
+        });
+        const [sinistra, destra, sotto] = [1074, 1308, 590];
+        const sopra = sotto - (48 + righe.length * 25);
+        fumettoGatto = el('g', { class: 'fumetto-gatto', 'pointer-events': 'none' }, svg);
+        el('path', { d: `M${sinistra + 12} ${sopra} H${destra - 12} q 12 0 12 12 V${sotto - 12} q 0 12 -12 12 H1110 l-40 30 18 -30 H${sinistra + 12} q -12 0 -12 -12 V${sopra + 12} q 0 -12 12 -12 Z`, fill: '#fffaf0', stroke: '#c9a227', 'stroke-width': 3 }, fumettoGatto);
+        el('text', { x: sinistra + 14, y: sopra + 26, 'font-size': 16, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#9b1d2a' }, fumettoGatto).textContent = 'Il gatto Cannella';
+        righe.forEach((riga, i) => {
+            el('text', { x: sinistra + 14, y: sopra + 52 + i * 25, 'font-size': 19, 'font-family': 'Georgia, serif', fill: '#3b2a1a' }, fumettoGatto).textContent = riga;
+        });
+        timerGatto = setTimeout(chiudiFumettoGatto, 9000);
+    }
+    gatto.addEventListener('click', parlaIlGatto);
+    gatto.addEventListener('keydown', evento => {
+        if (evento.key !== 'Enter' && evento.key !== ' ') return;
+        evento.preventDefault();
+        parlaIlGatto(evento);
+    });
 
     const ricettario = creaRicettario(nodo);
     const tavolino = creaTavolino(svg, nome => ricettario.mostra(nome));
@@ -7701,6 +7750,9 @@ function creaInterno({ onScarta, onEsci }) {
             tavolino.mostra(giorno);
             quadro.mostra(giorno);
             personaggio.mostra(giorno);
+            // Ogni volta che si entra, il gatto ricomincia la sua storia dall'inizio
+            chiudiFumettoGatto();
+            fraseGatto = 0;
             giornoMostrato = giorno;
             scartato = false;
             nodo.classList.remove('scartato', 'trema');
