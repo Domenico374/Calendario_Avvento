@@ -1,0 +1,41 @@
+.guida-comandi{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto;max-width:900px}
+.guida-comandi button{font:800 .95rem 'Nunito',sans-serif;cursor:pointer;border:1px solid #ffd36b;background:#18234d;color:#ffe6a3;padding:10px 18px;border-radius:999px}
+.guida-comandi button:hover,.guida-comandi button:focus-visible{background:#304274;outline:2px solid #fff1c6;outline-offset:2px}
+.guida-pannello{width:min(700px,calc(100% - 20px));margin:0 auto;padding:18px 22px;background:#fffaf0;color:#2a2433;border:3px solid #ffd36b;border-radius:18px;box-shadow:0 12px 35px #0006}
+.guida-pannello[hidden]{display:none!important}
+.guida-pannello h2{font-family:'Mountains of Christmas',cursive;color:#a32d25;font-size:2rem;margin:0 0 6px}
+.guida-pannello p{margin:7px 0;line-height:1.5}
+.guida-pannello ul{margin:10px 0 0;padding-left:24px;line-height:1.7}
+.guida-pannello button{margin-top:12px;padding:8px 17px;border-radius:999px;border:2px solid #a32d25;background:#a32d25;color:white;font:700 1rem 'Nunito',sans-serif;cursor:pointer}
+.guida-tappe{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.guida-tappe span{border-radius:14px;background:#eee2cc;padding:5px 10px;font-weight:800;font-size:.86rem}
+
+/* Mappa discreta: si apre solo su richiesta, senza coprire il villaggio */
+#mappaApri{font:800 .92rem 'Nunito',sans-serif;cursor:pointer;border:1px solid #ffd36b;background:#18234d;color:#ffe6a3;padding:8px 18px;border-radius:999px}
+#mappaApri:focus-visible,.mappa-destinazione:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.mappa-villaggio{width:min(920px,calc(100% - 16px));margin:0 auto;padding:16px 18px 18px;background:#fff9e9;color:#2b2540;border:3px solid #e6b85c;border-radius:20px;box-shadow:0 15px 35px #0006}
+.mappa-villaggio h2{font:700 2rem 'Mountains of Christmas',cursive;color:#a12f2b;margin:0}
+.mappa-testa{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#mappaChiudi{border:0;background:#672a36;color:white;border-radius:999px;padding:7px 13px;cursor:pointer;font-weight:800}
+.mappa-villaggio p{margin:5px 0 12px;font-size:.9rem}
+.mappa-percorso{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 9px;padding:17px 4px;background:linear-gradient(160deg,#e9f4fb,#e2e9f3);border-radius:15px}
+.mappa-percorso:before{content:'';position:absolute;left:9%;right:9%;top:50%;border-top:4px dashed #c09b66;opacity:.65;pointer-events:none}
+.mappa-destinazione{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:center;min-height:77px;padding:10px 5px;border:2px solid #b9a2a1;border-radius:13px;background:#fffdf5;color:#312640;cursor:pointer;font:800 .84rem 'Nunito',sans-serif;box-shadow:0 4px 0 #0001}
+.mappa-destinazione:hover{border-color:#ac3c31;background:#fff2d3;transform:translateY(-2px)}
+.mappa-destinazione .simbolo{font-size:1.7rem;line-height:1.2}
+.mappa-nota{font-size:.78rem!important;margin-top:10px!important;color:#62536b}
+@media(max-width:540px){.mappa-percorso{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.mappa-villaggio{padding:12px}.mappa-destinazione{min-height:70px}}
+
+/* Album dei ricordi: aggiunta isolata dalla mappa e dal motore dei regali */
+#ricordiApri{font:800 .92rem 'Nunito',sans-serif;cursor:pointer;border:1px solid #ffd36b;background:#18234d;color:#ffe6a3;padding:8px 18px;border-radius:999px}
+#ricordiApri:focus-visible,.ricordo-giorno:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.album-ricordi{width:min(920px,calc(100% - 16px));margin:0 auto;padding:17px;background:#fff9e9;color:#2b2540;border:3px solid #e6b85c;border-radius:20px;box-shadow:0 15px 35px #0006}
+.album-testa{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.album-ricordi h2{font:700 2rem 'Mountains of Christmas',cursive;color:#a12f2b;margin:0}
+#ricordiChiudi{border:0;background:#672a36;color:white;border-radius:999px;padding:8px 14px;cursor:pointer;font-weight:800}
+.album-ricordi p{margin:8px 0 14px;line-height:1.45}
+.album-griglia{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.ricordo-giorno{min-height:85px;border:2px solid #c5a68d;border-radius:12px;background:#fffdf5;color:#432c37;cursor:pointer;font:800 .87rem 'Nunito',sans-serif;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}
+.ricordo-giorno span{font-size:1.6rem}.ricordo-giorno:hover{background:#fff0ce;border-color:#a12f2b}
+.album-vuoto{padding:15px;border-radius:12px;background:#eaf0f6;text-align:center}
+@media(max-width:640px){.album-griglia{grid-template-columns:repeat(3,minmax(0,1fr))}.album-ricordi{padding:12px}}

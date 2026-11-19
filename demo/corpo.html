@@ -1,10 +1,51 @@
 <header class="intestazione">
     <span class="etichetta">Demo</span>
     <h1>Il Villaggio dell'Avvento</h1>
-    <p>Così vede il calendario chi lo riceve in regalo: il treno arriva in stazione, si entra e si parte per il viaggio. Ogni giorno di dicembre si apre una casa, fino alla casa di Babbo Natale. Trascina il paese per esplorarlo.</p>
 </header>
 
+<section class="benvenuto-tour" aria-label="Benvenuto al villaggio"><div><strong>🎄 Benvenuto nel villaggio!</strong><p>Parti dalla stazione, esplora e scopri la sorpresa del giorno.</p></div><button type="button" id="iniziaTour">✨ Inizia il viaggio</button></section>
+<div class="guida-comandi" aria-label="Aiuto per esplorare il villaggio">
+<button type="button" id="guidaApri" aria-expanded="false" aria-controls="guidaPannello">🧭 Come funziona? ▾</button>
+<button type="button" id="mappaApri" aria-expanded="false" aria-controls="mappaVillaggio">🗺️ Mappa del villaggio</button>
+<button type="button" id="ricordiApri" aria-expanded="false" aria-controls="albumRicordi">📖 Libro dei ricordi</button>
+<button type="button" id="elfiToggle" aria-pressed="true" title="Attiva o disattiva i suggerimenti degli elfi">🧝 Elfi: attivi</button>
+</div>
+<section id="guidaPannello" class="guida-pannello" hidden aria-label="Guida al villaggio">
+<h2>Benvenuto nel Villaggio dell’Avvento!</h2>
+<p>Il trenino ti accompagna in un paese pieno di piccole sorprese. Non c’è fretta: puoi curiosare liberamente.</p>
+<div class="guida-tappe"><span>🚂 Stazione</span><span>🏡 Case</span><span>🎠 Attrazioni</span><span>🎁 Regali</span></div>
+<ul>
+<li><strong>Comincia dalla stazione:</strong> entra e scegli chi ti accompagnerà nel viaggio.</li>
+<li><strong>Esplora:</strong> trascina il panorama oppure usa le frecce ai lati. Tocca le attrazioni e gli oggetti che brillano.</li>
+<li><strong>Apri una casa:</strong> ogni giorno di dicembre ne diventa disponibile una nuova. Entra e scarta il pacchetto.</li>
+<li><strong>Per tornare fuori:</strong> usa il pulsante «Torna» presente negli ambienti.</li>
+</ul>
+<p><strong>Un consiglio:</strong> il villaggio nasconde tante piccole interazioni. Prova a toccare gli animali, le bancarelle e le decorazioni!</p>
+<button type="button" id="guidaChiudi">Ho capito, si parte! ✨</button>
+</section>
+<section id="albumRicordi" class="album-ricordi" hidden aria-label="Libro dei ricordi">
+<div class="album-testa"><h2>📖 Il libro dei ricordi</h2><button id="ricordiChiudi" type="button">✕ Chiudi</button></div>
+<p>Qui ritrovi le sorprese già scartate, anche quando torni un altro giorno con questo browser. Tocca un giorno per rivederlo.</p>
+<div id="albumContenuto" aria-live="polite"></div>
+</section>
+<section id="mappaVillaggio" class="mappa-villaggio" hidden aria-label="Mappa delle attrazioni">
+<div class="mappa-testa"><h2>🗺️ La mappa del villaggio</h2><button id="mappaChiudi" type="button">✕ Chiudi</button></div>
+<p>Scegli un luogo: il panorama si sposterà lì. Per entrare, tocca l'attrazione nel villaggio.</p>
+<div class="mappa-percorso">
+<button class="mappa-destinazione" type="button" data-mappa=".stazione"><span class="simbolo">🚂</span>Stazione</button>
+<button class="mappa-destinazione" type="button" data-mappa=".casa[data-giorno='1']"><span class="simbolo">🏡</span>Prime casette</button>
+<button class="mappa-destinazione" type="button" data-mappa=".coro"><span class="simbolo">🎶</span>Piazza e coro</button>
+<button class="mappa-destinazione" type="button" data-mappa=".posta"><span class="simbolo">✉️</span>Ufficio postale</button>
+<button class="mappa-destinazione" type="button" data-mappa=".laboratorio"><span class="simbolo">🧸</span>Laboratorio</button>
+<button class="mappa-destinazione" type="button" data-mappa=".mercato-coperto"><span class="simbolo">🍪</span>Mercato di Natale</button>
+<button class="mappa-destinazione" type="button" data-mappa=".parco-animali"><span class="simbolo">🐧</span>Parco del Polo Nord</button>
+<button class="mappa-destinazione" type="button" data-mappa=".stalla"><span class="simbolo">🦌</span>Stalla delle renne</button>
+<button class="mappa-destinazione" type="button" data-mappa=".giostra"><span class="simbolo">🎠</span>Giostra</button>
+<button class="mappa-destinazione" type="button" data-mappa=".palaghiaccio"><span class="simbolo">⛸️</span>Palaghiaccio</button>
+</div><p class="mappa-nota">La mappa è una scorciatoia: puoi sempre esplorare liberamente trascinando il panorama.</p>
+</section>
 <main id="villaggio" class="scena" data-vista="3d" aria-describedby="spiegazione"></main>
+<div id="elfoMessaggio" class="elfo-messaggio" role="status" aria-live="polite" hidden><span class="elfo-avatar" aria-hidden="true">🧝‍♂️</span><div><strong id="elfoNome">Fiocco, la tua guida</strong><p id="elfoTesto"></p></div><button type="button" id="elfoChiudi" aria-label="Chiudi il suggerimento">×</button></div>
 <p class="avviso" id="avviso" role="status"></p>
 
 <div class="comandi">

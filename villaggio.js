@@ -6480,6 +6480,8 @@ function creaInterno({ onScarta, onEsci }) {
     invito.textContent = 'Clicca il regalo per aprirlo';
 
     const regalo = el('g', { class: 'regalo', transform: 'translate(800 800)', tabindex: 0, role: 'button', 'aria-label': 'Apri il regalo' }, svg);
+    const messaggioScoperta = el('text', { class: 'messaggio-scoperta', x: 800, y: 610, 'text-anchor': 'middle', 'font-size': 34, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fff4ca', stroke: '#3a1d10', 'stroke-width': 6, 'paint-order': 'stroke', 'pointer-events': 'none' }, svg);
+    messaggioScoperta.textContent = 'Un pizzico di magia...';
     // Luce, raggi, coriandoli e scintille non si toccano: coprivano anche il libretto della ricetta e aprivano il pacco
     el('ellipse', { class: 'luce-regalo', cx: 0, cy: -170, rx: 260, ry: 220, fill: 'url(#luce-regalo)', 'pointer-events': 'none' }, regalo);
     // Raggi di luce che girano piano dietro al regalo aperto
@@ -6545,17 +6547,45 @@ function creaInterno({ onScarta, onEsci }) {
 
     let scartato = false;
     let giornoMostrato = null;
-
+    let timersRegalo = [];
+    let sessioneRegalo = 0;
+    const movimentoRidotto = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function programmaRegalo(fn, ms) {
+        const sessione = sessioneRegalo;
+        const timer = setTimeout(() => {
+            if (sessione === sessioneRegalo && !nodo.hidden) fn();
+        }, ms);
+        timersRegalo.push(timer);
+    }
+    function pulisciRegalo() {
+        sessioneRegalo++;
+        timersRegalo.forEach(clearTimeout);
+        timersRegalo = [];
+        nodo.classList.remove('scartato', 'trema', 'regalo-in-attesa', 'rivelazione-completata');
+        messaggioScoperta.classList.remove('visibile');
+    }
     function scarta() {
         if (scartato) return;
         scartato = true;
+        regalo.setAttribute('aria-disabled', 'true');
         suonaMeraviglia();
-        nodo.classList.add('trema');
-        setTimeout(() => {
-            nodo.classList.remove('trema');
+        if (movimentoRidotto()) {
             nodo.classList.add('scartato');
-        }, 450);
-        setTimeout(() => onScarta(giornoMostrato), 2000);
+            programmaRegalo(() => onScarta(giornoMostrato), 350);
+            return;
+        }
+        nodo.classList.add('trema', 'regalo-in-attesa');
+        messaggioScoperta.classList.add('visibile');
+        programmaRegalo(() => {
+            nodo.classList.remove('trema', 'regalo-in-attesa');
+            nodo.classList.add('scartato');
+            messaggioScoperta.classList.remove('visibile');
+        }, 160);
+        programmaRegalo(() => {
+            messaggioScoperta.classList.remove('visibile');
+            nodo.classList.add('rivelazione-completata');
+            onScarta(giornoMostrato);
+        }, 600);
     }
 
     regalo.addEventListener('click', scarta);
@@ -6589,8 +6619,10 @@ function creaInterno({ onScarta, onEsci }) {
             chiudiFumettoGatto();
             fraseGatto = 0;
             giornoMostrato = giorno;
+            pulisciRegalo();
             scartato = false;
-            nodo.classList.remove('scartato', 'trema');
+            regalo.removeAttribute('aria-disabled');
+            messaggioScoperta.textContent = 'Un pizzico di magia...';
             nodo.hidden = false;
             requestAnimationFrame(() => {
                 nodo.classList.add('visibile');
@@ -6598,6 +6630,7 @@ function creaInterno({ onScarta, onEsci }) {
             });
         },
         nascondi() {
+            pulisciRegalo();
             nodo.classList.remove('visibile', 'scartato');
             nodo.hidden = true;
         },
@@ -9133,17 +9166,23 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             Object.assign(document.createElement('strong'), { textContent: 'BUON NATALE' }),
             Object.assign(document.createElement('span'), { textContent: '🎅 Da Babbo Natale e da tutto il villaggio ✨' })
         );
-        festa.append(tela, scritta);
+        const comandiFinale = Object.assign(document.createElement('div'), { className: 'comandi-finale' });
+        const tornaEsplorare = Object.assign(document.createElement('button'), { type: 'button', textContent: '✨ Continua a esplorare' });
+        tornaEsplorare.setAttribute('aria-label', 'Chiudi i fuochi e torna al villaggio');
+        comandiFinale.append(tornaEsplorare);
+        festa.append(tela, scritta, comandiFinale);
         contenitore.append(festa);
         let finita = false;
         const chiudi = () => {
             if (finita) return;
             finita = true;
+            clearTimeout(timerFinale);
             festa.classList.add('via');
             setTimeout(() => festa.remove(), 900);
         };
-        festa.addEventListener('click', chiudi);
-        setTimeout(chiudi, 14000);
+        tornaEsplorare.addEventListener('click', chiudi);
+        festa.addEventListener('click', evento => { if (evento.target === festa) chiudi(); });
+        const timerFinale = setTimeout(chiudi, 14000);
         if (movimentoRidotto) return;
 
         const ctx = tela.getContext('2d');
@@ -9366,7 +9405,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     ];
     const STELLA_SPENTA = 'In cima va la stella, che ricorda la stella cometa dei Magi. La nostra è ancora spenta: si accenderà la notte del 24, quando arriva il Natale.';
     const STELLA_ACCESA = 'In cima va la stella, che ricorda la stella cometa dei Magi. Guarda: è accesa! Questa è la notte di Natale.';
-    const alberoPiazza = mondo.querySelector('.albero');
+    const alberoPiazza = mondo.querySelector('.albero.aperta');
     const fumettoStoria = Object.assign(document.createElement('div'), { className: 'guida-fumetto fumetto-storia', hidden: true });
     fumettoStoria.setAttribute('role', 'dialog');
     fumettoStoria.setAttribute('aria-label', 'La storia dell\'albero di Natale');

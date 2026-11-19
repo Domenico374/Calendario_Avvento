@@ -88,6 +88,52 @@ function avviso(testo) {
 
 const velo = document.getElementById('velo');
 const viste = new Set();
+// Salva solo i numeri dei regali realmente mostrati, non il loro contenuto.
+// Ogni calendario/file ha una chiave separata; se il browser blocca lo storage,
+// l'album continua a funzionare durante la visita corrente.
+const chiaveRicordi = 'villaggio_ricordi_v1:' + location.origin + location.pathname + location.search;
+function caricaRicordi() {
+    try {
+        const salvati = JSON.parse(localStorage.getItem(chiaveRicordi) || '[]');
+        if (!Array.isArray(salvati)) return new Set();
+        return new Set(salvati.filter(n => Number.isInteger(n) && n >= 1 && n <= 24));
+    } catch { return new Set(); }
+}
+const ricordiAperti = caricaRicordi();
+function salvaRicordo(giorno) {
+    if (!Number.isInteger(giorno) || giorno < 1 || giorno > 24) return;
+    ricordiAperti.add(giorno);
+    try { localStorage.setItem(chiaveRicordi, JSON.stringify([...ricordiAperti].sort((a,b)=>a-b))); }
+    catch { /* La memoria rimane disponibile finché la pagina è aperta. */ }
+}
+function aggiornaAlbum() {
+    const contenuto = document.getElementById('albumContenuto');
+    if (!ricordiAperti.size) {
+        const vuoto = document.createElement('p');
+        vuoto.className = 'album-vuoto';
+        vuoto.textContent = 'Il tuo album è ancora vuoto. Apri il primo regalo per iniziare a riempirlo! 🎁';
+        contenuto.replaceChildren(vuoto);
+        return;
+    }
+    const griglia = document.createElement('div');
+    griglia.className = 'album-griglia';
+    [...ricordiAperti].sort((a,b)=>a-b).forEach(giorno => {
+        const pulsante = document.createElement('button');
+        pulsante.type = 'button';
+        pulsante.className = 'ricordo-giorno';
+        pulsante.innerHTML = '<span aria-hidden="true">🎁</span>';
+        pulsante.append(document.createTextNode(`${giorno} dicembre`));
+        pulsante.addEventListener('click', () => {
+            document.getElementById('giorno-titolo').textContent = `${giorno} dicembre`;
+            document.getElementById('giorno-contenuto').replaceChildren(contenutoDemo(giorno));
+            document.getElementById('velo').hidden = false;
+            document.getElementById('btnChiudi').focus();
+        });
+        griglia.append(pulsante);
+    });
+    contenuto.replaceChildren(griglia);
+}
+
 
 const villaggio = creaVillaggio(document.getElementById('villaggio'), {
     aperti: 10,
@@ -97,6 +143,8 @@ const villaggio = creaVillaggio(document.getElementById('villaggio'), {
         document.getElementById('giorno-titolo').textContent = `${giorno} dicembre`;
         document.getElementById('giorno-contenuto').replaceChildren(contenutoDemo(giorno));
         velo.hidden = false;
+        salvaRicordo(giorno);
+        aggiornaAlbum();
         document.getElementById('btnChiudi').focus();
     },
     onChiusa: giorno => avviso(`Pazienza! Questa casa si apre il ${giorno === 1 ? '1°' : giorno} dicembre.`),
@@ -107,6 +155,7 @@ const villaggio = creaVillaggio(document.getElementById('villaggio'), {
 function chiudi() {
     velo.hidden = true;
     villaggio.chiudiPorte();
+    if (ricordiAperti.size) consiglioElfo('dopo-regalo', 'Che bella sorpresa! La ritrovi quando vuoi nel Libro dei ricordi. 📖');
 }
 
 document.getElementById('btnChiudi').addEventListener('click', chiudi);
@@ -124,6 +173,103 @@ document.getElementById('btnRichiudi').addEventListener('click', () => {
     villaggio.impostaOggi(Number(cursore.value));
     avviso('Porte richiuse: puoi riaprirle tutte.');
 });
+
+
+
+// I consigli compaiono solo dopo azioni volontarie, mai durante l'apertura del pacco.
+const elfoMessaggio = document.getElementById('elfoMessaggio');
+const elfiToggle = document.getElementById('elfiToggle');
+let elfiAttivi = true;
+let elfoTimer = null;
+const consigliVisti = new Set();
+function chiudiConsiglio() { clearTimeout(elfoTimer); elfoMessaggio.hidden = true; }
+function stanzaApertaPerElfo() { return !!document.querySelector('#villaggio .interno.visibile:not([hidden])'); }
+function aggiornaNomeElfo() {
+    let brina = typeof guidaScelta !== 'undefined' && guidaScelta === GUIDE.elfa;
+    if (!brina && (typeof guidaScelta === 'undefined' || !guidaScelta)) {
+        try { brina = localStorage.getItem('villaggio_guida') === 'elfa'; } catch { /* Fiocco predefinito */ }
+    }
+    document.getElementById('elfoNome').textContent = brina ? 'Brina, la tua guida' : 'Fiocco, la tua guida';
+    elfoMessaggio.querySelector('.elfo-avatar').textContent = brina ? '🧝‍♀️' : '🧝‍♂️';
+}
+function consiglioElfo(chiave, testo) {
+    if (!elfiAttivi || consigliVisti.has(chiave) || !velo.hidden || stanzaApertaPerElfo()) return;
+    consigliVisti.add(chiave);
+    clearTimeout(elfoTimer);
+    aggiornaNomeElfo();
+    document.getElementById('elfoTesto').textContent = testo;
+    elfoMessaggio.hidden = false;
+    elfoTimer = setTimeout(chiudiConsiglio, 6500);
+}
+// Chiude immediatamente i consigli quando si entra in una stanza; nessun messaggio in coda.
+new MutationObserver(() => { if (stanzaApertaPerElfo() && !elfoMessaggio.hidden) chiudiConsiglio(); })
+    .observe(document.getElementById('villaggio'), {subtree:true, attributes:true, attributeFilter:['class','hidden']});
+document.getElementById('elfoChiudi').addEventListener('click', chiudiConsiglio);
+elfiToggle.addEventListener('click', () => {
+    elfiAttivi = !elfiAttivi;
+    elfiToggle.setAttribute('aria-pressed', String(elfiAttivi));
+    elfiToggle.textContent = elfiAttivi ? '🧝 Elfi: attivi' : '🧝 Elfi: silenziosi';
+    chiudiConsiglio();
+    if (elfiAttivi) consiglioElfo('riattivati', 'Sono di nuovo qui! Ti darò solo qualche piccolo suggerimento mentre esplori.');
+});
+
+// Il libro dei ricordi non interferisce con la mappa o con la scena.
+const ricordiApri = document.getElementById('ricordiApri');
+const albumRicordi = document.getElementById('albumRicordi');
+function mostraRicordi(visibile) {
+    albumRicordi.hidden = !visibile;
+    ricordiApri.setAttribute('aria-expanded', String(visibile));
+    if (visibile) { aggiornaAlbum(); albumRicordi.scrollIntoView({behavior:'smooth',block:'nearest'}); consiglioElfo('album', 'Questo album conserva le sorprese che hai già aperto. Puoi rivederle quando vuoi!'); }
+    else ricordiApri.focus();
+}
+ricordiApri.addEventListener('click', () => mostraRicordi(albumRicordi.hidden));
+document.getElementById('ricordiChiudi').addEventListener('click', () => mostraRicordi(false));
+
+// La mappa usa la funzione di spostamento già presente nel motore 2D.
+// Non simula clic sugli edifici: l'utente decide se entrarvi.
+const mappaApri = document.getElementById('mappaApri');
+const mappaVillaggio = document.getElementById('mappaVillaggio');
+function mostraMappa(si) {
+    mappaVillaggio.hidden = !si;
+    mappaApri.setAttribute('aria-expanded', String(si));
+    if (si) mappaVillaggio.scrollIntoView({behavior:'smooth',block:'nearest'});
+    else mappaApri.focus();
+}
+mappaApri.addEventListener('click', () => mostraMappa(mappaVillaggio.hidden));
+document.getElementById('mappaChiudi').addEventListener('click', () => mostraMappa(false));
+document.querySelectorAll('[data-mappa]').forEach(b => b.addEventListener('click', () => {
+    const destinazione = document.querySelector('#villaggio svg ' + b.dataset.mappa);
+    if (!destinazione) { avviso('Questa attrazione non è disponibile in questa vista.'); return; }
+    // Il 3D non usa la stessa panoramica orizzontale: passiamo alla vista 2D.
+    const scena = document.getElementById('villaggio');
+    if (scena.classList.contains('vista-3d')) scena.querySelector('.cambia-vista')?.click();
+    let x = Number(destinazione.dataset.x);
+    if (!Number.isFinite(x)) {
+        const t = destinazione.getAttribute('transform') || '';
+        const m = t.match(/translate\(\s*([-\d.]+)/);
+        if (m) x = Number(m[1]);
+    }
+    if (!Number.isFinite(x)) {
+        try { const bb = destinazione.getBBox(); x = bb.x + bb.width / 2; } catch { x = NaN; }
+    }
+    if (Number.isFinite(x)) villaggio.centraSu(x);
+    mostraMappa(false);
+    consiglioElfo('mappa', 'Eccoci arrivati! Ora tocca a te decidere se entrare o continuare a esplorare.');
+    scena.scrollIntoView({behavior:'smooth',block:'center'});
+}));
+
+// La guida è indipendente dalle transizioni del villaggio e non copre la scena.
+document.getElementById('iniziaTour').addEventListener('click', () => { document.getElementById('villaggio').scrollIntoView({behavior: 'smooth', block:'center'}); document.getElementById('villaggio').focus?.(); consiglioElfo('inizio', 'Benvenuto! Comincia dalla stazione oppure scegli un luogo sulla mappa. Io ti lascio esplorare!'); });
+const guidaApri = document.getElementById('guidaApri');
+const guidaPannello = document.getElementById('guidaPannello');
+function mostraGuida(visibile) {
+    guidaPannello.hidden = !visibile;
+    guidaApri.setAttribute('aria-expanded', String(visibile));
+    if (visibile) guidaPannello.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest' });
+    else guidaApri.focus();
+}
+guidaApri.addEventListener('click', () => mostraGuida(guidaPannello.hidden));
+document.getElementById('guidaChiudi').addEventListener('click', () => mostraGuida(false));
 
 document.querySelectorAll('[data-momento]').forEach(bottone => {
     bottone.addEventListener('click', () => villaggio.impostaMomento(bottone.dataset.momento || null));

@@ -132,7 +132,7 @@
         padding: 16px;
         background: rgba(3, 6, 20, 0.72);
         backdrop-filter: blur(4px);
-        z-index: 20;
+        z-index: 2000;
     }
 
     .finestra-giorno {
@@ -220,4 +220,17 @@
     @media (prefers-reduced-motion: reduce) {
         .finestra-giorno { animation: none; }
     }
+</style>
+
+<style>
+/* Gli elfi suggeriscono, senza coprire il villaggio né aprire finestre modali. */
+.elfo-messaggio{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:1100;width:min(360px,calc(100vw - 28px));display:flex;align-items:flex-start;gap:11px;padding:13px 14px;background:#fff9e9;color:#2b2540;border:2px solid #e6b85c;border-radius:18px;box-shadow:0 10px 32px #0008;animation:elfo-apparizione .24s ease-out}
+.elfo-messaggio[hidden]{display:none!important}
+.elfo-avatar{font-size:2rem;line-height:1.2}
+.elfo-messaggio strong{color:#922d28;font-weight:800}
+.elfo-messaggio p{margin:3px 0 0;font-size:.91rem;line-height:1.4}
+.elfo-messaggio button{margin-left:auto;border:0;background:transparent;color:#5b3440;font-size:1.5rem;cursor:pointer;line-height:1;padding:0 2px}
+@keyframes elfo-apparizione{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(max-width:640px){.elfo-messaggio{bottom:max(12px,env(safe-area-inset-bottom));padding:10px 12px}.elfo-avatar{font-size:1.65rem}}
+@media(prefers-reduced-motion:reduce){.elfo-messaggio{animation:none}}
 </style>

@@ -886,6 +886,8 @@ a:focus-visible {
     transition: opacity 0.6s;
 }
 
+.scena:has(.festa) > .suggerimento { visibility: hidden; }
+
 .scena .suggerimento.nascosto {
     opacity: 0;
 }
@@ -1491,6 +1493,19 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
 @keyframes alone-tetto { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.05; } }
 .scena .lucina-cartello { animation: luce-tetto 1.4s ease-in-out infinite; }
 
+
+/* Finale del 24: una conclusione elegante, senza coprire il regalo */
+.scena .festa { cursor: default; }
+.scena .scritta-festa { top: 12%; }
+.scena .scritta-festa strong { letter-spacing: .035em; animation: bagliore-finale 3s ease-in-out infinite alternate; }
+.scena .scritta-festa span { background: rgba(21,31,69,.88); border: 1px solid rgba(255,211,107,.55); }
+.scena .comandi-finale { position:absolute; bottom: clamp(18px,5%,45px); left:50%; transform:translateX(-50%); z-index:2; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; width:calc(100% - 24px); }
+.scena .comandi-finale button { font:800 1rem 'Nunito',system-ui,sans-serif; border:2px solid #ffd36b; border-radius:999px; background:rgba(12,20,52,.94); color:#ffe9a8; padding:12px 20px; cursor:pointer; box-shadow:0 6px 22px #0007; }
+.scena .comandi-finale button:focus-visible { outline:3px solid white; outline-offset:3px; }
+@keyframes bagliore-finale { from { text-shadow:0 0 12px #ffc96c88,0 4px 0 #9b1d2a; } to { text-shadow:0 0 32px #ffd36bcc,0 0 55px #ffd36b66,0 4px 0 #9b1d2a; } }
+@media (prefers-reduced-motion: reduce) { .scena .scritta-festa strong {animation:none;} }
+@media (max-width:600px) { .scena .scritta-festa {top:16%;} .scena .scritta-festa strong {font-size:clamp(2.5rem,10vw,3.5rem);} .scena .comandi-finale button {font-size:.9rem;padding:10px 16px;} }
+
 /* ---- Il finale del 24: fuochi d'artificio e "Buon Natale!" ---- */
 .scena .festa {
     position: absolute;
@@ -1624,8 +1639,8 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
 /* ---- Dentro la bancarella: la nonna che cucina ---- */
 .scena .bancone .fumetto-nonna { animation: fumetto-nonna 0.6s cubic-bezier(.2, 1.4, .4, 1) 0.5s both; transform-box: fill-box; transform-origin: 0% 100%; }
 @keyframes fumetto-nonna { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
-.scena .bancone .fiamma { transform-box: fill-box; transform-origin: 50% 100%; animation: fiamma 0.5s ease-in-out infinite alternate; }
-@keyframes fiamma { from { transform: scaleY(0.8) skewX(-4deg); } to { transform: scaleY(1.15) skewX(4deg); } }
+.scena .bancone .fiamma { transform-box: fill-box; transform-origin: 50% 100%; animation: fiamma-banco 0.5s ease-in-out infinite alternate; }
+@keyframes fiamma-banco { from { transform: scaleY(0.8) skewX(-4deg); } to { transform: scaleY(1.15) skewX(4deg); } }
 .scena .bancone .brace { animation: brace 1.1s ease-in-out infinite alternate; }
 @keyframes brace { from { opacity: 0.6; } to { opacity: 1; } }
 .scena .bancone .luce-fuoco { animation: brace 0.9s ease-in-out infinite alternate; }
@@ -1635,8 +1650,8 @@ transition: transform 0.7s cubic-bezier(.3, 1.4, .5, 1);
 @keyframes salta-castagna { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-26px); } 55% { transform: translateY(-4px); } }
 .scena .bancone .fumo-grande { transform-box: fill-box; transform-origin: center; animation: fumo-grande 3.3s ease-out infinite; opacity: 0; }
 @keyframes fumo-grande { 0% { opacity: 0; transform: translateY(0) scale(0.5); } 20% { opacity: 0.55; } 100% { opacity: 0; transform: translate(-230px, -230px) scale(2.2); } }
-.scena .bancone .scintilla { animation: scintilla 2.4s ease-out infinite; opacity: 0; }
-@keyframes scintilla { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(20px, -180px); } }
+.scena .bancone .scintilla { animation: scintilla-banco 2.4s ease-out infinite; opacity: 0; }
+@keyframes scintilla-banco { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(20px, -180px); } }
 .scena .bancone .vortice { transform-box: fill-box; transform-origin: center; animation: vortice 3s linear infinite; }
 @keyframes vortice { to { transform: rotate(360deg); } }
 .scena .bancone .mestolo { animation: mescola 2s linear infinite; }
@@ -2269,6 +2284,20 @@ body::before {
     .scena .scartato .pezzo-carta, .scena .scartato .coriandolo-regalo { opacity: 0; }
 }
 
+
+/* PROVA REGALO 2: un piccolo crescendo prima della sorpresa */
+.scena .regalo-in-attesa .luce-regalo { opacity: .42; animation: attesa-dorata .55s ease-in-out infinite alternate; }
+.scena .regalo-in-attesa .scatola { filter: drop-shadow(0 0 20px rgba(255,215,115,.85)); }
+.scena .regalo-in-attesa .invito { opacity: 0; }
+.scena .messaggio-scoperta { opacity: 0; transition: opacity .35s ease; pointer-events: none; }
+.scena .messaggio-scoperta.visibile { opacity: 1; }
+@keyframes attesa-dorata { from { opacity: .18; transform: scale(.82); } to { opacity: .75; transform: scale(1.15); } }
+.scena .scartato .luce-regalo { animation: bagliore-regalo .4s ease-out forwards; }
+@keyframes bagliore-regalo { 0% { opacity: .25; transform: scale(.65); } 35% { opacity: .85; transform: scale(1.1); } 100% { opacity: 0; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .scena .regalo-in-attesa .luce-regalo, .scena .scartato .luce-regalo { animation: none; } }
+
+/* Correzione: i raggi si fermano alla rivelazione, senza rotazione infinita. */
+.scena .rivelazione-completata .raggi-regalo { animation: none; opacity: 0; transition: opacity .25s; }
 /* ---- In stazione: la scelta della guida ---- */
 .scena .sala .partenze {
     position: absolute;
@@ -2548,6 +2577,7 @@ body::before {
 /* Telefono in verticale: i pulsanti delle guide stanno sopra il messaggio "Gira il telefono" */
 @media (max-width: 899px) and (orientation: portrait) {
     .scena .sala .partenze { bottom: 72px; }
+    .scena .sala .domanda-guida { transform: translateY(-25px); margin-bottom: -18px; }
 }
 
 /* ---- La stella dell'albero della piazza: spenta fino al 24, poi si accende piano ---- */
