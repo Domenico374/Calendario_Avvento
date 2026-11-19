@@ -5457,7 +5457,10 @@ function suonoTrenoInArrivo(durata) {
         sorgente.buffer = buffer;
         return sorgente;
     };
+    // Un suono non può partire nel passato: se il tocco arriva in ritardo, parte subito
+    const daOra = t => Math.max(t, contesto.currentTime + 0.02);
     const sbuffo = (t, volume, lungo = 0.13, tono = 700) => {
+        t = daOra(t);
         const n = rumore(lungo + 0.05);
         const filtro = contesto.createBiquadFilter();
         filtro.type = 'bandpass';
@@ -5472,6 +5475,7 @@ function suonoTrenoInArrivo(durata) {
         n.stop(t + lungo + 0.05);
     };
     const fischio = (t, lungo) => {
+        t = daOra(t);
         const g = contesto.createGain();
         const filtro = contesto.createBiquadFilter();
         filtro.type = 'lowpass';
