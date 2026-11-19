@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Villaggio dell'Avvento</title>
+    <meta name="description" content="Il Villaggio dell'Avvento per i più piccoli: ogni giorno di dicembre si apre una casa con un regalo.">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Nunito:wght@400;600;800&display=swap">
+    <!-- Lo stile del villaggio è lo stesso della pagina per grandi; bimbi.css aggiunge solo le parti per i bambini -->
+    <link rel="stylesheet" href="style.css?v=20261119b">
+    <link rel="stylesheet" href="bimbi.css?v=20261119-bimbi1">
+</head>
+<body class="pagina-bimbi">
+    <!-- Controllo Audio -->
+    <div class="controllo-audio">
+        <button id="btnAudio" type="button">🎵 Attiva Musica</button>
+    </div>
+
+    <!-- Header -->
+    <header class="header-container">
+        <span class="etichetta-villaggio">🎄 Il Villaggio dell'Avvento</span>
+        <h1 id="titolo">Calendario dell'Avvento</h1>
+        <p id="sottotitolo">Un viaggio di 24 giorni di Meraviglia</p>
+    </header>
+
+    <!-- Avvisi -->
+    <p id="avviso" class="messaggio-stato" role="status" hidden></p>
+
+    <!-- Villaggio -->
+    <main id="villaggio" class="scena" data-vista="3d" hidden></main>
+
+    <!-- Finestra del giorno: solo da guardare -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-titolo">
+            <h2 id="modal-titolo"></h2>
+            <div id="modal-corpo"></div>
+            <div class="azioni">
+                <button class="bottone-chiusura" id="btnChiudi" type="button">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="bimbi.js?v=20261119-bimbi1"></script>
+</body>
+</html>

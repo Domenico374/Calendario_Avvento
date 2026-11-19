@@ -4617,7 +4617,7 @@ function disegnaSignoraNatale(genitore, x, y, k) {
     return g;
 }
 
-function creaCucinaNatale({ onDono, onFine, onTocco }) {
+function creaCucinaNatale({ onDono, onFine, onTocco, perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno cucina-natale', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Nella cucina della casa di Babbo Natale' });
     const fumetto = Object.assign(document.createElement('div'), { className: 'guida-fumetto fumetto-cucina' });
@@ -4764,7 +4764,7 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
             setTimeout(() => {
                 nodo.classList.add('arriva-babbo');
                 porta.classList.add('aperta');
-                dice(BABBO, 'Ho, ho, ho! Eccoti finalmente! Ho tenuto per te l\'ultimo dono, il più speciale di tutti.', '🎁 Apri l\'ultimo dono');
+                dice(BABBO, 'Ho, ho, ho! Eccoti finalmente! Ho tenuto per te l\'ultimo dono, il più speciale di tutti.', perBambini ? '🎁 Clicca qui per aprire il regalo' : '🎁 Apri l\'ultimo dono');
             }, 1600);
         } else if (passo === 2) {
             onDono();
@@ -6117,7 +6117,8 @@ const CARTE_REGALO = [
 ];
 
 // Il salotto con il camino, dove si scarta il regalo del giorno
-function creaInterno({ onScarta, onEsci }) {
+// perBambini: niente gatto, dolce, personaggio e ricetta; il regalo è grande, al centro, con il cartello e la manina
+function creaInterno({ onScarta, onEsci, perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Il salotto della casa, con il camino acceso e un regalo' });
     const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
@@ -6389,6 +6390,13 @@ function creaInterno({ onScarta, onEsci }) {
     el('rect', { x: -112, y: -78, width: 224, height: 72, rx: 14, fill: '#8e2b2b' }, poltrona);
     el('rect', { x: -96, y: -92, width: 192, height: 30, rx: 14, fill: '#a33a3a' }, poltrona);
     const personaggio = creaPersonaggio(poltrona);
+    // Per i bambini la stanza resta tranquilla: il regalo è l'unica cosa da toccare
+    if (perBambini) {
+        gatto.remove();
+        svg.querySelector('.tavolino-ricetta')?.remove();
+        nodo.querySelector('.scheda-ricetta')?.remove();
+        personaggio.posto.remove();
+    }
     [-1, 1].forEach(verso => {
         el('rect', { x: verso > 0 ? 96 : -136, y: -128, width: 40, height: 122, rx: 18, fill: '#6f1b22' }, poltrona);
         el('rect', { x: verso > 0 ? 96 : -136, y: -128, width: 40, height: 122, rx: 18, fill: 'url(#cilindro)' }, poltrona);
@@ -6483,8 +6491,8 @@ function creaInterno({ onScarta, onEsci }) {
     const invito = el('text', { class: 'invito', x: 800, y: 530, 'text-anchor': 'middle', 'font-size': 40, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8', stroke: '#3a1d10', 'stroke-width': 7, 'paint-order': 'stroke', 'stroke-linejoin': 'round' }, svg);
     invito.textContent = 'Clicca il regalo per aprirlo';
 
-    const regalo = el('g', { class: 'regalo', transform: 'translate(800 800)', tabindex: 0, role: 'button', 'aria-label': 'Apri il regalo' }, svg);
-    const messaggioScoperta = el('text', { class: 'messaggio-scoperta', x: 800, y: 610, 'text-anchor': 'middle', 'font-size': 34, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fff4ca', stroke: '#3a1d10', 'stroke-width': 6, 'paint-order': 'stroke', 'pointer-events': 'none' }, svg);
+    const regalo = el('g', { class: 'regalo', transform: perBambini ? 'translate(800 770) scale(1.5)' : 'translate(800 800)', tabindex: 0, role: 'button', 'aria-label': 'Apri il regalo' }, svg);
+    const messaggioScoperta = el('text', { class: 'messaggio-scoperta', x: 800, y: perBambini ? 400 : 610, 'text-anchor': 'middle', 'font-size': 34, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fff4ca', stroke: '#3a1d10', 'stroke-width': 6, 'paint-order': 'stroke', 'pointer-events': 'none' }, svg);
     messaggioScoperta.textContent = 'Un pizzico di magia...';
     // Luce, raggi, coriandoli e scintille non si toccano: coprivano anche il libretto della ricetta e aprivano il pacco
     el('ellipse', { class: 'luce-regalo', cx: 0, cy: -170, rx: 260, ry: 220, fill: 'url(#luce-regalo)', 'pointer-events': 'none' }, regalo);
@@ -6548,6 +6556,36 @@ function creaInterno({ onScarta, onEsci }) {
         el('path', { d: 'M0 -192 q 70 -60 80 -20 q 6 30 -80 20 Z' }, fiocco),
         el('circle', { cx: 0, cy: -194, r: 13 }, fiocco)
     ];
+
+    // Per i bambini: una zona da toccare più larga della scatola, il cartello e la manina che la indica
+    let cartello = null, manina = null;
+    if (perBambini) {
+        invito.remove();
+        el('rect', { class: 'tocco-regalo', x: -150, y: -250, width: 300, height: 270, fill: 'transparent' }, scatola);
+        cartello = Object.assign(document.createElement('button'), { type: 'button', className: 'cartello-regalo', textContent: 'Clicca qui per aprire il regalo' });
+        manina = Object.assign(document.createElement('span'), { className: 'manina-regalo', textContent: '👉', ariaHidden: 'true' });
+        cartello.addEventListener('click', () => scarta());
+        manina.addEventListener('click', () => scarta());
+        nodo.append(cartello, manina);
+        // Cartello sopra la scatola e manina alla sua sinistra, ovunque finisca il disegno sullo schermo
+        const posiziona = () => {
+            if (nodo.hidden) return;
+            const fuori = nodo.getBoundingClientRect();
+            const box = scatola.getBoundingClientRect();
+            if (!box.width) return;
+            // Stretto come la scatola, per lasciare libere la finestra e il camino
+            cartello.style.left = `${box.left - fuori.left + box.width / 2}px`;
+            cartello.style.maxWidth = `${Math.max(230, box.width * 1.5)}px`;
+            // Se sotto c'è tanto pavimento (telefono in verticale) va sotto, sennò sopra la scatola
+            const sotto = fuori.bottom - box.bottom > 200;
+            cartello.classList.toggle('sotto', sotto);
+            cartello.style.top = `${sotto ? box.bottom - fuori.top + 14 : Math.max(56, box.top - fuori.top - 8)}px`;
+            manina.style.left = `${box.left - fuori.left - 6}px`;
+            manina.style.top = `${box.top - fuori.top + box.height * 0.62}px`;
+        };
+        new ResizeObserver(posiziona).observe(nodo);
+        nodo.posizionaCartello = posiziona;
+    }
 
     let scartato = false;
     let giornoMostrato = null;
@@ -6616,9 +6654,11 @@ function creaInterno({ onScarta, onEsci }) {
             [nastroBase, nastroCoperchio, ...anelli].forEach(parte => parte.setAttribute('fill', nastro));
             data.textContent = `${giorno} dicembre`;
             ricettario.nascondi();
-            tavolino.mostra(giorno);
             quadro.mostra(giorno);
-            personaggio.mostra(giorno);
+            if (!perBambini) {
+                tavolino.mostra(giorno);
+                personaggio.mostra(giorno);
+            }
             // Ogni volta che si entra, il gatto ricomincia la sua storia dall'inizio
             chiudiFumettoGatto();
             fraseGatto = 0;
@@ -6630,6 +6670,7 @@ function creaInterno({ onScarta, onEsci }) {
             nodo.hidden = false;
             requestAnimationFrame(() => {
                 nodo.classList.add('visibile');
+                nodo.posizionaCartello?.();
                 regalo.focus({ preventScroll: true });
             });
         },
@@ -8260,7 +8301,7 @@ function momentoDiAdesso(adesso = new Date()) {
     return 'notte';
 }
 
-export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {} }) {
+export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {}, perBambini = false }) {
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -8290,7 +8331,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             aggiornaStato();
             onApri(giorno);
         },
-        onEsci: () => esciDallaCasa()
+        onEsci: () => esciDallaCasa(),
+        perBambini
     });
     const sala = creaSala({ onParti: guida => parti(guida), benvenuto });
     const bancone = creaBancone({ onEsci: () => tornaAlMercato(bancone) });
@@ -8306,6 +8348,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         sceltaNellaStalla = true;
     } });
     const cucina = creaCucinaNatale({
+        perBambini,
         onTocco: () => onTocco(),
         // Babbo Natale consegna l'ultimo dono: è la sorpresa del 24
         onDono: () => {
