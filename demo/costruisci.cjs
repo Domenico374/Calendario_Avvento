@@ -13,10 +13,10 @@ const progetto = path.join(__dirname, '..');
 const desktop = path.join(os.homedir(), 'OneDrive', 'Desktop');
 
 let js = leggi(path.join(progetto, 'villaggio.js'));
-const firma = "export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {} }) {";
+const firma = "export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {}, perBambini = false, giochi = null }) {";
 const fine = '        // Solo per le prove: sposta la vista in un punto del paese\n        centraSu\n';
 if (!js.includes(firma) || !js.includes(fine)) throw new Error('villaggio.js è cambiato: aggiorna lo script');
-js = js.replace(firma, 'function creaVillaggio(contenitore, opzioni) {\n    let { aperti } = opzioni;\n    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = "", lettere = [], onLettera = async () => {}, destinatario = "", letteraBabbo = "", onChiudiDono = () => {} } = opzioni;');
+js = js.replace(firma, 'function creaVillaggio(contenitore, opzioni) {\n    let { aperti } = opzioni;\n    let { viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = "", lettere = [], onLettera = async () => {}, destinatario = "", letteraBabbo = "", onChiudiDono = () => {}, perBambini = false, giochi = null } = opzioni;');
 js = js.replace(fine, '        centraSu,\n        // Nella demo il giorno si cambia con il cursore\n        impostaOggi(giorno) {\n            aperti = giorno;\n            aggiornaStato();\n            const casa = mondo.querySelector(`.casa[data-giorno="${giorno}"]`);\n            centraSu(casa ? Number(casa.dataset.x) : PIAZZA.x);\n        }\n');
 
 let css = leggi(path.join(progetto, 'style.css'));

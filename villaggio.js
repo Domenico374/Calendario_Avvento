@@ -2702,7 +2702,7 @@ const PATTINATORI_PISTA = [
     { giacca: '#8e2433', pantaloni: '#2c3e66', cappello: '#f4d03f', sciarpa: '#2e7d5b', pelle: '#f2d2bd', velocita: 0.31, fase: 3.8 }
 ];
 
-function creaPalaghiaccio({ onEsci }) {
+function creaPalaghiaccio({ onEsci, perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno pista', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro il palazzetto del ghiaccio: la pista con i pattinatori' });
     const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
@@ -2876,10 +2876,13 @@ function creaPalaghiaccio({ onEsci }) {
         return ferma ? spegni() : accendi();
     });
     // Il tour del palazzetto con Brina, l'elfa istruttrice
-    const tour = creaTourGhiaccio(nodo);
-    const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-tour-ghiaccio', textContent: '⛸ Fai il tour con l\'elfa' });
-    nodo.append(bottoneTour);
-    bottoneTour.addEventListener('click', () => tour.apri());
+    // (per i bambini no: tengono solo Fiocco come guida)
+    if (!perBambini) {
+        const tour = creaTourGhiaccio(nodo);
+        const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-tour-ghiaccio', textContent: '⛸ Fai il tour con l\'elfa' });
+        nodo.append(bottoneTour);
+        bottoneTour.addEventListener('click', () => tour.apri());
+    }
 
     return {
         nodo,
@@ -4617,7 +4620,7 @@ function disegnaSignoraNatale(genitore, x, y, k) {
     return g;
 }
 
-function creaCucinaNatale({ onDono, onFine, onTocco }) {
+function creaCucinaNatale({ onDono, onFine, onTocco, perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno cucina-natale', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Nella cucina della casa di Babbo Natale' });
     const fumetto = Object.assign(document.createElement('div'), { className: 'guida-fumetto fumetto-cucina' });
@@ -4627,6 +4630,16 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
     const bottoni = Object.assign(document.createElement('div'), { className: 'guida-bottoni' });
     const azione = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-avanti' });
     bottoni.append(azione);
+    // Per i bambini: il pulsante per riascoltare, solo se c'è una voce italiana
+    const ascolta = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-ascolta', textContent: '🔊', hidden: true });
+    ascolta.setAttribute('aria-label', 'Ascolta di nuovo');
+    let ultimaFrase = null;
+    if (perBambini) {
+        bottoni.prepend(ascolta);
+        ascolta.addEventListener('click', () => { if (ultimaFrase) leggiAiBambini(...ultimaFrase); });
+        // Le voci del dispositivo a volte arrivano dopo: si chiedono subito
+        try { window.speechSynthesis?.getVoices(); } catch { /* niente voce */ }
+    }
     const testa = document.createElement('div');
     testa.append(nome, testo);
     fumetto.append(faccia, testa, bottoni);
@@ -4754,6 +4767,11 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
         testo.textContent = frase;
         azione.textContent = bottone;
         azione.focus({ preventScroll: true });
+        if (perBambini) {
+            // Babbo Natale con la voce più bassa, la signora più alta
+            ultimaFrase = [frase, chi === BABBO ? 0.8 : 1.15];
+            ascolta.hidden = !leggiAiBambini(...ultimaFrase);
+        }
     }
     azione.addEventListener('click', () => {
         passo++;
@@ -4764,12 +4782,13 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
             setTimeout(() => {
                 nodo.classList.add('arriva-babbo');
                 porta.classList.add('aperta');
-                dice(BABBO, 'Ho, ho, ho! Eccoti finalmente! Ho tenuto per te l\'ultimo dono, il più speciale di tutti.', '🎁 Apri l\'ultimo dono');
+                dice(BABBO, 'Ho, ho, ho! Eccoti finalmente! Ho tenuto per te l\'ultimo dono, il più speciale di tutti.', perBambini ? '🎁 Clicca qui per aprire il regalo' : '🎁 Apri l\'ultimo dono');
             }, 1600);
         } else if (passo === 2) {
             onDono();
             dice(BABBO, 'Buon Natale! Grazie per aver fatto tutto il viaggio nel mio villaggio. Ora usciamo: guarda che sorpresa nel cielo…', '✨ Esci a vedere il cielo');
         } else if (passo === 3) {
+            zittisci();
             onFine();
         }
     });
@@ -4786,8 +4805,47 @@ function creaCucinaNatale({ onDono, onFine, onTocco }) {
             requestAnimationFrame(() => nodo.classList.add('visibile'));
         },
         nascondi() {
+            if (perBambini) zittisci();
             nodo.classList.remove('visibile');
             nodo.hidden = true;
+        }
+    };
+}
+
+// La stanza dei giochi per bambini: il gioco (una pagina a sé) dentro una finestra, sotto una barra
+// con "Torna al villaggio". Ogni gioco è { src } (un file del sito) oppure { html } (la demo senza internet)
+function creaStanzaGioco({ onEsci, onMessaggio = () => {} }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno stanza-gioco', hidden: true });
+    const barra = Object.assign(document.createElement('div'), { className: 'barra-gioco' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    const cornice = Object.assign(document.createElement('iframe'), { className: 'cornice-gioco', title: 'Gioco' });
+    barra.append(esci);
+    nodo.append(barra, cornice);
+    esci.addEventListener('click', () => onEsci());
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+    // Il gioco può chiedere cose al villaggio (per esempio spedire la letterina): solo dalla sua cornice
+    window.addEventListener('message', evento => {
+        if (!cornice.contentWindow || evento.source !== cornice.contentWindow || !evento.data || typeof evento.data !== 'object') return;
+        onMessaggio(evento.data, risposta => cornice.contentWindow?.postMessage(risposta, '*'));
+    });
+    return {
+        nodo,
+        mostra(gioco, titolo) {
+            cornice.title = titolo;
+            if (gioco.html) cornice.srcdoc = gioco.html;
+            else cornice.src = gioco.src;
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+            // Svuotare la cornice ferma il gioco
+            cornice.removeAttribute('srcdoc');
+            cornice.src = 'about:blank';
         }
     };
 }
@@ -5419,6 +5477,17 @@ const BENVENUTO = [
 
 // L'annuncio dell'altoparlante: il din-don della stazione e poi una voce che dà il benvenuto
 const ANNUNCIO = 'Benvenuti al nostro villaggio! Fuori troverete i nostri elfi, che vi faranno fare il tour.';
+// Per i bambini non c'è il tour: resta solo il benvenuto
+const ANNUNCIO_BAMBINI = 'Benvenuti al nostro villaggio!';
+// Per i bambini nelle case non ci sono i dolci: resta solo la parte sui regali
+const BENVENUTO_BAMBINI = [
+    'Qua inizia il vostro viaggio:',
+    'in ogni casa troverete',
+    'i regali, fino ad arrivare',
+    'alla casa di Babbo Natale.',
+    'Siete pronti a iniziare',
+    'questo meraviglioso viaggio?'
+];
 function suonaDinDon() {
     const Contesto = window.AudioContext || window.webkitAudioContext;
     if (!Contesto) return Promise.resolve();
@@ -5563,6 +5632,36 @@ function leggiAnnuncio(testo) {
     sintesi.speak(frase);
 }
 
+// La voce per i bambini: legge solo se sul dispositivo c'è una voce italiana.
+// Senza, resta il silenzio e il testo scritto (restituisce false)
+function voceItaliana() {
+    const sintesi = window.speechSynthesis;
+    if (!sintesi || !window.SpeechSynthesisUtterance) return null;
+    const voci = sintesi.getVoices().filter(v => v.lang?.toLowerCase().replace('_', '-').startsWith('it'));
+    return voci.find(v => /alice|elsa|federica|isabella|female|donna/i.test(v.name)) ?? voci[0] ?? null;
+}
+
+function leggiAiBambini(testo, tono = 1) {
+    try {
+        const voce = voceItaliana();
+        if (!voce) return false;
+        window.speechSynthesis.cancel();
+        const frase = new SpeechSynthesisUtterance(testo);
+        frase.voice = voce;
+        frase.lang = voce.lang;
+        frase.rate = 0.9;
+        frase.pitch = tono;
+        window.speechSynthesis.speak(frase);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function zittisci() {
+    try { window.speechSynthesis?.cancel(); } catch { /* niente voce */ }
+}
+
 // Va a capo tra le parole, rispettando gli a capo scritti da chi prepara il calendario
 function avvolgiTesto(testo, massimo) {
     const righe = [];
@@ -5591,7 +5690,7 @@ function capelliElfa(elfo, capelli) {
     el('circle', { cx: 21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
 }
 
-function creaSala({ onParti, benvenuto = '' }) {
+function creaSala({ onParti, benvenuto = '', perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
     // Si sceglie chi fa da guida nel tour in slitta
@@ -5599,9 +5698,13 @@ function creaSala({ onParti, benvenuto = '' }) {
     const domanda = Object.assign(document.createElement('p'), { className: 'domanda-guida', textContent: 'Chi ti accompagna sulla slitta?' });
     const conElfo = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: `${GUIDE_TOUR.elfo.icona} Parto con ${GUIDE_TOUR.elfo.nome}` });
     const conElfa = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: `${GUIDE_TOUR.elfa.icona} Parto con ${GUIDE_TOUR.elfa.nome}` });
-    partenze.append(domanda, conElfo, conElfa);
+    // Per i bambini non si sceglie la guida e non c'è il tour: c'è solo il pulsante per tornare al villaggio
+    const esciSala = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '← Torna al villaggio' });
+    if (perBambini) partenze.append(esciSala);
+    else partenze.append(domanda, conElfo, conElfa);
+    const testoAnnuncio = perBambini ? ANNUNCIO_BAMBINI : ANNUNCIO;
     // La scritta dell'annuncio, per chi ha l'audio spento
-    const annuncio = Object.assign(document.createElement('p'), { className: 'annuncio-stazione', textContent: `📢 ${ANNUNCIO}` });
+    const annuncio = Object.assign(document.createElement('p'), { className: 'annuncio-stazione', textContent: `📢 ${testoAnnuncio}` });
     annuncio.setAttribute('role', 'status');
     nodo.append(svg, annuncio, partenze);
     let timerAnnuncio = null, voltaAnnuncio = 0;
@@ -5614,14 +5717,15 @@ function creaSala({ onParti, benvenuto = '' }) {
         annuncio.classList.add('si-vede');
         try {
             await suonaDinDon();
-            if (volta === voltaAnnuncio && !nodo.hidden) leggiAnnuncio(ANNUNCIO);
+            if (volta === voltaAnnuncio && !nodo.hidden) leggiAnnuncio(testoAnnuncio);
         } catch { /* senza audio resta la scritta */ }
         timerAnnuncio = setTimeout(() => annuncio.classList.remove('si-vede'), 9000);
     }
     // Si ricorda con chi si è partiti l'ultima volta (se il browser lo permette)
     let preferita = 'elfo';
     try { preferita = localStorage.getItem('villaggio_guida') === 'elfa' ? 'elfa' : 'elfo'; } catch { /* si parte da Fiocco */ }
-    const parti = preferita === 'elfa' ? conElfa : conElfo;
+    const parti = perBambini ? esciSala : preferita === 'elfa' ? conElfa : conElfo;
+    esciSala.addEventListener('click', () => onParti(null));
     const scegli = chi => {
         try { localStorage.setItem('villaggio_guida', chi); } catch { /* la scelta vale solo per questa visita */ }
         onParti(chi);
@@ -5770,7 +5874,7 @@ function creaSala({ onParti, benvenuto = '' }) {
         testoCartellone.replaceChildren();
         const proprio = (testo ?? '').trim();
         if (!proprio) {
-            BENVENUTO.forEach((riga, i) => {
+            (perBambini ? BENVENUTO_BAMBINI : BENVENUTO).forEach((riga, i) => {
                 el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, testoCartellone).textContent = riga;
             });
             return;
@@ -5876,14 +5980,17 @@ function creaSala({ onParti, benvenuto = '' }) {
     panca(420);
     panca(1180);
     // Sulle panchine aspettano le due guide: a sinistra Fiocco, a destra Brina. Toccarle è come premere il loro pulsante
-    [['elfo', 420, conElfo], ['elfa', 1180, conElfa]].forEach(([chi, px, bottone]) => {
+    // Per i bambini sulla panchina c'è solo Fiocco, che saluta (non è un pulsante)
+    (perBambini ? [['elfo', 420, null]] : [['elfo', 420, conElfo], ['elfa', 1180, conElfa]]).forEach(([chi, px, bottone]) => {
         const guida = GUIDE_TOUR[chi];
-        const posto = el('g', { class: 'elfo-panchina', role: 'button', 'aria-label': `Parto con ${guida.nome}` }, svg);
+        const posto = bottone
+            ? el('g', { class: 'elfo-panchina', role: 'button', 'aria-label': `Parto con ${guida.nome}` }, svg)
+            : el('g', { class: 'elfo-panchina solo-saluta' }, svg);
         const respiro = el('g', { class: 'respiro-elfo' }, posto);
         const elfo = disegnaElfo(respiro, px, 736 + 32 * 1.5, 1.5, { giacca: guida.giacca, cappello: guida.cappello, capelli: guida.capelli });
         if (guida.amica) capelliElfa(elfo, guida.capelli);
         elfo.braccio.classList.add('saluta');
-        posto.addEventListener('click', () => bottone.click());
+        if (bottone) posto.addEventListener('click', () => bottone.click());
     });
     fiocco(300, 668, 0.8);
     fiocco(1060, 668, 0.8);
@@ -6117,7 +6224,8 @@ const CARTE_REGALO = [
 ];
 
 // Il salotto con il camino, dove si scarta il regalo del giorno
-function creaInterno({ onScarta, onEsci }) {
+// perBambini: niente gatto, dolce, personaggio e ricetta; il regalo è grande, al centro, con il cartello e la manina
+function creaInterno({ onScarta, onEsci, perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Il salotto della casa, con il camino acceso e un regalo' });
     const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
@@ -6389,6 +6497,13 @@ function creaInterno({ onScarta, onEsci }) {
     el('rect', { x: -112, y: -78, width: 224, height: 72, rx: 14, fill: '#8e2b2b' }, poltrona);
     el('rect', { x: -96, y: -92, width: 192, height: 30, rx: 14, fill: '#a33a3a' }, poltrona);
     const personaggio = creaPersonaggio(poltrona);
+    // Per i bambini la stanza resta tranquilla: il regalo è l'unica cosa da toccare
+    if (perBambini) {
+        gatto.remove();
+        svg.querySelector('.tavolino-ricetta')?.remove();
+        nodo.querySelector('.scheda-ricetta')?.remove();
+        personaggio.posto.remove();
+    }
     [-1, 1].forEach(verso => {
         el('rect', { x: verso > 0 ? 96 : -136, y: -128, width: 40, height: 122, rx: 18, fill: '#6f1b22' }, poltrona);
         el('rect', { x: verso > 0 ? 96 : -136, y: -128, width: 40, height: 122, rx: 18, fill: 'url(#cilindro)' }, poltrona);
@@ -6483,8 +6598,8 @@ function creaInterno({ onScarta, onEsci }) {
     const invito = el('text', { class: 'invito', x: 800, y: 530, 'text-anchor': 'middle', 'font-size': 40, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#ffe9a8', stroke: '#3a1d10', 'stroke-width': 7, 'paint-order': 'stroke', 'stroke-linejoin': 'round' }, svg);
     invito.textContent = 'Clicca il regalo per aprirlo';
 
-    const regalo = el('g', { class: 'regalo', transform: 'translate(800 800)', tabindex: 0, role: 'button', 'aria-label': 'Apri il regalo' }, svg);
-    const messaggioScoperta = el('text', { class: 'messaggio-scoperta', x: 800, y: 610, 'text-anchor': 'middle', 'font-size': 34, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fff4ca', stroke: '#3a1d10', 'stroke-width': 6, 'paint-order': 'stroke', 'pointer-events': 'none' }, svg);
+    const regalo = el('g', { class: 'regalo', transform: perBambini ? 'translate(800 770) scale(1.5)' : 'translate(800 800)', tabindex: 0, role: 'button', 'aria-label': 'Apri il regalo' }, svg);
+    const messaggioScoperta = el('text', { class: 'messaggio-scoperta', x: 800, y: perBambini ? 400 : 610, 'text-anchor': 'middle', 'font-size': perBambini ? 64 : 34, 'font-weight': 'bold', 'font-family': 'Georgia, serif', fill: '#fff4ca', stroke: '#3a1d10', 'stroke-width': 6, 'paint-order': 'stroke', 'pointer-events': 'none' }, svg);
     messaggioScoperta.textContent = 'Un pizzico di magia...';
     // Luce, raggi, coriandoli e scintille non si toccano: coprivano anche il libretto della ricetta e aprivano il pacco
     el('ellipse', { class: 'luce-regalo', cx: 0, cy: -170, rx: 260, ry: 220, fill: 'url(#luce-regalo)', 'pointer-events': 'none' }, regalo);
@@ -6549,6 +6664,45 @@ function creaInterno({ onScarta, onEsci }) {
         el('circle', { cx: 0, cy: -194, r: 13 }, fiocco)
     ];
 
+    // Per i bambini: una zona da toccare più larga della scatola, il cartello e la manina che la indica
+    let cartello = null, manina = null;
+    if (perBambini) {
+        invito.remove();
+        el('rect', { class: 'tocco-regalo', x: -150, y: -250, width: 300, height: 270, fill: 'transparent' }, scatola);
+        cartello = Object.assign(document.createElement('button'), { type: 'button', className: 'cartello-regalo', textContent: 'Clicca qui per aprire il regalo' });
+        manina = Object.assign(document.createElement('span'), { className: 'manina-regalo', textContent: '👉', ariaHidden: 'true' });
+        cartello.addEventListener('click', () => scarta());
+        manina.addEventListener('click', () => scarta());
+        nodo.append(cartello, manina);
+        // Cartello sopra la scatola e manina alla sua sinistra, ovunque finisca il disegno sullo schermo
+        const posiziona = () => {
+            if (nodo.hidden) return;
+            const fuori = nodo.getBoundingClientRect();
+            const box = scatola.getBoundingClientRect();
+            if (!box.width) return;
+            // Telefono in orizzontale (schermo basso): accanto alla scatola, così non copre il quadro con la data
+            const basso = matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+            // Se sotto c'è tanto pavimento (telefono in verticale) va sotto, sennò sopra la scatola
+            const sotto = !basso && fuori.bottom - box.bottom > 200;
+            cartello.classList.toggle('accanto', basso);
+            cartello.classList.toggle('sotto', sotto);
+            if (basso) {
+                cartello.style.left = `${box.right - fuori.left + 12}px`;
+                cartello.style.maxWidth = `${Math.max(150, Math.min(250, fuori.right - box.right - 24))}px`;
+                cartello.style.top = `${box.top - fuori.top + box.height * 0.45}px`;
+            } else {
+                // Stretto come la scatola, per lasciare libere la finestra e il camino
+                cartello.style.left = `${box.left - fuori.left + box.width / 2}px`;
+                cartello.style.maxWidth = `${Math.max(230, box.width * 1.5)}px`;
+                cartello.style.top = `${sotto ? box.bottom - fuori.top + 14 : Math.max(56, box.top - fuori.top - 8)}px`;
+            }
+            manina.style.left = `${box.left - fuori.left - 6}px`;
+            manina.style.top = `${box.top - fuori.top + box.height * 0.62}px`;
+        };
+        new ResizeObserver(posiziona).observe(nodo);
+        nodo.posizionaCartello = posiziona;
+    }
+
     let scartato = false;
     let giornoMostrato = null;
     let timersRegalo = [];
@@ -6565,14 +6719,35 @@ function creaInterno({ onScarta, onEsci }) {
         sessioneRegalo++;
         timersRegalo.forEach(clearTimeout);
         timersRegalo = [];
-        nodo.classList.remove('scartato', 'trema', 'regalo-in-attesa', 'rivelazione-completata');
+        nodo.classList.remove('scartato', 'trema', 'regalo-in-attesa', 'rivelazione-completata', 'evviva');
         messaggioScoperta.classList.remove('visibile');
+    }
+    // Per i bambini: "Evviva!" con le stelline e i coriandoli del regalo, poi la sorpresa
+    function scartaPerBambini() {
+        messaggioScoperta.textContent = 'Evviva! 🎉';
+        if (movimentoRidotto()) {
+            nodo.classList.add('scartato', 'evviva');
+            messaggioScoperta.classList.add('visibile');
+            programmaRegalo(() => onScarta(giornoMostrato), 1100);
+            return;
+        }
+        nodo.classList.add('trema', 'regalo-in-attesa');
+        programmaRegalo(() => {
+            nodo.classList.remove('trema', 'regalo-in-attesa');
+            nodo.classList.add('scartato', 'evviva');
+            messaggioScoperta.classList.add('visibile');
+        }, 160);
+        programmaRegalo(() => {
+            nodo.classList.add('rivelazione-completata');
+            onScarta(giornoMostrato);
+        }, 1500);
     }
     function scarta() {
         if (scartato) return;
         scartato = true;
         regalo.setAttribute('aria-disabled', 'true');
         suonaMeraviglia();
+        if (perBambini) return scartaPerBambini();
         if (movimentoRidotto()) {
             nodo.classList.add('scartato');
             programmaRegalo(() => onScarta(giornoMostrato), 350);
@@ -6616,9 +6791,11 @@ function creaInterno({ onScarta, onEsci }) {
             [nastroBase, nastroCoperchio, ...anelli].forEach(parte => parte.setAttribute('fill', nastro));
             data.textContent = `${giorno} dicembre`;
             ricettario.nascondi();
-            tavolino.mostra(giorno);
             quadro.mostra(giorno);
-            personaggio.mostra(giorno);
+            if (!perBambini) {
+                tavolino.mostra(giorno);
+                personaggio.mostra(giorno);
+            }
             // Ogni volta che si entra, il gatto ricomincia la sua storia dall'inizio
             chiudiFumettoGatto();
             fraseGatto = 0;
@@ -6630,6 +6807,7 @@ function creaInterno({ onScarta, onEsci }) {
             nodo.hidden = false;
             requestAnimationFrame(() => {
                 nodo.classList.add('visibile');
+                nodo.posizionaCartello?.();
                 regalo.focus({ preventScroll: true });
             });
         },
@@ -8260,7 +8438,7 @@ function momentoDiAdesso(adesso = new Date()) {
     return 'notte';
 }
 
-export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {} }) {
+export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {}, perBambini = false, giochi = null }) {
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -8290,15 +8468,58 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             aggiornaStato();
             onApri(giorno);
         },
-        onEsci: () => esciDallaCasa()
+        onEsci: () => esciDallaCasa(),
+        perBambini
     });
-    const sala = creaSala({ onParti: guida => parti(guida), benvenuto });
+    const sala = creaSala({ onParti: guida => parti(guida), benvenuto, perBambini });
     const bancone = creaBancone({ onEsci: () => tornaAlMercato(bancone) });
     const mercato = creaMercato({ onEsci: () => esciDalMercato(), onCasetta: tipo => apriCasetta(tipo) });
     const sartoria = creaSartoria({ onEsci: () => tornaAlMercato(sartoria), onTocco: () => onTocco() });
     const parco = creaParco({ onEsci: () => esciDalParco(), onTocco: () => onTocco() });
+    // Solo per i bambini: i giochi prendono il posto di alcune stanze
+    let giocoAperto = null;
+    const stanzaGioco = giochi ? creaStanzaGioco({ onEsci: () => esciDalGioco(), onMessaggio: (messaggio, rispondi) => rispondiAlGioco(messaggio, rispondi) }) : null;
+    const TITOLI_GIOCHI = { pupazzo: 'Costruiamo un amico di neve', parco: 'Il Parco del Polo Nord', stalla: 'La stalla di Cometa', laboratorio: 'Il laboratorio di Fiocco', posta: "L'ufficio postale di Fiocco" };
+    // L'ufficio postale dei bambini: riceve la letterina di Babbo Natale scritta da chi prepara
+    // e spedisce davvero quella del bambino (a chi ha preparato il calendario)
+    async function rispondiAlGioco(messaggio, rispondi) {
+        if (giocoAperto !== 'posta') return;
+        if (messaggio.tipo === 'posta-pronta') rispondi({ tipo: 'posta-dati', letteraBabbo: (letteraBabbo ?? '').trim(), destinatario });
+        if (messaggio.tipo === 'lettera' && typeof messaggio.testo === 'string') {
+            let ok = false;
+            try {
+                await onLettera(messaggio.testo.slice(0, 1000), destinatario ?? '');
+                ok = true;
+            } catch { /* niente rete o errore: il gioco tiene la letterina e riprova */ }
+            rispondi({ tipo: 'lettera-esito', id: messaggio.id, ok });
+        }
+    }
+    const conGioco = nome => Boolean(giochi?.[nome]);
+    function entraNelGioco(nome) {
+        giocoAperto = nome;
+        entraDentro(stanzaGioco, giochi[nome], TITOLI_GIOCHI[nome] ?? 'Gioco');
+    }
+    function esciDalGioco() {
+        const nome = giocoAperto;
+        giocoAperto = null;
+        stanzaGioco.nascondi();
+        // All'uscita si fa come uscendo dalla stanza vera: il tour, se c'è, va avanti
+        if (nome === 'pupazzo') esciDalGiardino();
+        else if (nome === 'parco') esciDalParco();
+        else if (nome === 'stalla') {
+            // Per i bambini la renna è sempre Cometa: dopo il gioco tira lei la slitta
+            scegliRenna('cometa');
+            sceltaNellaStalla = true;
+            esciDalQuartiere(stalla);
+        } else if (nome === 'laboratorio') esciDalQuartiere(laboratorio);
+        else if (nome === 'posta') esciDalQuartiere(posta);
+        else {
+            torna();
+            adattaVista();
+        }
+    }
     const giardinoPupazzo = creaPupazzoDiNeve({ onEsci: () => esciDalGiardino(), onTocco: () => onTocco() });
-    const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
+    const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista(), perBambini });
     const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
     const laboratorio = creaLaboratorio({ onEsci: () => esciDalQuartiere(laboratorio) });
     const stalla = creaStalla({ onEsci: () => esciDalQuartiere(stalla), onTocco: () => onTocco(), onScegliRenna: nome => {
@@ -8306,6 +8527,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         sceltaNellaStalla = true;
     } });
     const cucina = creaCucinaNatale({
+        perBambini,
         onTocco: () => onTocco(),
         // Babbo Natale consegna l'ultimo dono: è la sorpresa del 24
         onDono: () => {
@@ -8334,6 +8556,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
     contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo, mercato.nodo, sartoria.nodo, parco.nodo, giardinoPupazzo.nodo);
+    if (stanzaGioco) contenitore.append(stanzaGioco.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {
@@ -8640,8 +8863,14 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         const [, x, y, s] = edificio.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         await avvicinaAlPunto(x, y - 60 * s, 170 * s, 800);
-        if (edificio.classList.contains('posta')) entraDentro(posta);
+        // Per i bambini, all'ufficio postale c'è il gioco di Fiocco
+        if (edificio.classList.contains('posta') && conGioco('posta')) entraNelGioco('posta');
+        else if (edificio.classList.contains('posta')) entraDentro(posta);
+        // Per i bambini, nel laboratorio c'è il gioco di Fiocco
+        else if (edificio.classList.contains('laboratorio') && conGioco('laboratorio')) entraNelGioco('laboratorio');
         else if (edificio.classList.contains('laboratorio')) entraDentro(laboratorio);
+        // Per i bambini, nella stalla c'è il gioco con Cometa (anche la notte del 24)
+        else if (conGioco('stalla')) entraNelGioco('stalla');
         // La notte del 24 le renne sono partite con la slitta
         else entraDentro(stalla, !modifica && aperti >= 24);
         inApertura = false;
@@ -8727,7 +8956,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         const [, x, y, s] = recinto.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         await avvicinaAlPunto(x, y - 60 * s, 220 * s, 800);
-        entraDentro(parco);
+        if (conGioco('parco')) entraNelGioco('parco');
+        else entraDentro(parco);
         inApertura = false;
     }
     async function entraNelGiardino(pupazzo) {
@@ -8737,7 +8967,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         const [, x, y, s] = pupazzo.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         await avvicinaAlPunto(x, y - 50 * s, 120 * s, 800);
-        entraDentro(giardinoPupazzo);
+        if (conGioco('pupazzo')) entraNelGioco('pupazzo');
+        else entraDentro(giardinoPupazzo);
         inApertura = false;
     }
     function esciDalGiardino() {
@@ -8927,6 +9158,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         facciaGuida.textContent = '🤶';
         nomeGuida.textContent = 'La signora Natale';
         testoGuida.textContent = 'Che bello vederti qui! Hai fatto tutto il viaggio fino alla nostra casa… Entra, ti ho preparato una cioccolata calda!';
+        if (perBambini) ascoltaGuida.hidden = !leggiAiBambini(testoGuida.textContent, 1.15);
         entraGuida.hidden = true;
         conCometa.hidden = true;
         conRudolph.hidden = true;
@@ -8943,6 +9175,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         if (inApertura || !casaFinale) return;
         inApertura = true;
         fumettoGuida.hidden = true;
+        ascoltaGuida.hidden = true;
         modoFumetto = 'tour';
         onTocco();
         await avvicinaA(casaFinale, 900);
@@ -8968,6 +9201,13 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const conCometa = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-avanti', textContent: '✨ Cometa' });
     const conRudolph = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-avanti', textContent: '🔴 Rudolph' });
     bottoniGuida.append(entraGuida, conCometa, conRudolph, avantiGuida, saltaGuida);
+    // Per i bambini: alla porta del 24 la signora Natale legge il fumetto, con il pulsante per riascoltare
+    const ascoltaGuida = Object.assign(document.createElement('button'), { type: 'button', className: 'guida-ascolta', textContent: '🔊', hidden: true });
+    ascoltaGuida.setAttribute('aria-label', 'Ascolta di nuovo');
+    if (perBambini) {
+        bottoniGuida.prepend(ascoltaGuida);
+        ascoltaGuida.addEventListener('click', () => leggiAiBambini(testoGuida.textContent, 1.15));
+    }
     const testaFumetto = document.createElement('div');
     testaFumetto.append(nomeGuida, testoGuida);
     fumettoGuida.append(facciaGuida, testaFumetto, bottoniGuida);
@@ -9041,9 +9281,12 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         { edificio: '.stalla', testo: "Ed ecco la stalla delle renne! Ora scegli chi tirerà la tua slitta per andare di casa in casa: Cometa, la più veloce, o Rudolph, col naso che illumina la notte?", scelta: true }
     ];
 
+    const TESTO_STALLA_BAMBINI = 'Ed ecco la stalla delle renne! Entra a conoscere Cometa: sarà lei a tirare la tua slitta di casa in casa!';
+
     let modoFumetto = 'tour';
     function parla(testo, { entra = false, ultima = false, scelta = false } = {}) {
         modoFumetto = 'tour';
+        ascoltaGuida.hidden = true;
         testoGuida.textContent = testo;
         entraGuida.hidden = !entra;
         conCometa.hidden = !scelta;
@@ -9065,7 +9308,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             paese3D?.guarda(edificio, TAPPE_SLITTA[tappaTour].largo ? { distanza: 23 } : {});
             const arrivo = (edificio.dataset.cx ? Number(edificio.dataset.cx) : Number(edificio.getAttribute('transform').match(/translate\(([\d.-]+)/)[1])) - 90;
             await viaggioSlitta(arrivo, Math.min(5200, Math.max(2600, Math.abs(arrivo - xSlitta) * 3)));
-            parla(TAPPE_SLITTA[tappaTour].testo, { entra: true, scelta: Boolean(TAPPE_SLITTA[tappaTour].scelta) });
+            const tappa = TAPPE_SLITTA[tappaTour];
+            // Per i bambini la renna è sempre Cometa: nella stalla si entra a giocare con lei, senza scegliere
+            if (tappa.scelta && conGioco('stalla')) parla(TESTO_STALLA_BAMBINI, { entra: true });
+            else parla(tappa.testo, { entra: true, scelta: Boolean(tappa.scelta) });
             return;
         }
         if (tappaTour === TAPPE_SLITTA.length) {
@@ -9144,7 +9390,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         torna();
         sala.nascondi();
         adattaVista();
-        if (guida) return avviaTourSlitta(guida);
+        if (guida && !perBambini) return avviaTourSlitta(guida);
         const casa = mondo.querySelector(`.casa[data-giorno="${Math.max(1, Math.min(aperti, 24))}"]`);
         centraSu(Number(casa?.dataset.x ?? PIAZZA.x));
     }
@@ -9271,7 +9517,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         const banco = evento.target.closest('.bancarella');
         if (banco) return entraNellaBancarella(banco);
         const albero = evento.target.closest('.albero');
-        if (albero) return apriStoria();
+        if (albero) return perBambini ? undefined : apriStoria();
         const giostra = evento.target.closest('.giostra');
         if (giostra) return suonaLaGiostra(giostra);
         const palazzetto = evento.target.closest('.palaghiaccio');
@@ -9393,7 +9639,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             else if (edificio) entraNelQuartiere(edificio);
             else if (giostra) suonaLaGiostra(giostra);
             else if (palazzetto) entraNelPalaghiaccio(palazzetto);
-            else if (albero) apriStoria();
+            else if (albero) { if (!perBambini) apriStoria(); }
             else if (banco) entraNellaBancarella(banco);
             else if (coro) cantaIlCoro(coro);
             else if (stazione) entraInStazione(stazione);
@@ -9451,7 +9697,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     fumettoStoria.addEventListener('keydown', evento => {
         if (evento.key === 'Escape') fumettoStoria.hidden = true;
     });
-    if (alberoPiazza) {
+    if (alberoPiazza && !perBambini) {
         // Il cartellino sta accanto all'albero, non dentro: toccare l'albero fa ancora partire il balletto
         const [, ax, ay, as] = alberoPiazza.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         const cartellino = el('g', { class: 'cartello-storia', transform: `translate(${(ax - 150 * as).toFixed(1)} ${(ay - 150 * as).toFixed(1)}) scale(${(as * 1.2).toFixed(3)})`, tabindex: 0, role: 'button', 'aria-label': 'Scopri la storia dell\'albero di Natale' }, alberoPiazza.parentNode);
@@ -9495,6 +9741,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     };
     TOCCABILI.forEach(({ chiave, selettore, x, y, k }) => {
         if (leggiToccati().includes(chiave)) return;
+        // Per i bambini l'albero non si tocca: niente stellina
+        if (perBambini && chiave === 'balletto') return;
         mondo.querySelectorAll(selettore).forEach((nodo, i) => {
             // Delle renne basta una stellina sulla prima
             if (chiave === 'renne' && i > 0) return;
@@ -9567,7 +9815,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         // Chi arriva per la prima volta viene accompagnato dentro la stazione, a scegliere la guida
         let giaFatto = true;
         try { giaFatto = Boolean(localStorage.getItem('villaggio_tour_fatto')); } catch { /* senza memoria non si insiste */ }
-        if (!modifica && !giaFatto && segui) setTimeout(() => {
+        if (!modifica && !perBambini && !giaFatto && segui) setTimeout(() => {
             if (!inApertura && !contenitore.classList.contains('dentro') && !slittaTour) entraInStazione(mondo.querySelector('.stazione'));
         }, 3500);
         while (contenitore.isConnected) {

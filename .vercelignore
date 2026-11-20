@@ -4,6 +4,8 @@ README.md
 *.html
 !index.html
 !demo.html
+!bimbi.html
+!bimbi-giochi/*.html
 demo
 # Chiavi e file personali: mai sul sito
 key of garden of gratitudine.txt
