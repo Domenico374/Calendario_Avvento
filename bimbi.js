@@ -1,6 +1,6 @@
 // La pagina per i bambini: lo stesso villaggio e lo stesso calendario della pagina per grandi,
 // solo da guardare. Si apre con /bimbi.html?c=CODICE; la chiave di modifica (k) non si usa mai
-import { creaVillaggio } from './villaggio.js?v=20261119-bimbi1';
+import { creaVillaggio } from './villaggio.js?v=20261119-bimbi2';
 
 const ID = new URLSearchParams(location.search).get('c');
 

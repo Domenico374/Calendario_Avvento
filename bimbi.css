@@ -78,3 +78,75 @@
         transition: none;
     }
 }
+
+/* Telefono in orizzontale (schermo basso): il cartello sta accanto alla scatola, a destra */
+.scena .interno .cartello-regalo.accanto {
+    transform: translate(0, -50%);
+    padding: 8px 14px;
+    font-size: clamp(1rem, 5vh, 1.25rem);
+}
+
+/* L'evviva quando il regalo si apre */
+.scena .interno.evviva .messaggio-scoperta {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: evviva-salta 0.6s cubic-bezier(.2, 1.6, .4, 1);
+}
+
+@keyframes evviva-salta {
+    from { transform: scale(0.4); }
+    to { transform: scale(1); }
+}
+
+/* Il pulsante per riascoltare Babbo Natale e la signora Natale */
+.scena .guida-bottoni .guida-ascolta {
+    min-width: 48px;
+    min-height: 44px;
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+/* Telefono in orizzontale (schermo basso): la finestra del regalo sta tutta nello schermo,
+   la foto è più piccola e "Chiudi" resta sempre in vista senza scorrere */
+@media (orientation: landscape) and (max-height: 500px) {
+    .pagina-bimbi .modal-content {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 16px);
+        max-height: calc(100svh - 16px);
+        padding: 10px 18px 0;
+        overflow: hidden;
+    }
+    .pagina-bimbi #modal-titolo {
+        flex: none;
+        margin: 0 0 6px;
+        font-size: 1.5rem;
+    }
+    .pagina-bimbi #modal-corpo {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+    .pagina-bimbi .contenuto-immagine img,
+    .pagina-bimbi .regalo-prova img {
+        width: auto;
+        max-height: 30vh;
+        max-height: 30svh;
+    }
+    .pagina-bimbi .contenuto-video video,
+    .pagina-bimbi .contenuto-video iframe {
+        max-height: 45vh;
+        max-height: 45svh;
+    }
+    .pagina-bimbi .modal-content .azioni {
+        flex: none;
+        margin: 0;
+        padding: 8px 0 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scena .interno.evviva .messaggio-scoperta {
+        animation: none;
+    }
+}
