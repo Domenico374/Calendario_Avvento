@@ -2877,8 +2877,9 @@ function creaPalaghiaccio({ onEsci, perBambini = false }) {
     });
     // Il tour del palazzetto con Brina, l'elfa istruttrice
     // (per i bambini no: tengono solo Fiocco come guida)
+    let tour = null;
     if (!perBambini) {
-        const tour = creaTourGhiaccio(nodo);
+        tour = creaTourGhiaccio(nodo);
         const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-tour-ghiaccio', textContent: '⛸ Fai il tour con l\'elfa' });
         nodo.append(bottoneTour);
         bottoneTour.addEventListener('click', () => tour.apri());
@@ -2902,7 +2903,8 @@ function creaPalaghiaccio({ onEsci, perBambini = false }) {
             fermaIlBalletto();
             menuBalletto.hidden = true;
             spegni();
-            tour.chiudi();
+            // Il tour di Brina c'è solo per i grandi
+            tour?.chiudi();
             cancelAnimationFrame(giro);
             nodo.classList.remove('visibile');
             nodo.hidden = true;
