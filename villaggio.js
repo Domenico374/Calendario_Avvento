@@ -2702,7 +2702,7 @@ const PATTINATORI_PISTA = [
     { giacca: '#8e2433', pantaloni: '#2c3e66', cappello: '#f4d03f', sciarpa: '#2e7d5b', pelle: '#f2d2bd', velocita: 0.31, fase: 3.8 }
 ];
 
-function creaPalaghiaccio({ onEsci }) {
+function creaPalaghiaccio({ onEsci, perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno pista', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Dentro il palazzetto del ghiaccio: la pista con i pattinatori' });
     const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
@@ -2876,10 +2876,13 @@ function creaPalaghiaccio({ onEsci }) {
         return ferma ? spegni() : accendi();
     });
     // Il tour del palazzetto con Brina, l'elfa istruttrice
-    const tour = creaTourGhiaccio(nodo);
-    const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-tour-ghiaccio', textContent: '⛸ Fai il tour con l\'elfa' });
-    nodo.append(bottoneTour);
-    bottoneTour.addEventListener('click', () => tour.apri());
+    // (per i bambini no: tengono solo Fiocco come guida)
+    if (!perBambini) {
+        const tour = creaTourGhiaccio(nodo);
+        const bottoneTour = Object.assign(document.createElement('button'), { type: 'button', className: 'musica-pista bottone-tour-ghiaccio', textContent: '⛸ Fai il tour con l\'elfa' });
+        nodo.append(bottoneTour);
+        bottoneTour.addEventListener('click', () => tour.apri());
+    }
 
     return {
         nodo,
@@ -5474,6 +5477,17 @@ const BENVENUTO = [
 
 // L'annuncio dell'altoparlante: il din-don della stazione e poi una voce che dà il benvenuto
 const ANNUNCIO = 'Benvenuti al nostro villaggio! Fuori troverete i nostri elfi, che vi faranno fare il tour.';
+// Per i bambini non c'è il tour: resta solo il benvenuto
+const ANNUNCIO_BAMBINI = 'Benvenuti al nostro villaggio!';
+// Per i bambini nelle case non ci sono i dolci: resta solo la parte sui regali
+const BENVENUTO_BAMBINI = [
+    'Qua inizia il vostro viaggio:',
+    'in ogni casa troverete',
+    'i regali, fino ad arrivare',
+    'alla casa di Babbo Natale.',
+    'Siete pronti a iniziare',
+    'questo meraviglioso viaggio?'
+];
 function suonaDinDon() {
     const Contesto = window.AudioContext || window.webkitAudioContext;
     if (!Contesto) return Promise.resolve();
@@ -5676,7 +5690,7 @@ function capelliElfa(elfo, capelli) {
     el('circle', { cx: 21, cy: -58, r: 4, fill: '#e84393' }, elfo.g);
 }
 
-function creaSala({ onParti, benvenuto = '' }) {
+function creaSala({ onParti, benvenuto = '', perBambini = false }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno sala', hidden: true });
     const svg = el('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'La sala d\'attesa della stazione, con il messaggio di benvenuto' });
     // Si sceglie chi fa da guida nel tour in slitta
@@ -5684,9 +5698,13 @@ function creaSala({ onParti, benvenuto = '' }) {
     const domanda = Object.assign(document.createElement('p'), { className: 'domanda-guida', textContent: 'Chi ti accompagna sulla slitta?' });
     const conElfo = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: `${GUIDE_TOUR.elfo.icona} Parto con ${GUIDE_TOUR.elfo.nome}` });
     const conElfa = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: `${GUIDE_TOUR.elfa.icona} Parto con ${GUIDE_TOUR.elfa.nome}` });
-    partenze.append(domanda, conElfo, conElfa);
+    // Per i bambini non si sceglie la guida e non c'è il tour: c'è solo il pulsante per tornare al villaggio
+    const esciSala = Object.assign(document.createElement('button'), { type: 'button', className: 'partenza', textContent: '← Torna al villaggio' });
+    if (perBambini) partenze.append(esciSala);
+    else partenze.append(domanda, conElfo, conElfa);
+    const testoAnnuncio = perBambini ? ANNUNCIO_BAMBINI : ANNUNCIO;
     // La scritta dell'annuncio, per chi ha l'audio spento
-    const annuncio = Object.assign(document.createElement('p'), { className: 'annuncio-stazione', textContent: `📢 ${ANNUNCIO}` });
+    const annuncio = Object.assign(document.createElement('p'), { className: 'annuncio-stazione', textContent: `📢 ${testoAnnuncio}` });
     annuncio.setAttribute('role', 'status');
     nodo.append(svg, annuncio, partenze);
     let timerAnnuncio = null, voltaAnnuncio = 0;
@@ -5699,14 +5717,15 @@ function creaSala({ onParti, benvenuto = '' }) {
         annuncio.classList.add('si-vede');
         try {
             await suonaDinDon();
-            if (volta === voltaAnnuncio && !nodo.hidden) leggiAnnuncio(ANNUNCIO);
+            if (volta === voltaAnnuncio && !nodo.hidden) leggiAnnuncio(testoAnnuncio);
         } catch { /* senza audio resta la scritta */ }
         timerAnnuncio = setTimeout(() => annuncio.classList.remove('si-vede'), 9000);
     }
     // Si ricorda con chi si è partiti l'ultima volta (se il browser lo permette)
     let preferita = 'elfo';
     try { preferita = localStorage.getItem('villaggio_guida') === 'elfa' ? 'elfa' : 'elfo'; } catch { /* si parte da Fiocco */ }
-    const parti = preferita === 'elfa' ? conElfa : conElfo;
+    const parti = perBambini ? esciSala : preferita === 'elfa' ? conElfa : conElfo;
+    esciSala.addEventListener('click', () => onParti(null));
     const scegli = chi => {
         try { localStorage.setItem('villaggio_guida', chi); } catch { /* la scelta vale solo per questa visita */ }
         onParti(chi);
@@ -5855,7 +5874,7 @@ function creaSala({ onParti, benvenuto = '' }) {
         testoCartellone.replaceChildren();
         const proprio = (testo ?? '').trim();
         if (!proprio) {
-            BENVENUTO.forEach((riga, i) => {
+            (perBambini ? BENVENUTO_BAMBINI : BENVENUTO).forEach((riga, i) => {
                 el('text', { x: 800, y: 296 + i * 36 + (i >= 4 ? 10 : 0), 'text-anchor': 'middle', 'font-size': 27, 'font-family': 'Georgia, serif', fill: i >= 4 ? '#ffe9a8' : '#f3ead8', 'font-weight': i >= 4 ? 'bold' : 'normal' }, testoCartellone).textContent = riga;
             });
             return;
@@ -5961,14 +5980,17 @@ function creaSala({ onParti, benvenuto = '' }) {
     panca(420);
     panca(1180);
     // Sulle panchine aspettano le due guide: a sinistra Fiocco, a destra Brina. Toccarle è come premere il loro pulsante
-    [['elfo', 420, conElfo], ['elfa', 1180, conElfa]].forEach(([chi, px, bottone]) => {
+    // Per i bambini sulla panchina c'è solo Fiocco, che saluta (non è un pulsante)
+    (perBambini ? [['elfo', 420, null]] : [['elfo', 420, conElfo], ['elfa', 1180, conElfa]]).forEach(([chi, px, bottone]) => {
         const guida = GUIDE_TOUR[chi];
-        const posto = el('g', { class: 'elfo-panchina', role: 'button', 'aria-label': `Parto con ${guida.nome}` }, svg);
+        const posto = bottone
+            ? el('g', { class: 'elfo-panchina', role: 'button', 'aria-label': `Parto con ${guida.nome}` }, svg)
+            : el('g', { class: 'elfo-panchina solo-saluta' }, svg);
         const respiro = el('g', { class: 'respiro-elfo' }, posto);
         const elfo = disegnaElfo(respiro, px, 736 + 32 * 1.5, 1.5, { giacca: guida.giacca, cappello: guida.cappello, capelli: guida.capelli });
         if (guida.amica) capelliElfa(elfo, guida.capelli);
         elfo.braccio.classList.add('saluta');
-        posto.addEventListener('click', () => bottone.click());
+        if (bottone) posto.addEventListener('click', () => bottone.click());
     });
     fiocco(300, 668, 0.8);
     fiocco(1060, 668, 0.8);
@@ -8449,7 +8471,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onEsci: () => esciDallaCasa(),
         perBambini
     });
-    const sala = creaSala({ onParti: guida => parti(guida), benvenuto });
+    const sala = creaSala({ onParti: guida => parti(guida), benvenuto, perBambini });
     const bancone = creaBancone({ onEsci: () => tornaAlMercato(bancone) });
     const mercato = creaMercato({ onEsci: () => esciDalMercato(), onCasetta: tipo => apriCasetta(tipo) });
     const sartoria = creaSartoria({ onEsci: () => tornaAlMercato(sartoria), onTocco: () => onTocco() });
@@ -8497,7 +8519,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         }
     }
     const giardinoPupazzo = creaPupazzoDiNeve({ onEsci: () => esciDalGiardino(), onTocco: () => onTocco() });
-    const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
+    const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista(), perBambini });
     const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
     const laboratorio = creaLaboratorio({ onEsci: () => esciDalQuartiere(laboratorio) });
     const stalla = creaStalla({ onEsci: () => esciDalQuartiere(stalla), onTocco: () => onTocco(), onScegliRenna: nome => {
@@ -9368,7 +9390,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         torna();
         sala.nascondi();
         adattaVista();
-        if (guida) return avviaTourSlitta(guida);
+        if (guida && !perBambini) return avviaTourSlitta(guida);
         const casa = mondo.querySelector(`.casa[data-giorno="${Math.max(1, Math.min(aperti, 24))}"]`);
         centraSu(Number(casa?.dataset.x ?? PIAZZA.x));
     }
@@ -9495,7 +9517,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         const banco = evento.target.closest('.bancarella');
         if (banco) return entraNellaBancarella(banco);
         const albero = evento.target.closest('.albero');
-        if (albero) return apriStoria();
+        if (albero) return perBambini ? undefined : apriStoria();
         const giostra = evento.target.closest('.giostra');
         if (giostra) return suonaLaGiostra(giostra);
         const palazzetto = evento.target.closest('.palaghiaccio');
@@ -9617,7 +9639,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             else if (edificio) entraNelQuartiere(edificio);
             else if (giostra) suonaLaGiostra(giostra);
             else if (palazzetto) entraNelPalaghiaccio(palazzetto);
-            else if (albero) apriStoria();
+            else if (albero) { if (!perBambini) apriStoria(); }
             else if (banco) entraNellaBancarella(banco);
             else if (coro) cantaIlCoro(coro);
             else if (stazione) entraInStazione(stazione);
@@ -9675,7 +9697,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     fumettoStoria.addEventListener('keydown', evento => {
         if (evento.key === 'Escape') fumettoStoria.hidden = true;
     });
-    if (alberoPiazza) {
+    if (alberoPiazza && !perBambini) {
         // Il cartellino sta accanto all'albero, non dentro: toccare l'albero fa ancora partire il balletto
         const [, ax, ay, as] = alberoPiazza.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         const cartellino = el('g', { class: 'cartello-storia', transform: `translate(${(ax - 150 * as).toFixed(1)} ${(ay - 150 * as).toFixed(1)}) scale(${(as * 1.2).toFixed(3)})`, tabindex: 0, role: 'button', 'aria-label': 'Scopri la storia dell\'albero di Natale' }, alberoPiazza.parentNode);
@@ -9719,6 +9741,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     };
     TOCCABILI.forEach(({ chiave, selettore, x, y, k }) => {
         if (leggiToccati().includes(chiave)) return;
+        // Per i bambini l'albero non si tocca: niente stellina
+        if (perBambini && chiave === 'balletto') return;
         mondo.querySelectorAll(selettore).forEach((nodo, i) => {
             // Delle renne basta una stellina sulla prima
             if (chiave === 'renne' && i > 0) return;
@@ -9791,7 +9815,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         // Chi arriva per la prima volta viene accompagnato dentro la stazione, a scegliere la guida
         let giaFatto = true;
         try { giaFatto = Boolean(localStorage.getItem('villaggio_tour_fatto')); } catch { /* senza memoria non si insiste */ }
-        if (!modifica && !giaFatto && segui) setTimeout(() => {
+        if (!modifica && !perBambini && !giaFatto && segui) setTimeout(() => {
             if (!inApertura && !contenitore.classList.contains('dentro') && !slittaTour) entraInStazione(mondo.querySelector('.stazione'));
         }, 3500);
         while (contenitore.isConnected) {

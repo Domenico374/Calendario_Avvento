@@ -191,3 +191,16 @@
     .scena .stanza-gioco .barra-gioco { height: 46px; }
     .scena .stanza-gioco .cornice-gioco { top: 46px; height: calc(100% - 46px); }
 }
+
+/* La stanza dei giochi a tutta altezza (computer e telefono in verticale): il gioco occupa
+   tutto lo schermo visibile sotto la barra, così i pulsanti si vedono senza scorrere.
+   Il telefono in orizzontale resta com'era */
+@media (orientation: portrait), (min-height: 501px) {
+    .scena .interno.stanza-gioco {
+        position: fixed;
+        inset: 0;
+        z-index: 900;
+        height: 100vh;
+        height: 100dvh;
+    }
+}

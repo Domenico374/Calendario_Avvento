@@ -1,6 +1,6 @@
 // La pagina per i bambini: lo stesso villaggio e lo stesso calendario della pagina per grandi,
 // solo da guardare. Si apre con /bimbi.html?c=CODICE; la chiave di modifica (k) non si usa mai
-import { creaVillaggio } from './villaggio.js?v=20261120-bimbi5';
+import { creaVillaggio } from './villaggio.js?v=20261120-bimbi6';
 
 const ID = new URLSearchParams(location.search).get('c');
 
@@ -9,11 +9,11 @@ let villaggio = null;
 
 // I giochi per bambini nei cinque luoghi del villaggio
 const GIOCHI = {
-    pupazzo: { src: 'bimbi-giochi/1_Pupazzo_di_Neve.html?v=20261120-g1' },
-    stalla: { src: 'bimbi-giochi/2_Stalla_di_Cometa.html?v=20261120-g1' },
-    parco: { src: 'bimbi-giochi/3_Parco_del_Polo_Nord.html?v=20261120-g1' },
-    laboratorio: { src: 'bimbi-giochi/4_Laboratorio_degli_Elfi.html?v=20261120-g2' },
-    posta: { src: 'bimbi-giochi/5_Ufficio_Postale_Fiocco.html?v=20261120-g3' }
+    pupazzo: { src: 'bimbi-giochi/1_Pupazzo_di_Neve.html?v=20261120-g1c' },
+    stalla: { src: 'bimbi-giochi/2_Stalla_di_Cometa.html?v=20261120-g1c' },
+    parco: { src: 'bimbi-giochi/3_Parco_del_Polo_Nord.html?v=20261120-g1c' },
+    laboratorio: { src: 'bimbi-giochi/4_Laboratorio_degli_Elfi.html?v=20261120-g2c' },
+    posta: { src: 'bimbi-giochi/5_Ufficio_Postale_Fiocco.html?v=20261120-g3c' }
 };
 
 // ========== FUNZIONI DI SUPPORTO ==========
