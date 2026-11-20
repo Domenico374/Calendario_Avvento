@@ -8452,7 +8452,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     // Solo per i bambini: i giochi prendono il posto di alcune stanze
     let giocoAperto = null;
     const stanzaGioco = giochi ? creaStanzaGioco({ onEsci: () => esciDalGioco() }) : null;
-    const TITOLI_GIOCHI = { pupazzo: 'Costruiamo un amico di neve', parco: 'Il Parco del Polo Nord', stalla: 'La stalla di Cometa' };
+    const TITOLI_GIOCHI = { pupazzo: 'Costruiamo un amico di neve', parco: 'Il Parco del Polo Nord', stalla: 'La stalla di Cometa', laboratorio: 'Il laboratorio di Fiocco' };
     const conGioco = nome => Boolean(giochi?.[nome]);
     function entraNelGioco(nome) {
         giocoAperto = nome;
@@ -8470,7 +8470,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             scegliRenna('cometa');
             sceltaNellaStalla = true;
             esciDalQuartiere(stalla);
-        } else {
+        } else if (nome === 'laboratorio') esciDalQuartiere(laboratorio);
+        else {
             torna();
             adattaVista();
         }
@@ -8821,6 +8822,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         const [, x, y, s] = edificio.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         await avvicinaAlPunto(x, y - 60 * s, 170 * s, 800);
         if (edificio.classList.contains('posta')) entraDentro(posta);
+        // Per i bambini, nel laboratorio c'è il gioco di Fiocco
+        else if (edificio.classList.contains('laboratorio') && conGioco('laboratorio')) entraNelGioco('laboratorio');
         else if (edificio.classList.contains('laboratorio')) entraDentro(laboratorio);
         // Per i bambini, nella stalla c'è il gioco con Cometa (anche la notte del 24)
         else if (conGioco('stalla')) entraNelGioco('stalla');

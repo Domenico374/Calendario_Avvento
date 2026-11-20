@@ -34,7 +34,7 @@ villaggio = villaggio.replace(firma, (_, resto) => `function creaVillaggio(conte
 
 // La pagina per bambini, con tre piccoli agganci per la prova
 let bimbi = leggi(path.join(progetto, 'bimbi.js'));
-bimbi = sostituisci(bimbi, "import { creaVillaggio } from './villaggio.js?v=20261120-bimbi3';\n", '', 'bimbi.js');
+bimbi = sostituisci(bimbi, "import { creaVillaggio } from './villaggio.js?v=20261120-bimbi4';\n", '', 'bimbi.js');
 bimbi = sostituisci(bimbi, "const ID = new URLSearchParams(location.search).get('c');", "const ID = 'prova';", 'bimbi.js');
 bimbi = sostituisci(bimbi, 'const viste = new Set(leggiMemoria(chiaveViste, []));', 'const viste = window.__visteProva = new Set(leggiMemoria(chiaveViste, []));', 'bimbi.js');
 bimbi = sostituisci(bimbi, 'villaggio = creaVillaggio(', 'villaggio = window.__villaggio = creaVillaggio(', 'bimbi.js');
@@ -119,13 +119,13 @@ const stileProva = `
 
 let pagina = leggi(path.join(progetto, 'bimbi.html'));
 pagina = sostituisci(pagina, '<link rel="stylesheet" href="style.css?v=20261119b">', `<style>\n${leggi(path.join(progetto, 'style.css'))}\n</style>`, 'bimbi.html');
-pagina = sostituisci(pagina, '<link rel="stylesheet" href="bimbi.css?v=20261120-bimbi3">', `<style>\n${leggi(path.join(progetto, 'bimbi.css'))}\n</style>${stileProva}`, 'bimbi.html');
+pagina = sostituisci(pagina, '<link rel="stylesheet" href="bimbi.css?v=20261120-bimbi4">', `<style>\n${leggi(path.join(progetto, 'bimbi.css'))}\n</style>${stileProva}`, 'bimbi.html');
 pagina = sostituisci(pagina, '<title>Il Villaggio dell\'Avvento</title>', '<title>Il Villaggio dell\'Avvento – prova per bambini</title>', 'bimbi.html');
 pagina = sostituisci(pagina, '    <main id="villaggio" class="scena" data-vista="3d" hidden></main>\n', '    <main id="villaggio" class="scena" data-vista="3d" hidden></main>\n' + comandi, 'bimbi.html');
 const script = '<script>\n' + server + villaggio + '\n' + bimbi + comandiScript + '</script>';
 // Controlla solo la sintassi: new Function non esegue il codice
 new Function(server + villaggio + bimbi + comandiScript);
-pagina = sostituisci(pagina, '    <script type="module" src="bimbi.js?v=20261120-bimbi3"></script>', script, 'bimbi.html');
+pagina = sostituisci(pagina, '    <script type="module" src="bimbi.js?v=20261120-bimbi4"></script>', script, 'bimbi.html');
 
 fs.writeFileSync(path.join(__dirname, 'bimbi-demo.html'), pagina);
 console.log('demo/bimbi-demo.html', Math.round(pagina.length / 1024), 'KB');
