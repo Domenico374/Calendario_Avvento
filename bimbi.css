@@ -150,3 +150,44 @@
         animation: none;
     }
 }
+
+/* La stanza dei giochi: barra con "Torna al villaggio" in alto, sotto il gioco */
+.scena .interno.stanza-gioco {
+    background: #0c2443;
+}
+.scena .stanza-gioco .barra-gioco {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background: #0a1030;
+    border-bottom: 2px solid #ffd36b;
+}
+.scena .stanza-gioco .barra-gioco .esci {
+    position: static;
+    min-height: 44px;
+}
+.scena .stanza-gioco .cornice-gioco {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 56px);
+    border: 0;
+    display: block;
+    background: #0c2443;
+}
+/* Nel gioco non serve il consiglio "Gira il telefono": ogni gioco si adatta da solo */
+.scena .interno.stanza-gioco::after {
+    content: none;
+    display: none;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+    .scena .stanza-gioco .barra-gioco { height: 46px; }
+    .scena .stanza-gioco .cornice-gioco { top: 46px; height: calc(100% - 46px); }
+}

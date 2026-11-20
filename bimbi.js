@@ -1,11 +1,18 @@
 // La pagina per i bambini: lo stesso villaggio e lo stesso calendario della pagina per grandi,
 // solo da guardare. Si apre con /bimbi.html?c=CODICE; la chiave di modifica (k) non si usa mai
-import { creaVillaggio } from './villaggio.js?v=20261119-bimbi2';
+import { creaVillaggio } from './villaggio.js?v=20261120-bimbi3';
 
 const ID = new URLSearchParams(location.search).get('c');
 
 let calendario = null;
 let villaggio = null;
+
+// I giochi per bambini nei luoghi del villaggio (il laboratorio e l'ufficio postale arrivano dopo)
+const GIOCHI = {
+    pupazzo: { src: 'bimbi-giochi/1_Pupazzo_di_Neve.html?v=20261120-g1' },
+    stalla: { src: 'bimbi-giochi/2_Stalla_di_Cometa.html?v=20261120-g1' },
+    parco: { src: 'bimbi-giochi/3_Parco_del_Polo_Nord.html?v=20261120-g1' }
+};
 
 // ========== FUNZIONI DI SUPPORTO ==========
 
@@ -181,6 +188,7 @@ function disegnaVillaggio() {
         destinatario: calendario.destinatario,
         letteraBabbo: calendario.letteraBabbo,
         perBambini: true,
+        giochi: GIOCHI,
         onTocco: suonoAperturaCasella,
         // La letterina a Babbo Natale arriva a chi ha preparato il calendario
         onLettera: (testo, firma) => chiamaApi('/api/calendario', {

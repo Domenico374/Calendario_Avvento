@@ -4809,6 +4809,39 @@ function creaCucinaNatale({ onDono, onFine, onTocco, perBambini = false }) {
     };
 }
 
+// La stanza dei giochi per bambini: il gioco (una pagina a sé) dentro una finestra, sotto una barra
+// con "Torna al villaggio". Ogni gioco è { src } (un file del sito) oppure { html } (la demo senza internet)
+function creaStanzaGioco({ onEsci }) {
+    const nodo = Object.assign(document.createElement('div'), { className: 'interno stanza-gioco', hidden: true });
+    const barra = Object.assign(document.createElement('div'), { className: 'barra-gioco' });
+    const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
+    const cornice = Object.assign(document.createElement('iframe'), { className: 'cornice-gioco', title: 'Gioco' });
+    barra.append(esci);
+    nodo.append(barra, cornice);
+    esci.addEventListener('click', () => onEsci());
+    nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+    return {
+        nodo,
+        mostra(gioco, titolo) {
+            cornice.title = titolo;
+            if (gioco.html) cornice.srcdoc = gioco.html;
+            else cornice.src = gioco.src;
+            nodo.hidden = false;
+            requestAnimationFrame(() => {
+                nodo.classList.add('visibile');
+                esci.focus({ preventScroll: true });
+            });
+        },
+        nascondi() {
+            nodo.classList.remove('visibile');
+            nodo.hidden = true;
+            // Svuotare la cornice ferma il gioco
+            cornice.removeAttribute('srcdoc');
+            cornice.src = 'about:blank';
+        }
+    };
+}
+
 // Altezza della strada in ogni punto, per mettere le case ai suoi lati
 function profiloStrada(mondo) {
     const traccia = el('path', { d: STRADA, fill: 'none' }, mondo);
@@ -8378,7 +8411,7 @@ function momentoDiAdesso(adesso = new Date()) {
     return 'notte';
 }
 
-export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {}, perBambini = false }) {
+export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onChiusa, modifica = false, piene = new Set(), benvenuto = '', lettere = [], onLettera = async () => {}, destinatario = '', letteraBabbo = '', onChiudiDono = () => {}, perBambini = false, giochi = null }) {
     seme = 7;
     const svg = el('svg', { role: 'img', 'aria-label': 'Villaggio con 24 case, una per ogni giorno di dicembre. Trascina per esplorarlo.' });
     disegnaDefinizioni(svg);
@@ -8416,6 +8449,32 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const mercato = creaMercato({ onEsci: () => esciDalMercato(), onCasetta: tipo => apriCasetta(tipo) });
     const sartoria = creaSartoria({ onEsci: () => tornaAlMercato(sartoria), onTocco: () => onTocco() });
     const parco = creaParco({ onEsci: () => esciDalParco(), onTocco: () => onTocco() });
+    // Solo per i bambini: i giochi prendono il posto di alcune stanze
+    let giocoAperto = null;
+    const stanzaGioco = giochi ? creaStanzaGioco({ onEsci: () => esciDalGioco() }) : null;
+    const TITOLI_GIOCHI = { pupazzo: 'Costruiamo un amico di neve', parco: 'Il Parco del Polo Nord', stalla: 'La stalla di Cometa' };
+    const conGioco = nome => Boolean(giochi?.[nome]);
+    function entraNelGioco(nome) {
+        giocoAperto = nome;
+        entraDentro(stanzaGioco, giochi[nome], TITOLI_GIOCHI[nome] ?? 'Gioco');
+    }
+    function esciDalGioco() {
+        const nome = giocoAperto;
+        giocoAperto = null;
+        stanzaGioco.nascondi();
+        // All'uscita si fa come uscendo dalla stanza vera: il tour, se c'è, va avanti
+        if (nome === 'pupazzo') esciDalGiardino();
+        else if (nome === 'parco') esciDalParco();
+        else if (nome === 'stalla') {
+            // Per i bambini la renna è sempre Cometa: dopo il gioco tira lei la slitta
+            scegliRenna('cometa');
+            sceltaNellaStalla = true;
+            esciDalQuartiere(stalla);
+        } else {
+            torna();
+            adattaVista();
+        }
+    }
     const giardinoPupazzo = creaPupazzoDiNeve({ onEsci: () => esciDalGiardino(), onTocco: () => onTocco() });
     const pista = creaPalaghiaccio({ onEsci: () => esciDallaPista() });
     const posta = creaPosta({ onEsci: () => esciDalQuartiere(posta), onSpedisci: (testo, firma) => onLettera(testo, firma), modifica, lettere, destinatario, letteraBabbo });
@@ -8454,6 +8513,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     // Una velatura leggera colora tutto il paese con la luce del momento
     el('rect', { class: 'tinta', x: -5000, y: -1000, width: 20000, height: 4000, 'pointer-events': 'none' }, svg);
     contenitore.replaceChildren(svg, neve, vignetta, indietro, avanti, suggerimento, interno.nodo, sala.nodo, bancone.nodo, pista.nodo, posta.nodo, laboratorio.nodo, stalla.nodo, negozio.nodo, cucina.nodo, mercato.nodo, sartoria.nodo, parco.nodo, giardinoPupazzo.nodo);
+    if (stanzaGioco) contenitore.append(stanzaGioco.nodo);
 
     let momentoScelto = null;
     function aggiornaMomento() {
@@ -8762,6 +8822,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         await avvicinaAlPunto(x, y - 60 * s, 170 * s, 800);
         if (edificio.classList.contains('posta')) entraDentro(posta);
         else if (edificio.classList.contains('laboratorio')) entraDentro(laboratorio);
+        // Per i bambini, nella stalla c'è il gioco con Cometa (anche la notte del 24)
+        else if (conGioco('stalla')) entraNelGioco('stalla');
         // La notte del 24 le renne sono partite con la slitta
         else entraDentro(stalla, !modifica && aperti >= 24);
         inApertura = false;
@@ -8847,7 +8909,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         const [, x, y, s] = recinto.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         await avvicinaAlPunto(x, y - 60 * s, 220 * s, 800);
-        entraDentro(parco);
+        if (conGioco('parco')) entraNelGioco('parco');
+        else entraDentro(parco);
         inApertura = false;
     }
     async function entraNelGiardino(pupazzo) {
@@ -8857,7 +8920,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         const [, x, y, s] = pupazzo.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         await avvicinaAlPunto(x, y - 50 * s, 120 * s, 800);
-        entraDentro(giardinoPupazzo);
+        if (conGioco('pupazzo')) entraNelGioco('pupazzo');
+        else entraDentro(giardinoPupazzo);
         inApertura = false;
     }
     function esciDalGiardino() {
@@ -9170,6 +9234,8 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         { edificio: '.stalla', testo: "Ed ecco la stalla delle renne! Ora scegli chi tirerà la tua slitta per andare di casa in casa: Cometa, la più veloce, o Rudolph, col naso che illumina la notte?", scelta: true }
     ];
 
+    const TESTO_STALLA_BAMBINI = 'Ed ecco la stalla delle renne! Entra a conoscere Cometa: sarà lei a tirare la tua slitta di casa in casa!';
+
     let modoFumetto = 'tour';
     function parla(testo, { entra = false, ultima = false, scelta = false } = {}) {
         modoFumetto = 'tour';
@@ -9195,7 +9261,10 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             paese3D?.guarda(edificio, TAPPE_SLITTA[tappaTour].largo ? { distanza: 23 } : {});
             const arrivo = (edificio.dataset.cx ? Number(edificio.dataset.cx) : Number(edificio.getAttribute('transform').match(/translate\(([\d.-]+)/)[1])) - 90;
             await viaggioSlitta(arrivo, Math.min(5200, Math.max(2600, Math.abs(arrivo - xSlitta) * 3)));
-            parla(TAPPE_SLITTA[tappaTour].testo, { entra: true, scelta: Boolean(TAPPE_SLITTA[tappaTour].scelta) });
+            const tappa = TAPPE_SLITTA[tappaTour];
+            // Per i bambini la renna è sempre Cometa: nella stalla si entra a giocare con lei, senza scegliere
+            if (tappa.scelta && conGioco('stalla')) parla(TESTO_STALLA_BAMBINI, { entra: true });
+            else parla(tappa.testo, { entra: true, scelta: Boolean(tappa.scelta) });
             return;
         }
         if (tappaTour === TAPPE_SLITTA.length) {
