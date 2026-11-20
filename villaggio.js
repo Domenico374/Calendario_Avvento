@@ -4811,7 +4811,7 @@ function creaCucinaNatale({ onDono, onFine, onTocco, perBambini = false }) {
 
 // La stanza dei giochi per bambini: il gioco (una pagina a sé) dentro una finestra, sotto una barra
 // con "Torna al villaggio". Ogni gioco è { src } (un file del sito) oppure { html } (la demo senza internet)
-function creaStanzaGioco({ onEsci }) {
+function creaStanzaGioco({ onEsci, onMessaggio = () => {} }) {
     const nodo = Object.assign(document.createElement('div'), { className: 'interno stanza-gioco', hidden: true });
     const barra = Object.assign(document.createElement('div'), { className: 'barra-gioco' });
     const esci = Object.assign(document.createElement('button'), { type: 'button', className: 'esci', textContent: '← Torna al villaggio' });
@@ -4820,6 +4820,11 @@ function creaStanzaGioco({ onEsci }) {
     nodo.append(barra, cornice);
     esci.addEventListener('click', () => onEsci());
     nodo.addEventListener('keydown', evento => { if (evento.key === 'Escape') onEsci(); });
+    // Il gioco può chiedere cose al villaggio (per esempio spedire la letterina): solo dalla sua cornice
+    window.addEventListener('message', evento => {
+        if (!cornice.contentWindow || evento.source !== cornice.contentWindow || !evento.data || typeof evento.data !== 'object') return;
+        onMessaggio(evento.data, risposta => cornice.contentWindow?.postMessage(risposta, '*'));
+    });
     return {
         nodo,
         mostra(gioco, titolo) {
@@ -8451,8 +8456,22 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
     const parco = creaParco({ onEsci: () => esciDalParco(), onTocco: () => onTocco() });
     // Solo per i bambini: i giochi prendono il posto di alcune stanze
     let giocoAperto = null;
-    const stanzaGioco = giochi ? creaStanzaGioco({ onEsci: () => esciDalGioco() }) : null;
-    const TITOLI_GIOCHI = { pupazzo: 'Costruiamo un amico di neve', parco: 'Il Parco del Polo Nord', stalla: 'La stalla di Cometa', laboratorio: 'Il laboratorio di Fiocco' };
+    const stanzaGioco = giochi ? creaStanzaGioco({ onEsci: () => esciDalGioco(), onMessaggio: (messaggio, rispondi) => rispondiAlGioco(messaggio, rispondi) }) : null;
+    const TITOLI_GIOCHI = { pupazzo: 'Costruiamo un amico di neve', parco: 'Il Parco del Polo Nord', stalla: 'La stalla di Cometa', laboratorio: 'Il laboratorio di Fiocco', posta: "L'ufficio postale di Fiocco" };
+    // L'ufficio postale dei bambini: riceve la letterina di Babbo Natale scritta da chi prepara
+    // e spedisce davvero quella del bambino (a chi ha preparato il calendario)
+    async function rispondiAlGioco(messaggio, rispondi) {
+        if (giocoAperto !== 'posta') return;
+        if (messaggio.tipo === 'posta-pronta') rispondi({ tipo: 'posta-dati', letteraBabbo: (letteraBabbo ?? '').trim(), destinatario });
+        if (messaggio.tipo === 'lettera' && typeof messaggio.testo === 'string') {
+            let ok = false;
+            try {
+                await onLettera(messaggio.testo.slice(0, 1000), destinatario ?? '');
+                ok = true;
+            } catch { /* niente rete o errore: il gioco tiene la letterina e riprova */ }
+            rispondi({ tipo: 'lettera-esito', id: messaggio.id, ok });
+        }
+    }
     const conGioco = nome => Boolean(giochi?.[nome]);
     function entraNelGioco(nome) {
         giocoAperto = nome;
@@ -8471,6 +8490,7 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             sceltaNellaStalla = true;
             esciDalQuartiere(stalla);
         } else if (nome === 'laboratorio') esciDalQuartiere(laboratorio);
+        else if (nome === 'posta') esciDalQuartiere(posta);
         else {
             torna();
             adattaVista();
@@ -8821,7 +8841,9 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
         onTocco();
         const [, x, y, s] = edificio.getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.-]+)\)/).map(Number);
         await avvicinaAlPunto(x, y - 60 * s, 170 * s, 800);
-        if (edificio.classList.contains('posta')) entraDentro(posta);
+        // Per i bambini, all'ufficio postale c'è il gioco di Fiocco
+        if (edificio.classList.contains('posta') && conGioco('posta')) entraNelGioco('posta');
+        else if (edificio.classList.contains('posta')) entraDentro(posta);
         // Per i bambini, nel laboratorio c'è il gioco di Fiocco
         else if (edificio.classList.contains('laboratorio') && conGioco('laboratorio')) entraNelGioco('laboratorio');
         else if (edificio.classList.contains('laboratorio')) entraDentro(laboratorio);
