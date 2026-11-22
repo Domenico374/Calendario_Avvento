@@ -6672,34 +6672,71 @@ function creaInterno({ onScarta, onEsci, perBambini = false }) {
         invito.remove();
         el('rect', { class: 'tocco-regalo', x: -150, y: -250, width: 300, height: 270, fill: 'transparent' }, scatola);
         cartello = Object.assign(document.createElement('button'), { type: 'button', className: 'cartello-regalo', textContent: 'Clicca qui per aprire il regalo' });
-        manina = Object.assign(document.createElement('span'), { className: 'manina-regalo', textContent: '👉', ariaHidden: 'true' });
+        manina = Object.assign(document.createElement('span'), { className: 'manina-regalo verso-giu', textContent: '👇', ariaHidden: 'true' });
         cartello.addEventListener('click', () => scarta());
         manina.addEventListener('click', () => scarta());
         nodo.append(cartello, manina);
         // Cartello sopra la scatola e manina alla sua sinistra, ovunque finisca il disegno sullo schermo
+        // Un punto del disegno (coordinate del salotto) sullo schermo, rispetto alla stanza
+        const sulloSchermo = (x, y, fuori) => {
+            const ctm = svg.getScreenCTM();
+            const p = svg.createSVGPoint();
+            p.x = x;
+            p.y = y;
+            const q = p.matrixTransform(ctm);
+            return { x: q.x - fuori.left, y: q.y - fuori.top };
+        };
         const posiziona = () => {
-            if (nodo.hidden) return;
+            if (nodo.hidden || !svg.getScreenCTM()) return;
             const fuori = nodo.getBoundingClientRect();
             const box = scatola.getBoundingClientRect();
             if (!box.width) return;
-            // Telefono in orizzontale (schermo basso): accanto alla scatola, così non copre il quadro con la data
-            const basso = matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
-            // Se sotto c'è tanto pavimento (telefono in verticale) va sotto, sennò sopra la scatola
-            const sotto = !basso && fuori.bottom - box.bottom > 200;
-            cartello.classList.toggle('accanto', basso);
-            cartello.classList.toggle('sotto', sotto);
-            if (basso) {
-                cartello.style.left = `${box.right - fuori.left + 12}px`;
-                cartello.style.maxWidth = `${Math.max(150, Math.min(250, fuori.right - box.right - 24))}px`;
-                cartello.style.top = `${box.top - fuori.top + box.height * 0.45}px`;
+            // Lo spazio libero sopra il regalo: sotto la targa della data (finisce a y 200),
+            // a destra della finestra con le tende (fino a x 600) e a sinistra del camino (da x 958)
+            const a = sulloSchermo(612, 214, fuori), b = sulloSchermo(948, 372, fuori);
+            const mano = sulloSchermo(800, 376, fuori), fiocco = sulloSchermo(800, 452, fuori);
+            const larghezza = b.x - a.x, altezza = b.y - a.y;
+            const sopra = larghezza >= 130;
+            cartello.classList.toggle('sotto', !sopra);
+            cartello.classList.remove('accanto');
+            if (sopra) {
+                // Il cartello sta tutto nello spazio libero; la scritta si adatta (sempre bella grande)
+                cartello.style.left = `${(a.x + b.x) / 2}px`;
+                cartello.style.top = `${b.y}px`;
+                cartello.style.maxWidth = `${larghezza}px`;
+                // Negli spazi stretti (telefono in orizzontale) bordi più sottili, così la scritta sta su due righe
+                const stretto = larghezza < 200;
+                cartello.style.padding = stretto ? '6px 10px' : '';
+                cartello.style.lineHeight = stretto ? '1.1' : '';
+                let corpo = Math.max(15, Math.min(28, larghezza / 9));
+                cartello.style.fontSize = `${corpo}px`;
+                while (cartello.offsetHeight > altezza && corpo > 14) {
+                    corpo -= 1;
+                    cartello.style.fontSize = `${corpo}px`;
+                }
+                // La manina tra il cartello e il fiocco, che punta giù verso il regalo
+                const misura = Math.max(26, Math.min(64, fiocco.y - mano.y));
+                manina.textContent = '👇';
+                manina.className = 'manina-regalo verso-giu';
+                manina.style.fontSize = `${misura}px`;
+                manina.style.left = `${mano.x}px`;
+                manina.style.top = `${mano.y}px`;
             } else {
-                // Stretto come la scatola, per lasciare libere la finestra e il camino
+                // Schermo stretto (telefono in verticale): sotto il regalo c'è tanto pavimento.
+                // La manina subito sotto la scatola punta su, verso il regalo; il cartello sotto la manina
+                const misura = Math.max(30, Math.min(56, box.width * 0.4));
+                manina.textContent = '👆';
+                manina.className = 'manina-regalo verso-su';
+                manina.style.fontSize = `${misura}px`;
+                manina.style.left = `${box.left - fuori.left + box.width / 2}px`;
+                manina.style.top = `${box.bottom - fuori.top + 4}px`;
+                cartello.style.fontSize = '';
+                cartello.style.padding = '';
+                cartello.style.lineHeight = '';
                 cartello.style.left = `${box.left - fuori.left + box.width / 2}px`;
                 cartello.style.maxWidth = `${Math.max(230, box.width * 1.5)}px`;
-                cartello.style.top = `${sotto ? box.bottom - fuori.top + 14 : Math.max(56, box.top - fuori.top - 8)}px`;
+                cartello.style.top = `${box.bottom - fuori.top + misura + 10}px`;
             }
-            manina.style.left = `${box.left - fuori.left - 6}px`;
-            manina.style.top = `${box.top - fuori.top + box.height * 0.62}px`;
         };
         new ResizeObserver(posiziona).observe(nodo);
         nodo.posizionaCartello = posiziona;
@@ -9895,6 +9932,13 @@ export function creaVillaggio(contenitore, { aperti, viste, onTocco, onApri, onC
             preferita = localStorage.getItem('villaggio_vista_scelta') ?? '2d';
         } catch { /* si parte in 2D */ }
         usa3D(preferita === '3d');
+    }
+
+    // Per i bambini il villaggio è più semplice: niente palazzetto, mercato coperto, coro, laghetto e renne.
+    // Si tolgono dalla scena, con i loro decori: non restano zone da toccare né suoni
+    if (perBambini) {
+        mondo.querySelectorAll(':scope > .palaghiaccio, :scope > .mercato-coperto, :scope > .coro, :scope > .laghetto, :scope > .laghetto-decori, :scope > .pattinatori, :scope > .renna')
+            .forEach(nodo => nodo.remove());
     }
 
     return {

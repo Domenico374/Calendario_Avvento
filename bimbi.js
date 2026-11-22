@@ -1,6 +1,6 @@
 // La pagina per i bambini: lo stesso villaggio e lo stesso calendario della pagina per grandi,
 // solo da guardare. Si apre con /bimbi.html?c=CODICE; la chiave di modifica (k) non si usa mai
-import { creaVillaggio } from './villaggio.js?v=20261120-bimbi6';
+import { creaVillaggio } from './villaggio.js?v=20261122-bimbi8';
 
 const ID = new URLSearchParams(location.search).get('c');
 
@@ -210,7 +210,7 @@ function disegnaVillaggio() {
     });
 }
 
-function testoAttesa() {
+function testoSottotitolo() {
     return calendario.aperti === 0 ? `Si apre il 1° dicembre ${calendario.anno}` : 'Ogni giorno si apre una nuova casa';
 }
 
@@ -265,7 +265,7 @@ async function avvia() {
     }
     document.title = calendario.titolo;
     $('titolo').textContent = calendario.titolo;
-    $('sottotitolo').textContent = testoAttesa();
+    $('sottotitolo').textContent = testoSottotitolo();
     disegnaVillaggio();
     controllaNuovoGiorno();
 }

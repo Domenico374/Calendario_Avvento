@@ -204,3 +204,24 @@
         height: 100dvh;
     }
 }
+
+/* La manina sta vicino al regalo e lo indica: in giù (sopra il regalo) o in su (sotto il regalo) */
+.scena .interno .manina-regalo.verso-giu,
+.scena .interno .manina-regalo.verso-su {
+    transform: translate(-50%, 0);
+    font-size: 48px;
+}
+.scena .interno .manina-regalo.verso-giu { animation: manina-giu 1.1s ease-in-out infinite; }
+.scena .interno .manina-regalo.verso-su { animation: manina-su 1.1s ease-in-out infinite; }
+@keyframes manina-giu {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 10px); }
+}
+@keyframes manina-su {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .scena .interno .manina-regalo.verso-giu,
+    .scena .interno .manina-regalo.verso-su { animation: none; }
+}
