@@ -123,3 +123,18 @@ test('nome sul sacco e letterina di Babbo Natale: si salvano e si vedono nel lin
     await salvaModifiche(redis, ID, { destinatario: 'x'.repeat(80), modifiche: {} });
     assert.equal((await leggiCalendario(redis, ID)).destinatario.length, MAX_DESTINATARIO);
 });
+
+test('il segnale "per bambini" si salva solo se acceso e resta dopo ogni salvataggio', async () => {
+    const redis = redisFinto();
+    await creaCalendario(redis, ID, { titolo: 'Per Luca', anno: 2026, perBambini: true });
+    await salvaModifiche(redis, ID, { titolo: 'Il calendario di Luca', benvenuto: 'Ciao!', modifiche: { 1: { tipo: 'messaggio', testo: 'ciao' } } });
+    assert.equal((await leggiCalendario(redis, ID)).perBambini, true);
+
+    // I calendari dei grandi restano scritti come prima: niente campo in più
+    const grandi = redisFinto();
+    for (const perBambini of [undefined, false, 'si']) {
+        await creaCalendario(grandi, ID, { titolo: 'Prova', anno: 2026, perBambini });
+        await salvaModifiche(grandi, ID, { titolo: 'Dopo', modifiche: {} });
+        assert.equal('perBambini' in (await leggiCalendario(grandi, ID)), false);
+    }
+});

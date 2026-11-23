@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Villaggio dell'Avvento per il tuo bambino</title>
+    <meta name="description" content="Prepara un calendario dell'Avvento per il tuo bambino: tu metti le sorprese, lui apre una casetta al giorno.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Nunito:wght@400;600;800&display=swap">
+    <link rel="stylesheet" href="style.css?v=20261119b">
+    <style>
+        .passi { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 12px; }
+        .passi li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.45; }
+        .passi .numero {
+            flex: none; width: 34px; height: 34px; border-radius: 50%;
+            display: grid; place-items: center; font-weight: 800;
+            background: #ffd36b; color: #3a2410;
+        }
+        .scheda .nota { font-size: 0.92rem; opacity: 0.85; margin-top: 14px; }
+    </style>
+</head>
+<body>
+    <header class="header-container">
+        <span class="etichetta-villaggio">🎄 Il Villaggio dell'Avvento</span>
+        <h1>Un calendario dell'Avvento per il tuo bambino</h1>
+        <p>Tu prepari le sorprese, il tuo bambino apre una casetta al giorno.</p>
+    </header>
+
+    <p id="avviso" class="messaggio-stato" role="status" hidden></p>
+
+    <main class="scheda">
+        <h2>Come funziona</h2>
+        <ol class="passi">
+            <li><span class="numero">1</span><span><strong>Scrivi il nome del tuo bambino</strong> e crea il calendario.</span></li>
+            <li><span class="numero">2</span><span><strong>Prepara le sorprese:</strong> tocca una casetta e metti una foto, un vocale, un video o un messaggio. Non serve riempirle tutte subito.</span></li>
+            <li><span class="numero">3</span><span><strong>Regala il link:</strong> lo trovi nel pulsante «🎁 Il link per…». Aprilo sul telefono o sul tablet del bambino: dal 1° dicembre si apre una casetta al giorno.</span></li>
+        </ol>
+        <form id="form-genitori">
+            <label for="nome-bambino">Come si chiama il tuo bambino?</label>
+            <input id="nome-bambino" maxlength="30" placeholder="Es. Luca" autocomplete="off" required>
+            <div id="campo-codice" hidden>
+                <label for="codice-invito">Codice di invito</label>
+                <input id="codice-invito" autocomplete="off">
+            </div>
+            <button class="bottone" id="btnCrea" type="submit">Crea il calendario</button>
+        </form>
+        <p class="nota">Il calendario si ricorda su questo telefono o computer.</p>
+    </main>
+
+    <script type="module" src="genitori.js?v=20261122-genitori2"></script>
+</body>
+</html>

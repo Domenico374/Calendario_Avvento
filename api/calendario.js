@@ -6,11 +6,11 @@ import {
 
 // I testi e i link stanno nel database; foto, audio e video restano nell'archivio Blob
 async function crea(req, res, redis) {
-    const { codice, titolo } = req.body ?? {};
+    const { codice, titolo, perBambini } = req.body ?? {};
     if (!codiceValido(codice)) return res.status(403).json({ errore: 'Codice di invito non valido.' });
 
     const id = nuovoId();
-    await creaCalendario(redis, id, { titolo: pulisciTitolo(titolo), anno: annoCalendario() });
+    await creaCalendario(redis, id, { titolo: pulisciTitolo(titolo), anno: annoCalendario(), perBambini: perBambini === true });
     return res.status(201).json({ id, chiave: firma('modifica', id) });
 }
 
