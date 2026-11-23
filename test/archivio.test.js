@@ -23,6 +23,14 @@ function redisFinto() {
         async hdel(chiave, ...campi) {
             const hash = dati.get(chiave) ?? {};
             campi.forEach(campo => delete hash[campo]);
+        },
+        async sadd(chiave, ...membri) {
+            const insieme = dati.get(chiave) ?? new Set();
+            membri.forEach(membro => insieme.add(membro));
+            dati.set(chiave, insieme);
+        },
+        async srem(chiave, ...membri) {
+            membri.forEach(membro => dati.get(chiave)?.delete(membro));
         }
     };
 }

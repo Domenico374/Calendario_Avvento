@@ -6,7 +6,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "controlla": "node scripts/controlla-pubblicazione.mjs",
+    "vercel-build": "node scripts/controlla-pubblicazione.mjs"
   },
   "dependencies": {
     "@upstash/redis": "^1.41.0",
