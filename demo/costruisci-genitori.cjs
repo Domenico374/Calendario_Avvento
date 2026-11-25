@@ -24,6 +24,7 @@ const togli = (testo, regola, nuovo, dove) => {
 function agganci(js, dove) {
     js = js.replace(/new URLSearchParams\(location\.search\)/g, 'new URLSearchParams(__cerca)');
     js = js.replace(/location\.href = (`[^`]*`|'[^']*');/g, '__vai($1);');
+    js = js.replace(/location\.replace\((`[^`]*`|'[^']*'|\w+)\);/g, '__demo.vai($1, true);');
     js = js.replace(/location\.reload\(\)/g, '__vai(null)');
     js = js.replace(/location\.origin/g, '__origine');
     js = js.replace(/history\.replaceState\(null, '', ('[^']*')\)/g, '__demo.indirizzo($1)');
@@ -85,7 +86,7 @@ const cornice = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Il Villaggio dell'Avvento – prova per i genitori</title>
+<title>Il Villaggio dell'Avvento – prova</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
 <style>
 * { box-sizing: border-box; }
@@ -224,13 +225,13 @@ const __vai = indirizzo => __demo.vai(indirizzo);
 })();\`;
         $('pagina').srcdoc = PAGINE[quale].replace('/*__PRELUDIO__*/', preludio);
     }
-    function vai(indirizzo) {
+    function vai(indirizzo, sostituisci = false) {
         // Il cambio pagina parte dopo, fuori dal codice della pagina che lo chiede
         setTimeout(() => {
             if (indirizzo === null) return apri(attuale);
             const u = new URL(indirizzo, ORIGINE);
             if (u.origin !== ORIGINE || !pagina(u.pathname)) return mostra('Nella demo questa pagina non c\\'è.');
-            if (attuale) storia.push(attuale);
+            if (attuale && !sostituisci) storia.push(attuale);
             apri(indirizzo);
         });
     }
@@ -249,7 +250,7 @@ const __vai = indirizzo => __demo.vai(indirizzo);
     $('btnRicomincia').addEventListener('click', () => {
         calendari.clear();
         storia.length = 0;
-        try { localStorage.removeItem('miei_calendari'); } catch { /* niente memoria */ }
+        try { ['miei_calendari', 'vista_bambino', 'calendario_bimbi'].forEach(chiave => localStorage.removeItem(chiave)); } catch { /* niente memoria */ }
         apri('/genitori.html');
     });
     const scelta = $('giorno');
@@ -258,7 +259,7 @@ const __vai = indirizzo => __demo.vai(indirizzo);
     scelta.addEventListener('change', () => { giornoDemo = Number(scelta.value); apri(attuale); });
 
     // Si parte sempre puliti, dalla pagina dei genitori
-    try { localStorage.removeItem('miei_calendari'); } catch { /* niente memoria */ }
+    try { ['miei_calendari', 'vista_bambino', 'calendario_bimbi'].forEach(chiave => localStorage.removeItem(chiave)); } catch { /* niente memoria */ }
     apri('/genitori.html');
 })();
 </script>

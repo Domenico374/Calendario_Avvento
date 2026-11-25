@@ -736,7 +736,7 @@ function preparaPannello() {
     const altri = leggiMemoria('miei_calendari', []).filter(voce => voce.id !== ID);
     scriviMemoria('miei_calendari', [...altri, { id: ID, chiave: CHIAVE, titolo: calendario.titolo }]);
 
-    if (calendario.perBambini === true) preparaGenitori(linkPersonale);
+    if (calendario.perBambini === true) preparaGenitori();
 }
 
 // ========== CALENDARIO PREPARATO DA UN GENITORE (segnale perBambini) ==========
@@ -746,19 +746,8 @@ const STILE_GENITORI = `
 .passi { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 12px; }
 .passi li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.45; }
 .passi .numero { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: #ffd36b; color: #3a2416; }
-.bottone-link-bimbo { position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 800; font-size: 1.1em; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); max-width: calc(100vw - 32px); }
+.bottone-ho-finito { position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 800; font-size: 1.15em; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); max-width: calc(100vw - 32px); }
 body { padding-bottom: 90px; }
-.finestra-link { width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 18px; border: none; border-radius: 16px; background: #fffdf7; color: #2b1d12; }
-.finestra-link::backdrop { background: rgba(0, 0, 0, 0.7); }
-.finestra-link h2 { margin: 0 0 12px; }
-.finestra-link #regala { margin-top: 0; }
-.finestra-link a.bottone, .finestra-link a.bottone-chiusura { display: inline-block; text-decoration: none; text-align: center; }
-.finestra-link #regala > p:last-child { margin: 12px 0 0; }
-.finestra-link .link-segreto { margin-top: 16px; padding: 14px; border-radius: 12px; background: #fdecea; border: 2px solid #c0392b; }
-.finestra-link .link-segreto h3 { margin: 0 0 8px; font-size: 1.05em; }
-.finestra-link .link-segreto p { margin: 8px 0 0; }
-.finestra-link .manda-a-te { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
-.finestra-link .chiudi-link { margin-top: 14px; width: 100%; }
 #editor .aiuto-piccoli { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: #fff3cd; color: #5a3b00; line-height: 1.4; }
 #editor .esempi { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
 #editor .esempio { border: 1px solid #e0c48a; background: #fffaf0; color: #3a2416; border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 0.92em; cursor: pointer; text-align: left; }
@@ -775,13 +764,7 @@ const ESEMPI_GENITORI = [
     { testo: '📖 «Stasera storia in più prima di dormire»', tipo: 'messaggio', messaggio: 'Stasera storia in più prima di dormire' }
 ];
 
-// Il nome del bambino: quello di "Per chi è il calendario?", oppure quello nel titolo
-function nomeBimbo() {
-    return $('destinatario-modifica').value.replace(/\s+/g, ' ').trim()
-        || calendario.titolo.replace(/^Il calendario di\s+/i, '').trim();
-}
-
-function preparaGenitori(linkPersonale) {
+function preparaGenitori() {
     document.head.append(crea('style', { textContent: STILE_GENITORI }));
 
     // Testi della letterina senza il "sacco della posta"
@@ -789,59 +772,33 @@ function preparaGenitori(linkPersonale) {
     document.querySelector('label[for="lettera-babbo-modifica"]').textContent = 'La letterina di Babbo Natale (facoltativa)';
     $('lettera-babbo-modifica').nextElementSibling.textContent = 'Scrivi qui una letterina di Babbo Natale per il tuo bambino. Se la lasci vuota, Babbo Natale ne scrive una lui.';
 
+    // Niente link da mandare: il bambino guarda il villaggio sul telefono del genitore
+    $('btnRegala').hidden = true;
+    $('regala').remove();
+    const altro = document.querySelector('#pannello-modifica .altro');
+    altro.querySelector('p').remove();
+    $('link-personale').closest('.input-group').remove();
+    altro.querySelector('a[href="/?nuovo-calendario=1"]').closest('p').remove();
+
     // In alto i 3 passi
-    const passo = (numero, titolo, testo) => crea('li', {},
+    const passo = (numero, testo) => crea('li', {},
         crea('span', { className: 'numero', textContent: numero }),
-        crea('span', {}, crea('strong', { textContent: titolo }), testo));
-    const testoPasso3 = crea('span');
+        crea('span', { textContent: testo }));
     $('pannello-modifica').prepend(
         crea('h2', { textContent: 'Come funziona' }),
         crea('ol', { className: 'passi' },
-            passo('1', 'Scrivi il nome del tuo bambino', ' e crea il calendario.'),
-            passo('2', 'Prepara le sorprese:', ' tocca una casetta e metti una foto, un vocale, un video o un messaggio. Non serve riempirle tutte subito.'),
-            passo('3', 'Regala il link:', testoPasso3)));
+            passo('1', 'Scrivi il nome del tuo bambino.'),
+            passo('2', 'Tocca una casetta e metti una sorpresa.'),
+            passo('3', 'Premi «✅ Ho finito» e dai il telefono al tuo bambino.')));
 
-    // Il pulsante del link, sempre raggiungibile: apre una finestra con i due link
-    const pulsante = crea('button', { type: 'button', className: 'bottone bottone-link-bimbo', id: 'btnLinkBimbo' });
-    const titoloFinestra = crea('h2');
-    const regala = $('regala');
-    const fraseBimbo = regala.querySelector('p');
-    // L'anteprima resta, sotto il link per il bambino
-    regala.append(crea('p', {}, $('linkAnteprima')));
-    regala.hidden = false;
-    $('btnRegala').hidden = true;
-    const gruppoPersonale = $('link-personale').closest('.input-group');
-    const finestra = crea('dialog', { className: 'finestra-link', id: 'finestra-link' }, titoloFinestra, regala);
-    document.body.append(pulsante, finestra);
-
-    // Il link per modificare, in evidenza: da tenere per sé
-    finestra.append(
-        crea('div', { className: 'link-segreto' },
-            crea('h3', { textContent: '🔒 Il tuo link per modificare (non darlo al bambino)' }),
-            gruppoPersonale,
-            crea('div', { className: 'manda-a-te' },
-                crea('span', { textContent: 'Mandalo a te stesso:' }),
-                crea('a', { className: 'bottone', id: 'linkPersonaleWhatsApp', target: '_blank', rel: 'noopener', textContent: 'WhatsApp', href: `https://wa.me/?text=${encodeURIComponent(linkPersonale)}` }),
-                crea('a', { className: 'bottone', id: 'linkPersonaleEmail', textContent: 'Email', href: `mailto:?subject=${encodeURIComponent(calendario.titolo)}&body=${encodeURIComponent(linkPersonale)}` })),
-            crea('p', { textContent: 'Senza questo link, da un altro telefono non potrai più cambiare le sorprese. Se siete in due a prepararle, scambiatevi questo link.' })),
-        crea('button', { type: 'button', className: 'bottone-chiusura chiudi-link', textContent: 'Chiudi' }));
-    pulsante.addEventListener('click', () => finestra.showModal());
-    finestra.querySelector('.chiudi-link').addEventListener('click', () => finestra.close());
-    finestra.addEventListener('click', evento => {
-        if (evento.target === finestra) finestra.close();
+    // «Ho finito»: si chiude la modifica e su questo telefono si apre sempre la vista del bambino
+    const finito = crea('button', { type: 'button', className: 'bottone bottone-ho-finito', id: 'btnHoFinito', textContent: '✅ Ho finito' });
+    finito.addEventListener('click', () => {
+        scriviMemoria('vista_bambino', ID);
+        scriviMemoria('calendario_bimbi', ID);
+        location.replace(`/bimbi.html?c=${encodeURIComponent(ID)}`);
     });
-
-    // I testi con il nome del bambino si aggiornano quando cambia
-    const scriviNome = () => {
-        const nome = nomeBimbo();
-        pulsante.textContent = `🎁 Il link per ${nome}`;
-        titoloFinestra.textContent = `🎁 Il link per ${nome}`;
-        fraseBimbo.textContent = `Aprilo sul telefono o sul tablet di ${nome}. Dal 1° dicembre ogni giorno si apre una casetta con la tua sorpresa. ${nome} non può modificare niente.`;
-        testoPasso3.textContent = ` lo trovi nel pulsante «🎁 Il link per ${nome}». Aprilo sul telefono o sul tablet del bambino: dal 1° dicembre si apre una casetta al giorno.`;
-    };
-    scriviNome();
-    $('destinatario-modifica').addEventListener('input', scriviNome);
-    $('titolo-modifica').addEventListener('input', scriviNome);
+    document.body.append(finito);
 
     // Mentre si sceglie la sorpresa: un consiglio e gli esempi da toccare
     const esempi = ESEMPI_GENITORI.map(esempio => {
@@ -1012,6 +969,11 @@ async function avvia() {
         if (!ultimo) return mostraCreazione();
         ID = ultimo.id;
         CHIAVE = ultimo.chiave;
+    }
+    // Dopo «✅ Ho finito» su questo telefono si apre la vista del bambino (solo per i calendari dei bimbi)
+    if (ID && leggiMemoria('vista_bambino', null) === ID) {
+        location.replace(`/bimbi.html?c=${encodeURIComponent(ID)}`);
+        return;
     }
 
     try {

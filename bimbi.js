@@ -253,7 +253,10 @@ function preparaFinestra() {
 async function avvia() {
     preparaFinestra();
     if (!ID) {
-        $('sottotitolo').textContent = 'Chiedi il link a chi ti ha preparato il calendario 🎁';
+        // Su questo telefono il genitore ha premuto «Ho finito»: si apre quel calendario
+        const ricordato = leggiMemoria('vista_bambino', null);
+        const dove = typeof ricordato === 'string' && ricordato ? `/bimbi.html?c=${encodeURIComponent(ricordato)}` : '/genitori.html';
+        location.replace(dove);
         return;
     }
     try {
@@ -267,7 +270,37 @@ async function avvia() {
     $('titolo').textContent = calendario.titolo;
     $('sottotitolo').textContent = testoSottotitolo();
     disegnaVillaggio();
+    preparaModifica();
     controllaNuovoGiorno();
+}
+
+// «✏️ Modifica»: c'è solo sul telefono di chi ha preparato il calendario, in un angolo.
+// Si attiva tenendolo premuto, così il bambino non lo preme per caso
+const TOCCO_LUNGO = 1500;
+function preparaModifica() {
+    const mio = leggiMemoria('miei_calendari', []).find(voce => voce.id === ID && voce.chiave);
+    if (!mio) return;
+    const bottone = crea('button', { type: 'button', className: 'bottone-modifica', id: 'btnModificaBimbi', textContent: '✏️ Modifica', title: 'Tieni premuto per modificare' });
+    let timer = null;
+    const ferma = () => {
+        clearTimeout(timer);
+        timer = null;
+        bottone.classList.remove('premuto');
+    };
+    bottone.addEventListener('pointerdown', evento => {
+        evento.preventDefault();
+        ferma();
+        bottone.classList.add('premuto');
+        timer = setTimeout(() => {
+            ferma();
+            scriviMemoria('vista_bambino', null);
+            location.href = `/?c=${encodeURIComponent(mio.id)}&k=${encodeURIComponent(mio.chiave)}&per=bimbi`;
+        }, TOCCO_LUNGO);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(tipo => bottone.addEventListener(tipo, ferma));
+    bottone.addEventListener('contextmenu', evento => evento.preventDefault());
+    bottone.addEventListener('click', () => mostraMessaggio('Per modificare, tieni premuto ✏️ Modifica.'));
+    document.body.append(bottone);
 }
 
 avvia();

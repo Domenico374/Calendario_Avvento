@@ -12,3 +12,6 @@ demo
 # Chiavi e file personali: mai sul sito
 key of garden of gratitudine.txt
 *key*.txt
+# La pulizia automatica resta nel ramo ma non va sul sito
+api/pulizia.js
+lib/pulizia.js
