@@ -3116,7 +3116,8 @@ function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', l
     el('rect', { x: 574, y: 74, width: 452, height: 192, fill: '#16245c' }, svg);
     for (let i = 0; i < 22; i++) el('circle', { class: 'fiocco-finestra', cx: 580 + ((i * 97) % 440), cy: 80, r: 2 + (i % 3), fill: '#fff', style: `animation-delay:-${(i * 0.37 % 5).toFixed(2)}s;animation-duration:${(4 + (i % 4)).toFixed(1)}s` }, svg);
     el('path', { d: 'M800 74 v192 M574 170 h452', stroke: '#efe6d2', 'stroke-width': 8 }, svg);
-    el('text', { x: 800, y: 330, 'text-anchor': 'middle', 'font-size': 40, 'font-family': "'Brush Script MT', cursive", fill: '#ffd36b' }, svg).textContent = 'Posta per il Polo Nord';
+    const insegnaPosta = el('text', { x: 800, y: 330, 'text-anchor': 'middle', 'font-size': 40, 'font-family': "'Brush Script MT', cursive", fill: '#ffd36b' }, svg);
+    insegnaPosta.textContent = 'Posta per il Polo Nord';
     [[150, 780, '#c9a27c'], [340, 800, '#b8925f'], [1260, 790, '#c9a27c'], [1450, 805, '#b8925f']].forEach(([sx, sy, colore]) => {
         el('path', { d: `M${sx - 80} ${sy} q -10 -120 40 -150 q 40 -14 80 0 q 50 30 40 150 Z`, fill: colore }, svg);
         el('path', { d: `M${sx - 26} ${sy - 150} q 26 -20 52 0`, stroke: '#8a5a2b', 'stroke-width': 6, fill: 'none' }, svg);
@@ -3204,11 +3205,28 @@ function creaPosta({ onEsci, onSpedisci, modifica, lettere, destinatario = '', l
         foglio.append(titolo, testo, firma, spedisci, stato);
     };
 
+    // Sugli schermi larghi la stanza si vede intera, come le altre, con il foglio sotto la scritta «Posta per il Polo Nord».
+    // Se lì sotto il foglio non ci sta (telefono), la stanza resta com'era: ingrandita, con il foglio al centro.
+    const adattaPosta = () => {
+        if (nodo.hidden) return;
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        foglio.style.top = '';
+        const stanza = nodo.getBoundingClientRect();
+        const cima = insegnaPosta.getBoundingClientRect().bottom - stanza.top + 10;
+        const ciSta = nodo.clientWidth >= nodo.clientHeight && foglio.offsetHeight <= stanza.height - cima - 12;
+        if (ciSta) foglio.style.top = `${Math.round(cima + foglio.offsetHeight / 2)}px`;
+        else svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    };
+    const osservaPosta = new ResizeObserver(adattaPosta);
+    osservaPosta.observe(nodo);
+    osservaPosta.observe(foglio);
+
     return {
         nodo,
         mostra() {
             scrivi();
             nodo.hidden = false;
+            adattaPosta();
             requestAnimationFrame(() => {
                 nodo.classList.add('visibile');
                 (foglio.querySelector('textarea') ?? esci).focus({ preventScroll: true });
