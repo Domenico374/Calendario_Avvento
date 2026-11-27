@@ -353,6 +353,10 @@ function apriEditor(giorno) {
         ? creaContenuto(giorno, dati)
         : crea('p', { className: 'nessun-contenuto', textContent: 'Nessun contenuto salvato per questo giorno' }));
     apriFinestra(`${giorno} dicembre`);
+    // Calendario dei bimbi: la finestra parte dall'alto, con il consiglio e gli esempi
+    if (calendario.perBambini === true) {
+        [$('modal'), $('modal').querySelector('.modal-content')].forEach(scatola => { scatola.scrollTop = 0; });
+    }
 }
 
 function pronto(funzioneRaccolta) {
@@ -844,7 +848,8 @@ async function eliminaCalendario() {
         return;
     }
     scriviMemoria('miei_calendari', leggiMemoria('miei_calendari', []).filter(voce => voce.id !== ID));
-    location.href = '/';
+    if (calendario.perBambini === true) location.href = '/genitori.html';
+    else location.href = '/';
 }
 
 function mostraCreazione() {
